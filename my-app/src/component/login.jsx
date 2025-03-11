@@ -22,28 +22,42 @@ const Login = () => {
   };
 
   return (
-    <div>
+    <div className="flex justify-center items-center h-screen bg-gray-900">
       {!isAuthenticated ? (
-        <div>
-          <h2>Iniciar Sesión</h2>
+        <div className="bg-gray-800 p-8 rounded shadow-md w-96">
+          <h2 className="text-2xl font-bold mb-4 text-white">Iniciar Sesión</h2>
           <input
             type="text"
             placeholder="Usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            className="w-full p-2 mb-4 border border-gray-700 rounded bg-gray-700 text-white"
           />
           <input
             type="password"
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 mb-4 border border-gray-700 rounded bg-gray-700 text-white"
           />
-          <button onClick={handleLogin}>Iniciar Sesión</button>
+          <button
+            onClick={handleLogin}
+            className="w-full bg-blue-700 text-white p-2 rounded hover:bg-blue-800"
+          >
+            Iniciar Sesión
+          </button>
         </div>
       ) : (
-        <div>
-          <h2>Bienvenido, {username}</h2>
-          <button onClick={handleLogout}>Cerrar Sesión</button>
+        <div className="bg-gray-800 p-8 rounded shadow-md w-96">
+          <h2 className="text-2xl font-bold mb-4 text-white">
+            Bienvenido, {username}
+          </h2>
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-700 text-white p-2 rounded hover:bg-red-800"
+          >
+            Cerrar Sesión
+          </button>
         </div>
       )}
     </div>
