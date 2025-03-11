@@ -8,7 +8,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    // Aquí puedes agregar la lógica de autenticación
     if (username === "usuario" && password === "contraseña") {
       setIsAuthenticated(true);
     } else {
