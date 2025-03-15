@@ -31,15 +31,43 @@ export default function Register() {
           <div className="mb-4">
             <label
               className="block text-gray-300 text-sm font-bold mb-2"
-              htmlFor="username"
+              htmlFor="dni"
             >
-              Usuario
+              DNI
             </label>
             <input
               className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
-              id="username"
+              id="dni"
               type="text"
-              placeholder="Username"
+              placeholder="DNI"
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-300 text-sm font-bold mb-2"
+              htmlFor="name"
+            >
+              Nombre y Apellido
+            </label>
+            <input
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              id="name"
+              type="text"
+              placeholder="Nombre y Apellido"
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-300 text-sm font-bold mb-2"
+              htmlFor="address"
+            >
+              Dirección
+            </label>
+            <input
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              id="address"
+              type="text"
+              placeholder="Dirección"
             />
           </div>
           <div className="mb-4">
@@ -53,10 +81,38 @@ export default function Register() {
               className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="email"
               type="email"
-              placeholder="Email"
+              placeholder="Correo Electrónico"
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
+            <label
+              className="block text-gray-300 text-sm font-bold mb-2"
+              htmlFor="whatsapp"
+            >
+              WhatsApp
+            </label>
+            <input
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              id="whatsapp"
+              type="text"
+              placeholder="WhatsApp"
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-300 text-sm font-bold mb-2"
+              htmlFor="username"
+            >
+              Usuario
+            </label>
+            <input
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              id="username"
+              type="text"
+              placeholder="Usuario"
+            />
+          </div>
+          <div className="mb-4">
             <label
               className="block text-gray-300 text-sm font-bold mb-2"
               htmlFor="password"
@@ -64,10 +120,24 @@ export default function Register() {
               Contraseña
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="password"
               type="password"
-              placeholder="******************"
+              placeholder="Contraseña"
+            />
+          </div>
+          <div className="mb-6">
+            <label
+              className="block text-gray-300 text-sm font-bold mb-2"
+              htmlFor="confirmPassword"
+            >
+              Repetir Contraseña
+            </label>
+            <input
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              id="confirmPassword"
+              type="password"
+              placeholder="Repetir Contraseña"
             />
           </div>
           <div className="flex items-center justify-between">
