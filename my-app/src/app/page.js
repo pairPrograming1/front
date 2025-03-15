@@ -1,10 +1,11 @@
 "use client";
-import Login from "../component/login/login";
+
+import Homes from "../component/home/home";
 
 export default function Home() {
   return (
     <div>
-      <Login />
+      <Homes />
     </div>
   );
 }
