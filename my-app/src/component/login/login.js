@@ -1,8 +1,28 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function Login() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (event) => {
+      setMousePosition({ x: event.clientX, y: event.clientY });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div
+      className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative"
+      style={{
+        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(0, 255, 0, 0.2), transparent 80%),rgb(5, 34, 62)`,
+      }}
+    >
       <div className="bg-gray-800 p-8 rounded shadow-md w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Login
@@ -38,11 +58,16 @@ export default function Login() {
           </div>
           <div className="flex items-center justify-between">
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
               type="button"
             >
               Iniciar sesión
             </button>
+            <Link href="/" legacyBehavior>
+              <a className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-700">
+                Home
+              </a>
+            </Link>
           </div>
         </form>
       </div>
