@@ -20,12 +20,12 @@ export default function Register() {
     <div
       className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative"
       style={{
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(0, 255, 0, 0.2), transparent 80%),rgb(5, 34, 62)`,
+        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%),rgb(5, 34, 62)`,
       }}
     >
-      <div className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-sm">
+      <div className="bg-gray-0 p-8 rounded-lg shadow-md w-full max-w-sm ">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
-          Register
+          Registro
         </h2>
         <form>
           <div className="mb-4">
@@ -36,7 +36,7 @@ export default function Register() {
               DNI
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="dni"
               type="text"
               placeholder="DNI"
@@ -50,7 +50,7 @@ export default function Register() {
               Nombre y Apellido
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="name"
               type="text"
               placeholder="Nombre y Apellido"
@@ -64,7 +64,7 @@ export default function Register() {
               Dirección
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="address"
               type="text"
               placeholder="Dirección"
@@ -78,7 +78,7 @@ export default function Register() {
               Correo Electrónico
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="email"
               type="email"
               placeholder="Correo Electrónico"
@@ -92,7 +92,7 @@ export default function Register() {
               WhatsApp
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="whatsapp"
               type="text"
               placeholder="WhatsApp"
@@ -106,7 +106,7 @@ export default function Register() {
               Usuario
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="username"
               type="text"
               placeholder="Usuario"
@@ -120,7 +120,7 @@ export default function Register() {
               Contraseña
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="password"
               type="password"
               placeholder="Contraseña"
@@ -134,29 +134,52 @@ export default function Register() {
               Repetir Contraseña
             </label>
             <input
-              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="confirmPassword"
               type="password"
               placeholder="Repetir Contraseña"
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline mr-2"
+              className="bg-gray-800 border border-gray-800 text-white font-bold py-2 px-3 rounded-full w-full focus:outline-none focus:shadow-outline hover:bg-gray-700"
               type="button"
             >
-              Registrarse
+              Registrarme
             </button>
-            <Link href="/" legacyBehavior>
-              <a className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-700">
-                Home
-              </a>
-            </Link>
           </div>
           <div className="mt-4 text-center">
-            <span className="text-gray-300">¿Ya tienes cuenta? </span>
+            <span className="text-gray-300">
+              Al registrarte aceptas nuestros{" "}
+              <Link href="/terms" legacyBehavior>
+                <a className="text-blue-500 hover:text-blue-700">
+                  términos, condiciones y políticas de privacidad
+                </a>
+              </Link>
+            </span>
+          </div>
+          <div className="mt-4 text-center">
+            <span className="text-gray-300">o continuar con Google</span>
+            <button
+              className="bg-white text-gray-700 font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto"
+              type="button"
+            >
+              <img
+                src="https://w7.pngwing.com/pngs/882/225/png-transparent-google-logo-google-logo-google-search-icon-google-text-logo-business-thumbnail.png"
+                alt="Google Icon"
+                className="w-5 h-5"
+              />
+            </button>
+          </div>
+          <div className="mt-4 text-center">
+            <span className="text-gray-300">
+              {" "}
+              Si aun no tenes cuenta podes{" "}
+            </span>
             <Link href="/login" legacyBehavior>
-              <a className="text-blue-500 hover:text-blue-700">Inicia sesión</a>
+              <a className="text-blue-500 hover:text-blue-700">
+                Iniciar sesión
+              </a>
             </Link>
           </div>
         </form>
