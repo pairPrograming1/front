@@ -69,6 +69,12 @@ export default function Login() {
               </a>
             </Link>
           </div>
+          <div className="mt-4 text-center">
+            <span className="text-gray-300">¿No tienes cuenta? </span>
+            <Link href="/register" legacyBehavior>
+              <a className="text-blue-500 hover:text-blue-700">Regístrate</a>
+            </Link>
+          </div>
         </form>
       </div>
     </div>

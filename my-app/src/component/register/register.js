@@ -83,6 +83,12 @@ export default function Register() {
               </a>
             </Link>
           </div>
+          <div className="mt-4 text-center">
+            <span className="text-gray-300">¿Ya tienes cuenta? </span>
+            <Link href="/login" legacyBehavior>
+              <a className="text-blue-500 hover:text-blue-700">Inicia sesión</a>
+            </Link>
+          </div>
         </form>
       </div>
     </div>
