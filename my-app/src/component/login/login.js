@@ -23,7 +23,7 @@ export default function Login() {
         background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(0, 255, 0, 0.2), transparent 80%),rgb(5, 34, 62)`,
       }}
     >
-      <div className="bg-gray-800 p-8 rounded shadow-md w-full max-w-sm">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Login
         </h2>
@@ -36,7 +36,7 @@ export default function Login() {
               Usuario
             </label>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="username"
               type="text"
               placeholder="Username"
@@ -50,7 +50,7 @@ export default function Login() {
               Contraseña
             </label>
             <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+              className="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
               id="password"
               type="password"
               placeholder="******************"
@@ -58,13 +58,13 @@ export default function Login() {
           </div>
           <div className="flex items-center justify-between">
             <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline mr-2"
               type="button"
             >
               Iniciar sesión
             </button>
             <Link href="/" legacyBehavior>
-              <a className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-700">
+              <a className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-700">
                 Home
               </a>
             </Link>
