@@ -29,7 +29,7 @@ export default function ForgotPassword() {
     >
       <div className="bg-gray-0 p-8 rounded-lg shadow-md w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
-          Recuperar Contraseña
+          Recupero de contraseña
         </h2>
         <form>
           <div className="mb-4">
