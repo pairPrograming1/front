@@ -21,12 +21,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div
-      className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative"
-      style={{
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%),rgb(5, 34, 62)`,
-      }}
-    >
+    <div>
       <div className="bg-gray-0 p-8 rounded-lg shadow-md w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Recupero de contraseña

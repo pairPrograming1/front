@@ -17,12 +17,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div
-      className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative"
-      style={{
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%),rgb(5, 34, 62)`,
-      }}
-    >
+    <div>
       <h1>Bienvenido a la página principal</h1>
       <Link href="/login" legacyBehavior>
         <a>Ir a la página de inicio de sesión</a>

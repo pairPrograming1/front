@@ -9,13 +9,7 @@ const TermsAndConditions = () => {
   };
 
   return (
-    <div
-      className="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative"
-      style={{
-        background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%), rgb(5, 34, 62)`,
-      }}
-      onMouseMove={handleMouseMove}
-    >
+    <div>
       <div className="bg-transparent p-8 rounded-lg shadow-md w-full max-w-2xl text-white">
         <h1 className="text-2xl font-bold mb-4">Términos y Condiciones</h1>
         <p className="mb-4">
