@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import axios from "axios"; // Importar Axios
 
 export default function Register() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [formData, setFormData] = useState({
+    dni: "",
+    name: "",
+    address: "",
+    email: "",
+    whatsapp: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
 
   useEffect(() => {
     const handleMouseMove = (event) => {
@@ -15,6 +26,35 @@ export default function Register() {
       window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post(
+        "https://YOUR_AUTH0_DOMAIN/api/v2/users",
+        {
+          ...formData,
+          connection: "Username-Password-Authentication",
+        },
+        {
+          headers: {
+            Authorization: `Bearer YOUR_AUTH0_API_TOKEN`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("User registered:", response.data);
+    } catch (error) {
+      console.error("Error registering user:", error);
+    }
+  };
 
   return (
     <div>
@@ -35,6 +75,8 @@ export default function Register() {
               id="dni"
               type="text"
               placeholder="DNI"
+              value={formData.dni}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-4">
@@ -49,6 +91,8 @@ export default function Register() {
               id="name"
               type="text"
               placeholder="Nombre y Apellido"
+              value={formData.name}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-4">
@@ -63,6 +107,8 @@ export default function Register() {
               id="address"
               type="text"
               placeholder="Dirección"
+              value={formData.address}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-4">
@@ -77,6 +123,8 @@ export default function Register() {
               id="email"
               type="email"
               placeholder="Correo Electrónico"
+              value={formData.email}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-4">
@@ -91,6 +139,8 @@ export default function Register() {
               id="whatsapp"
               type="text"
               placeholder="WhatsApp"
+              value={formData.whatsapp}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-4">
@@ -105,6 +155,8 @@ export default function Register() {
               id="username"
               type="text"
               placeholder="Usuario"
+              value={formData.username}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-4">
@@ -119,6 +171,8 @@ export default function Register() {
               id="password"
               type="password"
               placeholder="Contraseña"
+              value={formData.password}
+              onChange={handleChange}
             />
           </div>
           <div className="mb-6">
@@ -133,12 +187,15 @@ export default function Register() {
               id="confirmPassword"
               type="password"
               placeholder="Repetir Contraseña"
+              value={formData.confirmPassword}
+              onChange={handleChange}
             />
           </div>
           <div className="flex items-center justify-center">
             <button
               className="bg-gray-800 border border-gray-800 text-white font-bold py-2 px-3 rounded-full w-full focus:outline-none focus:shadow-outline hover:bg-gray-700"
               type="button"
+              onClick={handleSubmit} // Agregar el evento onClick
             >
               Registrarme
             </button>

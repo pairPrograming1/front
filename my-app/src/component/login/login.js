@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import axios from "axios";
 
 export default function Login() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -16,8 +17,28 @@ export default function Login() {
     };
   }, []);
 
-  const handleLogin = () => {
-    console.log("Iniciar sesión");
+  const handleLogin = async () => {
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      const response = await axios.post(
+        "https://YOUR_AUTH0_DOMAIN/oauth/token",
+        {
+          grant_type: "password",
+          username: username,
+          password: password,
+          audience: "YOUR_API_IDENTIFIER",
+          scope: "openid",
+          client_id: "YOUR_CLIENT_ID",
+          client_secret: "YOUR_CLIENT_SECRET",
+        }
+      );
+
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
