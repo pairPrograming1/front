@@ -12,9 +12,6 @@ export default function TicketsPage() {
             C<span className="text-xl">OLOUR</span>
           </span>
         </div>
-        <button className="p-2">
-          <Menu className="h-6 w-6" />
-        </button>
       </header>
 
       <main className="px-12 pb-20 max-w-full">
@@ -39,7 +36,7 @@ export default function TicketsPage() {
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {[
             { type: "Adulto" },
             { type: "Adulto" },
@@ -49,7 +46,7 @@ export default function TicketsPage() {
           ].map((ticket, index) => (
             <div
               key={index}
-              className="bg-gray-0 border border-dashed border-gray-600 rounded-lg p-4 flex justify-between items-center"
+              className="bg-gray-800 border border-dashed border-gray-600 rounded-lg p-6 flex justify-between items-center space-x-4" // Agregado space-x-4
             >
               <span className="text-lg">{ticket.type}</span>
               <Link
