@@ -22,7 +22,7 @@ export default function ForgotPassword() {
 
   return (
     <div>
-      <div className="bg-gray-0 p-8 rounded-lg  w-full max-w-sm">
+      <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Recupero de contraseña
         </h2>
@@ -105,6 +105,11 @@ export default function ForgotPassword() {
             <span className="text-gray-300"> Si ya tenés cuenta podes </span>
             <Link href="/login" legacyBehavior>
               <a className="text-blue-500 hover:text-blue-700">Inicia sesión</a>
+            </Link>
+          </div>
+          <div className="mt-4 text-center">
+            <Link href="/login" legacyBehavior>
+              <a className="text-white-500 hover:underline">Volver atrás</a>
             </Link>
           </div>
         </form>

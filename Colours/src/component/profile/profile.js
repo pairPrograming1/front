@@ -151,6 +151,11 @@ const Profile = () => {
             Actualizar Perfil
           </button>
         </form>
+        <div className="mt-4 text-center">
+          <Link href="/" legacyBehavior>
+            <a className="text-white-500 hover:underline">Volver atrás</a>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -43,10 +43,16 @@ export default function Login() {
 
   return (
     <div>
+      <div className="text-left mb-4">
+        <Link href="/" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Volver atras</a>
+        </Link>
+      </div>
       <div className="bg-gray-0 p-8 rounded-lg s w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Bienvenido a
         </h2>
+
         <form>
           <div className="mb-4">
             <label

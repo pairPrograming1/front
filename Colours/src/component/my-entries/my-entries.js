@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 const MyEntries = () => {
   const entries = [
@@ -9,6 +10,11 @@ const MyEntries = () => {
 
   return (
     <div className="bg-gray-0 p-8 rounded-lg w-full max-w-2xl text-white">
+      <div className="mt-4">
+        <Link href="/" legacyBehavior>
+          <a className="text-white-500 hover:underline">Volver atrás</a>
+        </Link>
+      </div>
       <h1 className="text-2xl font-bold mb-4">Mis Entradas</h1>
       <div className="mb-4 flex items-center">
         <input
