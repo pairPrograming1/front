@@ -27,6 +27,11 @@ const Home = () => {
           <a className="text-white hover:text-blue-700">Ir a Perfil</a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/my-entries" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a Mis Entradas</a>
+        </Link>
+      </div>
     </div>
   );
 };
