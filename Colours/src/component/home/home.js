@@ -32,6 +32,18 @@ const Home = () => {
           <a className="text-white hover:text-blue-700">Ir a Mis Entradas</a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/form-adult" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir formulario adulto</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/form-menor" legacyBehavior>
+          <a className="text-white hover:text-blue-700">
+            Ir formulario menores
+          </a>
+        </Link>
+      </div>
     </div>
   );
 };

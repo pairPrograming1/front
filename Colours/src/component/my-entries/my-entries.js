@@ -1,11 +1,8 @@
-import { Menu } from "lucide-react";
 import Link from "next/link";
 
 export default function TicketsPage() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
-      <div className="absolute bottom-0 right-0 w-full h-1/3 bg-teal-0 rounded-tl-[100px] -z-10" />
-
       <header className="flex justify-between items-center p-4">
         <div className="flex items-center">
           <span className="text-2xl font-bold">
@@ -16,6 +13,13 @@ export default function TicketsPage() {
 
       <main className="px-12 pb-20 max-w-full">
         <h1 className="text-2xl font-bold mb-4">Mis entradas</h1>
+
+        <button
+          onClick={() => window.history.back()}
+          className="text-sm text-gray-300 hover:text-white transition-colors mb-4"
+        >
+          Volver Atrás
+        </button>
 
         <div className="bg-teal-400 rounded-lg p-4 mb-4 flex justify-between items-center">
           <span className="text-lg">Hernán Guillano</span>
@@ -46,7 +50,7 @@ export default function TicketsPage() {
           ].map((ticket, index) => (
             <div
               key={index}
-              className="bg-gray-800 border border-dashed border-gray-600 rounded-lg p-6 flex justify-between items-center space-x-4" // Agregado space-x-4
+              className="bg-gray-800 border border-dashed border-gray-600 rounded-lg p-6 flex justify-between items-center space-x-4"
             >
               <span className="text-lg">{ticket.type}</span>
               <Link
