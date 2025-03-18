@@ -58,7 +58,7 @@ export default function Register() {
 
   return (
     <div>
-      <div className="bg-gray-0 p-8 rounded-lg shadow-md w-full max-w-sm ">
+      <div className="bg-gray-0 p-8 rounded-lg  w-full max-w-sm ">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Registro
         </h2>

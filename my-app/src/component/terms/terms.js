@@ -10,7 +10,7 @@ const TermsAndConditions = () => {
 
   return (
     <div>
-      <div className="bg-transparent p-8 rounded-lg shadow-md w-full max-w-2xl text-white">
+      <div className="bg-transparent p-8 rounded-lg  w-full max-w-2xl text-white">
         <h1 className="text-2xl font-bold mb-4">Términos y Condiciones</h1>
         <p className="mb-4">
           Bienvenido a nuestra aplicación. Al usar esta aplicación, usted acepta
