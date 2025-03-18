@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 const TermsAndConditions = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -10,7 +11,7 @@ const TermsAndConditions = () => {
 
   return (
     <div>
-      <div className="bg-transparent p-8 rounded-lg  w-full max-w-2xl text-white">
+      <div className="bg-transparent p-8 rounded-lg w-full max-w-2xl text-white">
         <h1 className="text-2xl font-bold mb-4">Términos y Condiciones</h1>
         <p className="mb-4">
           Bienvenido a nuestra aplicación. Al usar esta aplicación, usted acepta
@@ -26,8 +27,8 @@ const TermsAndConditions = () => {
             su cuenta y contraseña.
           </li>
           <li className="mb-2">
-            Condición 3: La aplicación se proporciona "tal cual" y "según
-            disponibilidad".
+            Condición 3: La aplicación se proporciona &quot;tal cual&quot; y &quot;según
+            disponibilidad&quot;.
           </li>
           <li className="mb-2">
             Condición 4: Nos reservamos el derecho de modificar o descontinuar
@@ -44,6 +45,12 @@ const TermsAndConditions = () => {
           Si no está de acuerdo con estos términos y condiciones, por favor no
           use nuestra aplicación.
         </p>
+      </div>
+
+      <div className="mt-4 text-center">
+        <Link href="/register" legacyBehavior>
+          <a className="text-white-500 hover:underline">Volver atrás</a>
+        </Link>
       </div>
     </div>
   );

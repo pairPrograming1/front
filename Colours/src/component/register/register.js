@@ -195,7 +195,7 @@ export default function Register() {
             <button
               className="bg-gray-800 border border-gray-800 text-white font-bold py-2 px-3 rounded-full w-full focus:outline-none focus:shadow-outline hover:bg-gray-700"
               type="button"
-              onClick={handleSubmit} // Agregar el evento onClick
+              onClick={handleSubmit}
             >
               Registrarme
             </button>
@@ -224,13 +224,16 @@ export default function Register() {
             </button>
           </div>
           <div className="mt-4 text-center">
-            <span className="text-gray-300">
-              &quotSi aun no tenes cuenta podes&quot
-            </span>
+            <span className="text-gray-300">Si aun no tenes cuenta podes</span>
             <Link href="/login" legacyBehavior>
               <a className="text-blue-500 hover:text-blue-700">
                 Iniciar sesión
               </a>
+            </Link>
+          </div>
+          <div className="mt-4 text-center">
+            <Link href="/login" legacyBehavior>
+              <a className="text-white-500 hover:underline">Volver atrás</a>
             </Link>
           </div>
         </form>
