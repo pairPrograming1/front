@@ -3,13 +3,7 @@ import Link from "next/link";
 export default function TicketsPage() {
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
-      <header className="flex justify-between items-center p-4">
-        <div className="flex items-center">
-          <span className="text-2xl font-bold">
-            C<span className="text-xl">OLOUR</span>
-          </span>
-        </div>
-      </header>
+      <header className="flex justify-between items-center p-4"></header>
 
       <main className="px-12 pb-20 max-w-full">
         <h1 className="text-2xl font-bold mb-4">Mis entradas</h1>
