@@ -56,6 +56,13 @@ const Home = () => {
           </a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/event-ticket-selector" legacyBehavior>
+          <a className="text-white hover:text-blue-700">
+            Ir a selector de eventos
+          </a>
+        </Link>
+      </div>
     </div>
   );
 };
