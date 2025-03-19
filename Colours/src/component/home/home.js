@@ -44,6 +44,18 @@ const Home = () => {
           </a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/no-events" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir no hay eventos</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/form-event" legacyBehavior>
+          <a className="text-white hover:text-blue-700">
+            Ir a pedido de eventos
+          </a>
+        </Link>
+      </div>
     </div>
   );
 };
