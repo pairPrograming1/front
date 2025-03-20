@@ -1,13 +1,12 @@
 import Image from "next/image";
-import Link from "next/link"; // Importa Link de Next.js
+import Link from "next/link";
 
 export default function Payment() {
   return (
     <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm mx-auto">
       <header className="mb-6">
-        <Link href="/" passHref>
-          <a className="text-white text-sm mb-4 block">← Volver atrás</a>{" "}
-          {/* Enlace de volver atrás */}
+        <Link href="/" passHref className="text-white text-sm mb-4 block">
+          ← Volver atrás
         </Link>
         <h1 className="text-2xl font-bold text-center text-white">Colours</h1>
       </header>
