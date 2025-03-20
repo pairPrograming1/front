@@ -73,6 +73,16 @@ const Home = () => {
           <a className="text-white hover:text-blue-700">Ir a cobros</a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/event" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a eventos</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/start-salons" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a inicio salones</a>
+        </Link>
+      </div>
     </div>
   );
 };
