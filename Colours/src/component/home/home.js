@@ -32,6 +32,47 @@ const Home = () => {
           <a className="text-white hover:text-blue-700">Ir a Mis Entradas</a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/form-adult" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir formulario adulto</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/form-menor" legacyBehavior>
+          <a className="text-white hover:text-blue-700">
+            Ir formulario menores
+          </a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/no-events" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir no hay eventos</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/form-event" legacyBehavior>
+          <a className="text-white hover:text-blue-700">
+            Ir a pedido de eventos
+          </a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/event-ticket-selector" legacyBehavior>
+          <a className="text-white hover:text-blue-700">
+            Ir a selector de eventos
+          </a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/payment" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a pagar</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/collection" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a cobros</a>
+        </Link>
+      </div>
     </div>
   );
 };

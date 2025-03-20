@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import axios from "axios"; // Importar Axios
+import Image from "next/image"; // Importar Image de next/image
 
 export default function Register() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -58,7 +59,7 @@ export default function Register() {
 
   return (
     <div>
-      <div className="bg-gray-0 p-8 rounded-lg  w-full max-w-sm ">
+      <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Registro
         </h2>
@@ -216,15 +217,19 @@ export default function Register() {
               className="bg-white text-gray-700 font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto"
               type="button"
             >
-              <img
+              <Image
                 src="https://w7.pngwing.com/pngs/882/225/png-transparent-google-logo-google-logo-google-search-icon-google-text-logo-business-thumbnail.png"
                 alt="Google Icon"
+                width={20} // Define el tamaño de la imagen
+                height={20} // Define el tamaño de la imagen
                 className="w-5 h-5"
               />
             </button>
           </div>
           <div className="mt-4 text-center">
-            <span className="text-gray-300">Si aun no tenes cuenta podes</span>
+            <span className="text-gray-300">
+              Si aún no tienes cuenta puedes
+            </span>
             <Link href="/login" legacyBehavior>
               <a className="text-blue-500 hover:text-blue-700">
                 Iniciar sesión

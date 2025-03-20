@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import axios from "axios";
+import Image from "next/image";
 
 export default function Login() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -104,10 +105,11 @@ export default function Login() {
               className="bg-white text-gray-700 font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto"
               type="button"
             >
-              <img
+              <Image
                 src="https://w7.pngwing.com/pngs/882/225/png-transparent-google-logo-google-logo-google-search-icon-google-text-logo-business-thumbnail.png"
                 alt="Google Icon"
-                className="w-5 h-5"
+                width={20}
+                height={20}
               />
             </button>
           </div>
