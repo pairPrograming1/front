@@ -68,6 +68,11 @@ const Home = () => {
           <a className="text-white hover:text-blue-700">Ir a pagar</a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/collection" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a cobros</a>
+        </Link>
+      </div>
     </div>
   );
 };
