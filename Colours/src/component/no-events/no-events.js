@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function NoEvents() {
   const handleGoBack = () => {
-    window.history.back(); // Navegar atrás en el historial
+    window.history.back();
   };
   return (
     <main className="min-h-screen text-white">
@@ -41,13 +41,13 @@ export default function NoEvents() {
         </div>
       </div>
       <div className="mt-4 text-center">
-        <a
-          href="/"
+        <Link
+          href="#"
           onClick={handleGoBack}
           className="text-teal-300 hover:text-teal-400"
         >
           Volver atrás
-        </a>
+        </Link>
       </div>
     </main>
   );
