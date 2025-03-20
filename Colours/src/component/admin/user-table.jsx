@@ -1,9 +1,8 @@
 "use client"
 
-import React from "react"
-
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
+import React from "react"
 
 // Datos de ejemplo
 const users = [
@@ -102,12 +101,52 @@ const users = [
 export default function UserTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [expandedRows, setExpandedRows] = useState([])
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
 
   const toggleRowExpand = (userId) => {
     setExpandedRows((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
   }
 
   const isRowExpanded = (userId) => expandedRows.includes(userId)
+
+  // Manejar selección de todos los usuarios
+  const handleSelectAll = () => {
+    if (selectAll) {
+      // Si ya estaban todos seleccionados, deseleccionar todos
+      setSelectedUsers([])
+    } else {
+      // Seleccionar todos los usuarios
+      setSelectedUsers(users.map((user) => user.id))
+    }
+    setSelectAll(!selectAll)
+  }
+
+  // Manejar selección individual
+  const handleSelectUser = (userId) => {
+    setSelectedUsers((prev) => {
+      if (prev.includes(userId)) {
+        // Si ya estaba seleccionado, quitarlo de la selección
+        const newSelected = prev.filter((id) => id !== userId)
+        // Si después de quitar uno ya no están todos seleccionados, actualizar selectAll
+        if (newSelected.length !== users.length) {
+          setSelectAll(false)
+        }
+        return newSelected
+      } else {
+        // Si no estaba seleccionado, añadirlo a la selección
+        const newSelected = [...prev, userId]
+        // Si después de añadir uno están todos seleccionados, actualizar selectAll
+        if (newSelected.length === users.length) {
+          setSelectAll(true)
+        }
+        return newSelected
+      }
+    })
+  }
+
+  // Verificar si un usuario está seleccionado
+  const isSelected = (userId) => selectedUsers.includes(userId)
 
   return (
     <div className="flex flex-col">
@@ -119,7 +158,12 @@ export default function UserTable() {
                 <tr>
                   <th scope="col" className="w-12 p-4">
                     <div className="flex items-center">
-                      <input type="checkbox" className="w-4 h-4 accent-teal-500 rounded focus:ring-teal-600" />
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 accent-teal-500 rounded focus:ring-teal-600"
+                        checked={selectAll}
+                        onChange={handleSelectAll}
+                      />
                     </div>
                   </th>
                   <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
@@ -131,7 +175,10 @@ export default function UserTable() {
                   >
                     Nombre y Apellido
                   </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase">
+                  <th
+                    scope="col"
+                    className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase"
+                  >
                     Email
                   </th>
                   <th
@@ -154,14 +201,21 @@ export default function UserTable() {
                     <tr className={`hover:bg-slate-700 ${isRowExpanded(user.id) ? "bg-slate-700" : ""}`}>
                       <td className="p-4 w-4">
                         <div className="flex items-center">
-                          <input type="checkbox" className="w-4 h-4 accent-teal-500 rounded focus:ring-teal-600" />
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 accent-teal-500 rounded focus:ring-teal-600"
+                            checked={isSelected(user.id)}
+                            onChange={() => handleSelectUser(user.id)}
+                          />
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-white">{user.username}</td>
                       <td className="hidden md:table-cell px-4 py-3 whitespace-nowrap text-sm text-gray-300">
                         {user.name}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">{user.email}</td>
+                      <td className="hidden sm:table-cell px-4 py-3 whitespace-nowrap text-sm text-gray-300">
+                        {user.email}
+                      </td>
                       <td className="hidden sm:table-cell px-4 py-3 whitespace-nowrap text-sm text-gray-300">
                         {user.role}
                       </td>
@@ -180,6 +234,9 @@ export default function UserTable() {
                           <div className="grid grid-cols-1 gap-2 text-sm text-gray-300 pb-2">
                             <div>
                               <span className="font-medium text-gray-400">Nombre y Apellido:</span> {user.name}
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-400">Email:</span> {user.email}
                             </div>
                             <div>
                               <span className="font-medium text-gray-400">Tipo de Usuario:</span> {user.role}
@@ -235,4 +292,7 @@ export default function UserTable() {
     </div>
   )
 }
+
+
+
 
