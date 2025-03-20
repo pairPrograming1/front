@@ -109,7 +109,8 @@ export default function ForgotPassword() {
               <a className="text-blue-500 hover:text-blue-700">Inicia sesión</a>
             </Link>
           </div>
-          <div className="mt-4 text-center">
+
+          <div className="mt-6 text-left">
             <Link href="/login" legacyBehavior>
               <a className="text-white-500 hover:underline">Volver atrás</a>
             </Link>

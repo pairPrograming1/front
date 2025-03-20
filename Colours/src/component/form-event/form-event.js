@@ -33,7 +33,7 @@ export default function FormularioEvento() {
   };
 
   return (
-    <div className="min-h-screen  text-white">
+    <div className="min-h-screen text-white">
       <div className="container mx-auto px-4 py-4">
         <header className="flex justify-between items-center mb-6">
           <div className="text-2xl font-bold">COLOUR</div>
@@ -125,11 +125,11 @@ export default function FormularioEvento() {
             </button>
           </form>
 
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-left">
             <a
               href="/no-events"
               onClick={handleGoBack}
-              className="text-teal-300 hover:text-teal-400"
+              className="text-white-500 hover:underline"
             >
               Volver atrás
             </a>

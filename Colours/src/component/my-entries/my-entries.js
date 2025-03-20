@@ -8,13 +8,6 @@ export default function TicketsPage() {
       <main className="px-12 pb-20 max-w-full">
         <h1 className="text-2xl font-bold mb-4">Mis entradas</h1>
 
-        <button
-          onClick={() => window.history.back()}
-          className="text-sm text-gray-300 hover:text-white transition-colors mb-4"
-        >
-          Volver Atrás
-        </button>
-
         <div className="bg-teal-400 rounded-lg p-4 mb-4 flex justify-between items-center">
           <span className="text-lg">Hernán Guillano</span>
           <button className="text-gray-800">
@@ -55,6 +48,15 @@ export default function TicketsPage() {
               </Link>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6 text-left">
+          <button
+            onClick={() => window.history.back()}
+            className="text-white-500 hover:underline"
+          >
+            Volver Atrás
+          </button>
         </div>
       </main>
     </div>

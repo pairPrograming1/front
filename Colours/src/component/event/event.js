@@ -6,15 +6,9 @@ export default function Event() {
     <div className="min-h-screen bg-gray-0 text-white p-8">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold tracking-wider">Colour</h1>
-        <Link
-          href="/"
-          className="text-gray-300 hover:text-green-500 transition-colors"
-        >
-          Volver atrás
-        </Link>
       </header>
 
-      <main className="bg-gray-0 p-6 rounded-lg ">
+      <main className="bg-gray-0 p-6 rounded-lg">
         <div className="rounded-lg overflow-hidden border border-green-500 mb-6">
           <Image
             src="/placeholder.svg?height=400&width=800"
@@ -54,6 +48,12 @@ export default function Event() {
             eget. Futrices ante varius a justo. Nunc a nisi feugiat, volutpat
             eros et, tempor eros. Praesent imperdiet leo felis, sed ultrices.
           </p>
+        </div>
+
+        <div className="mt-8 text-left">
+          <Link href="/" className="text-white-500 hover:underline">
+            Volver atrás
+          </Link>
         </div>
       </main>
     </div>

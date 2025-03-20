@@ -8,9 +8,6 @@ export default function StartSalons() {
         <div className="flex items-center">
           <span className="text-2xl font-bold">COLOUR</span>
         </div>
-        <Link href="/" className="text-sm text-teal-400 hover:text-teal-300">
-          Volver atrás
-        </Link>
       </header>
 
       <div className="flex flex-col gap-6">
@@ -46,6 +43,12 @@ export default function StartSalons() {
           <button className="bg-gray-800 text-white font-medium py-2 px-6 rounded-full text-sm w-full hover:bg-gray-900 focus:outline-none focus:shadow-outline">
             Ver pagos realizados
           </button>
+        </div>
+
+        <div className="mt-6 text-left">
+          <Link href="/" className="text-white-500 hover:underline">
+            Volver atrás
+          </Link>
         </div>
       </div>
     </main>

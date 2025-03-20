@@ -44,12 +44,7 @@ export default function Login() {
 
   return (
     <div>
-      <div className="text-left mb-4">
-        <Link href="/" legacyBehavior>
-          <a className="text-white hover:text-blue-700">Volver atras</a>
-        </Link>
-      </div>
-      <div className="bg-gray-0 p-8 rounded-lg s w-full max-w-sm">
+      <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm">
         <h2 className="text-2xl font-bold mb-6 text-center text-white">
           Bienvenido a
         </h2>
@@ -120,6 +115,12 @@ export default function Login() {
             </span>
             <Link href="/register" legacyBehavior>
               <a className="text-white hover:text-blue-700">Regístrate</a>
+            </Link>
+          </div>
+
+          <div className="mt-6 text-left">
+            <Link href="/" legacyBehavior>
+              <a className="text-white-500 hover:underline">Volver atrás</a>
             </Link>
           </div>
         </form>

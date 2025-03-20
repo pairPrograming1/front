@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react"; // Eliminamos el import de Menu
 
 export default function Menor() {
   const [formData, setFormData] = useState({
@@ -36,11 +35,6 @@ export default function Menor() {
       </header>
 
       <div className="px-6 pt-4 pb-20 mt-20">
-        <Link href="/" className="flex items-center text-white mb-6">
-          <ArrowLeft size={18} className="mr-1" />
-          <span>Volver atrás</span>
-        </Link>
-
         <h1 className="text-white text-2xl font-bold mb-6">Menores</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -69,6 +63,12 @@ export default function Menor() {
             Asignar Entrada
           </button>
         </form>
+
+        <div className="mt-6 text-left">
+          <Link href="/" className="text-white-500 hover:underline">
+            <span>Volver atrás</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

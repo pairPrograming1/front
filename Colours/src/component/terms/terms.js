@@ -27,8 +27,8 @@ const TermsAndConditions = () => {
             su cuenta y contraseña.
           </li>
           <li className="mb-2">
-            Condición 3: La aplicación se proporciona &quot;tal cual&quot; y &quot;según
-            disponibilidad&quot;.
+            Condición 3: La aplicación se proporciona &quot;tal cual&quot; y
+            &quot;según disponibilidad&quot;.
           </li>
           <li className="mb-2">
             Condición 4: Nos reservamos el derecho de modificar o descontinuar
@@ -47,7 +47,7 @@ const TermsAndConditions = () => {
         </p>
       </div>
 
-      <div className="mt-4 text-center">
+      <div className="mt-6 text-left pl-8">
         <Link href="/register" legacyBehavior>
           <a className="text-white-500 hover:underline">Volver atrás</a>
         </Link>
