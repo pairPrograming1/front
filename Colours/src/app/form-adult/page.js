@@ -1,4 +1,4 @@
-import FormAdult from "../../component/form-adult/form-adult";
+import FormAdult from "../components/form-adult/form-adult";
 
 export default function FormAdultPage() {
   return (

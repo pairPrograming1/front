@@ -1,5 +1,5 @@
 "use client";
-import Event from "../../component/event/event";
+import Event from "../components/event/event";
 
 export default function ForgotPasswordPage() {
   return (

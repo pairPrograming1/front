@@ -1,5 +1,5 @@
 "use client";
-import Collection from "../../component/collection/collection";
+import Collection from "../components/collection/collection";
 
 export default function CollectionPage() {
   return (

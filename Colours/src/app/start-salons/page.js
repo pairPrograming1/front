@@ -1,5 +1,5 @@
 "use client";
-import StartSalons from "../../component/start-salons/start-salons";
+import StartSalons from "../components/start-salons/start-salons";
 
 export default function StartSalonsPage() {
   return (
