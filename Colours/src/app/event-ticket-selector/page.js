@@ -1,4 +1,4 @@
-import EventTicketSelector from "../../component/event-ticket-selector/event-ticket-selector";
+import EventTicketSelector from "../components/event-ticket-selector/event-ticket-selector";
 
 export default function EventTicketSelectorPage() {
   return (

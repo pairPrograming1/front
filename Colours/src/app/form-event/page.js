@@ -1,4 +1,4 @@
-import FormularioEvento from "../../component/form-event/form-event";
+import FormularioEvento from "../components/form-event/form-event";
 
 export default function FormEventPage() {
   return (

@@ -1,4 +1,4 @@
-import FormAdult from "../../component/form-menor/form-menor";
+import FormAdult from "../components/form-menor/form-menor";
 
 export default function FormMenorPage() {
   return (

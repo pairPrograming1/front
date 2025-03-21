@@ -1,10 +1,10 @@
 "use client";
-import ForgotPassword from "../components/forgot-password/forgot-password";
+import Event from "../components/event/event";
 
 export default function ForgotPasswordPage() {
   return (
     <div>
-      <ForgotPassword />
+      <Event />
     </div>
   );
 }
