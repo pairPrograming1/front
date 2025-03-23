@@ -5,7 +5,7 @@ import { Users, Store, Building2, Calendar, DollarSign, Menu, ChevronLeft, Chevr
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
-export default function Sidebar({ activePage }) {
+export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -13,16 +13,14 @@ export default function Sidebar({ activePage }) {
     setCollapsed(!collapsed)
   }
 
-  // Determinar la página activa basada en la ruta o el prop
+  // Determinar la página activa basada en la ruta
   const isActive = (path) => {
-    if (activePage) {
-      return activePage === path
-    }
-
     if (path === "usuarios") {
       return pathname === "/admin" || pathname === "/"
     } else if (path === "puntos-venta") {
       return pathname === "/admin/sellpoint" || pathname.startsWith("/admin/sellpoint/")
+    } else if (path === "salones") {
+      return pathname === "/admin/salones" || pathname.startsWith("/admin/salones/")
     } else {
       return pathname === `/admin/${path}` || pathname.startsWith(`/admin/${path}/`)
     }
