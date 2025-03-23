@@ -5,16 +5,15 @@ import Sidebar from "@/app/components/admin/sidebar"
 import PuntosVentaTable from "@/app/components/puntos-venta/punto-ventas-table"
 import SearchBar from "@/app/components/puntos-venta/search-bar-ventas"
 import ActionButtons from "@/app/components/puntos-venta/action-buttons-venta"
-import PuntoVentaModal from "@/app/components/puntos-venta/punto-ventas-modal"
+
 import TopNavbar from "@/app/components/admin/top-navbar"
 import { Menu } from "lucide-react"
 
 export default function PuntosVentaPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
-  const openModal = () => setIsModalOpen(true)
-  const closeModal = () => setIsModalOpen(false)
+  
   const toggleMobileSidebar = () => setIsMobileSidebarOpen(!isMobileSidebarOpen)
 
   return (
@@ -45,7 +44,7 @@ export default function PuntosVentaPage() {
 
           <div className="flex-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <SearchBar />
-            <ActionButtons onAddPuntoVenta={openModal} />
+            <ActionButtons />
           </div>
         </header>
 
@@ -54,7 +53,7 @@ export default function PuntosVentaPage() {
         </div>
       </main>
 
-      {isModalOpen && <PuntoVentaModal onClose={closeModal} />}
+      
     </div>
   )
 }
