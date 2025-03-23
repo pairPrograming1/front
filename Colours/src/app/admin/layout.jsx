@@ -11,7 +11,7 @@ export default function AdminLayout({ children }) {
   const toggleMobileSidebar = () => setIsMobileSidebarOpen(!isMobileSidebarOpen)
 
   return (
-    <div className="flex min-h-screen bg-[#0a1929] text-gray-100">
+    <div className="flex min-h-screen bg-[#0a1929] text-gray-100 w-full">
       {/* Sidebar para pantallas medianas y grandes */}
       <div className="hidden md:block h-screen">
         <Sidebar />
