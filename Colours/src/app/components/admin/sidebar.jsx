@@ -21,6 +21,8 @@ export default function Sidebar() {
       return pathname === "/admin/sellpoint" || pathname.startsWith("/admin/sellpoint/")
     } else if (path === "salones") {
       return pathname === "/admin/salones" || pathname.startsWith("/admin/salones/")
+    } else if (path === "eventos") {
+      return pathname === "/admin/events" || pathname.startsWith("/admin/events/")
     } else {
       return pathname === `/admin/${path}` || pathname.startsWith(`/admin/${path}/`)
     }
@@ -77,7 +79,7 @@ export default function Sidebar() {
           </li>
           <li>
             <Link
-              href="/admin/eventos"
+              href="/admin/events"
               className={`flex items-center gap-3 p-2 rounded-md ${isActive("eventos") ? "text-[#00e5b0]" : "text-gray-300"} hover:bg-[#1a3a5f] ${collapsed ? "justify-center" : ""}`}
             >
               <Calendar size={20} />
