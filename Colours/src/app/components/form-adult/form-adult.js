@@ -87,12 +87,15 @@ export default function FormAdult() {
             Asignar Entrada
           </button>
         </form>
-        <button
-          onClick={handleGoBack}
-          className="mt-6 text-teal-300 hover:text-teal-400 text-lg"
-        >
-          Volver Atrás
-        </button>
+
+        <div className="mt-6 text-left">
+          <button
+            onClick={handleGoBack}
+            className="text-white-500 hover:underline"
+          >
+            Volver Atrás
+          </button>
+        </div>
       </div>
     </div>
   );

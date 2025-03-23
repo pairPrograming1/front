@@ -6,14 +6,6 @@ export default function Collection() {
     <div className="bg-gray-0 p-8 rounded-lg w-full max-w-screen-lg mx-auto">
       <header className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <Link
-            href="/"
-            className="text-green-500 text-sm font-medium flex items-center"
-          >
-            Volver Atrás
-          </Link>
-        </div>
-        <div className="flex items-center">
           <span className="text-2xl font-bold text-white">COLOUR</span>
         </div>
       </header>
@@ -102,6 +94,12 @@ export default function Collection() {
                 </div>
               ))}
           </div>
+        </div>
+
+        <div className="mt-8">
+          <Link href="/" className="text-white-500 hover:underline">
+            Volver Atrás
+          </Link>
         </div>
       </main>
     </div>

@@ -40,13 +40,7 @@ export default function EventTicketSelector() {
 
   return (
     <main className="min-h-screen text-white flex flex-col items-center justify-center p-4">
-      <div className="rounded-3xl w-full max-w-xl p-6 +">
-        <div className="mb-4">
-          <Link href="/" className="text-teal-400 hover:underline">
-            Volver atrás
-          </Link>
-        </div>
-
+      <div className="rounded-3xl w-full max-w-xl p-6">
         <div className="relative h-48 w-full mb-4">
           <Image
             src="/placeholder.svg?height=400&width=800"
@@ -116,6 +110,12 @@ export default function EventTicketSelector() {
         <button className="w-full bg-teal-400 text-white py-3 rounded-full font-medium hover:bg-teal-500 transition-colors">
           Ir a Pagar
         </button>
+
+        <div className="mt-6 text-left">
+          <Link href="/" className="text-white-500 hover:underline">
+            Volver atrás
+          </Link>
+        </div>
       </div>
     </main>
   );

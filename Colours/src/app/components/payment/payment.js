@@ -1,14 +1,10 @@
 import Image from "next/image";
-import Link from "next/link"; // Importa Link de Next.js
+import Link from "next/link";
 
 export default function Payment() {
   return (
     <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm mx-auto">
       <header className="mb-6">
-        <Link href="/" passHref>
-          <a className="text-white text-sm mb-4 block">← Volver atrás</a>{" "}
-          {/* Enlace de volver atrás */}
-        </Link>
         <h1 className="text-2xl font-bold text-center text-white">Colours</h1>
       </header>
 
@@ -58,6 +54,16 @@ export default function Payment() {
         <button className="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-colors">
           Ir a Pagar
         </button>
+
+        <div className="mt-6 text-left">
+          <Link
+            href="/"
+            passHref
+            className="text-white text-sm hover:underline"
+          >
+            Volver atrás
+          </Link>
+        </div>
       </main>
     </div>
   );
