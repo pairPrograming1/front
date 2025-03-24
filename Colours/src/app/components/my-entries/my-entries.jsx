@@ -14,7 +14,7 @@ export default function TicketsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-0 text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gray-800/50 text-white relative overflow-hidden">
       <header className="border-b border-gray-800 py-4">
         <div className="max-w-7xl mx-auto px:4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">

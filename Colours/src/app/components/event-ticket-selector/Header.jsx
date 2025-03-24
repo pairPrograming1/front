@@ -1,7 +1,7 @@
 export default function Header() {
   return (
-    <header className="flex justify-between items-center p-6">
-      <div className="text-xl font-bold">Colour</div>
+    <header className="flex justify-between items-center p-6 w-full max-w-xl">
+      <h1 className="text-xl font-bold">Colour</h1>
       <button>
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -1,13 +1,29 @@
+"use client";
+
 import Link from "next/link";
 
 export default function BackLink({ href, text }) {
   return (
-    <div className="mt-6 text-left">
+    <div className="text-left">
       <Link
         href={href}
-        className="text-gray-400 hover:text-white text-sm transition-colors"
+        className="text-gray-400 hover:text-teal-400 transition-colors text-sm md:text-base flex items-center group"
       >
-        ← {text}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        {text}
       </Link>
     </div>
   );

@@ -1,9 +1,7 @@
 export default function Header() {
   return (
-    <header className="flex justify-between items-center mb-8">
-      <div className="flex items-center">
-        <span className="text-2xl font-bold">COLOUR</span>
-      </div>
+    <header className="w-full flex justify-center mb-22">
+      <h1 className="text-2xl font-bold tracking-wider text-white">COLOUR</h1>
     </header>
   );
 }

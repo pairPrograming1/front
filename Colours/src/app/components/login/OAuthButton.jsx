@@ -1,11 +1,13 @@
+"use client";
+
 import Image from "next/image";
 
 export default function OAuthButton() {
   return (
-    <div className="mt-6 text-center">
+    <div className="text-center">
       <span className="text-gray-300 text-sm">o continuar con Google</span>
       <button
-        className="bg-white text-gray-700 font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto hover:bg-gray-100 transition-colors"
+        className="bg-white text-gray-700 font-bold py-2 px-4 rounded-xl md:rounded-full focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto hover:bg-gray-100 transition-colors"
         type="button"
       >
         <Image

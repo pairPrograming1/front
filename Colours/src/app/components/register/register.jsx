@@ -1,16 +1,20 @@
+"use client";
+
 import RegisterForm from "./RegisterForm";
 import SocialLogin from "./SocialLogin";
 import BackButton from "./BackButton";
 
 export default function Register() {
   return (
-    <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-center text-white">
-        Registro
-      </h1>
-      <RegisterForm />
-      <SocialLogin />
-      <BackButton />
+    <div className="min-h-screen flex items-center justify-center  px-4">
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 md:p-10 w-full max-w-lg md:max-w-2xl lg:max-w-3xl border border-teal-400/30 shadow-xl">
+        <h1 className="text-white text-2xl md:text-3xl font-bold text-center mb-6">
+          Registro
+        </h1>
+        <RegisterForm />
+        <SocialLogin />
+        <BackButton />
+      </div>
     </div>
   );
 }
