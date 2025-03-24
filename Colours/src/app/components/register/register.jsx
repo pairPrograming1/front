@@ -3,6 +3,7 @@
 import RegisterForm from "./RegisterForm";
 import SocialLogin from "./SocialLogin";
 import BackButton from "./BackButton";
+import TermsAndConditions from "./TermsAndCondition";
 
 export default function Register() {
   return (
@@ -11,7 +12,9 @@ export default function Register() {
         <h1 className="text-white text-2xl md:text-3xl font-bold text-center mb-6">
           Registro
         </h1>
+
         <RegisterForm />
+        <TermsAndConditions />
         <SocialLogin />
         <BackButton />
       </div>
