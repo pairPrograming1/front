@@ -83,6 +83,11 @@ const Home = () => {
           <a className="text-white hover:text-blue-700">Ir a inicio salones</a>
         </Link>
       </div>
+      <div className="mt-4 text-center">
+        <Link href="/admin" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a dashboard admin</a>
+        </Link>
+      </div>
     </div>
   );
 };

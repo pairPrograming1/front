@@ -40,6 +40,24 @@ export default function EventTicketSelector() {
 
   return (
     <main className="min-h-screen text-white flex flex-col items-center justify-center p-4">
+      <header className="flex justify-between items-center p-6">
+        <div className="text-xl font-bold">Colour</div>
+        <button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-menu"
+          ></svg>
+        </button>
+      </header>
+
       <div className="rounded-3xl w-full max-w-xl p-6">
         <div className="relative h-48 w-full mb-4">
           <Image
