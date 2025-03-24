@@ -11,7 +11,7 @@ export default function InputField({ id, type, placeholder, label }) {
         id={id}
         type={type}
         placeholder={placeholder}
-        className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
+        className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700 hover:border-green-400 transition-colors"
       />
     </div>
   );
