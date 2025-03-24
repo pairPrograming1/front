@@ -1,30 +1,18 @@
 "use client";
 
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
-export default function BackButton() {
+export default function BackLink() {
   return (
-    <div className="mt-6 text-left">
-      <Link
-        href="/"
-        className="text-gray-400 hover:text-teal-400 transition-colors text-sm md:text-base flex items-center group"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-        Volver atrás
-      </Link>
-    </div>
+    <button
+      onClick={() => window.history.back()}
+      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+    >
+      <ArrowLeft
+        size={16}
+        className="group-hover:-translate-x-1 transition-transform"
+      />
+      <span>Volver Atrás</span>
+    </button>
   );
 }

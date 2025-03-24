@@ -1,8 +1,8 @@
 "use client";
-import Link from "next/link";
 import Header from "./Header";
 import SalonCard from "./SalonCard";
 import InfoCard from "./InfoCard";
+import BackLink from "./BackLink";
 
 export default function StartSalons() {
   return (
@@ -29,9 +29,7 @@ export default function StartSalons() {
 
       {/* Botón de Volver Atrás */}
       <div className="mt-auto mb-6">
-        <Link href="/" className="text-teal-300 hover:underline">
-          ← Volver atrás
-        </Link>
+        <BackLink />
       </div>
     </main>
   );

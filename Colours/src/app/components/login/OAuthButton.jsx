@@ -11,11 +11,13 @@ export default function OAuthButton() {
         type="button"
       >
         <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
+          src="https://img.freepik.com/premium-psd/google-icon-3d-render_68185-1080.jpg?semt=ais_hybrid"
           alt="Google Icon"
           width={20}
           height={20}
+          unoptimized
         />
+
         <span className="ml-2">Google</span>
       </button>
     </div>
