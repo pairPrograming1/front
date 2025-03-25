@@ -2,7 +2,7 @@
 
 export default function FormContainer({ title, children }) {
   return (
-    <div className="min-h-screen relative overflow-hidden mt-4 sm:mt-8 md:mt-16">
+    <div className="min-h-screen relative overflow-hidden ">
       <header className="flex justify-between items-center p-4 md:p-8 lg:p-10 bg-black/30 backdrop-blur-sm">
         <h1 className="text-white text-2xl md:text-3xl font-bold">
           Bienvenido a <span className="text-teal-400"></span>
