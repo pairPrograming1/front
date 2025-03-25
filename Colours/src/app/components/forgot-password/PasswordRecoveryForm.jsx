@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import InputField from "./InputField";
 import ResetButton from "./ResetButton";
@@ -7,52 +9,35 @@ import BackLink from "./BackLink";
 import Link from "next/link";
 
 export default function PasswordRecoveryForm() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
   const handleForgotPassword = () => {
     console.log("Recuperar contraseña");
   };
 
   return (
-    <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm">
-      <h2 className="text-2xl font-bold mb-6 text-center text-white">
-        Recupero de contraseña
-      </h2>
-      <form>
-        <InputField
-          label="WhatsApp"
-          id="whatsapp"
-          type="text"
-          placeholder="WhatsApp"
-        />
-        <InputField
-          label="Nueva Contraseña"
-          id="new-password"
-          type="password"
-          placeholder="Nueva Contraseña"
-        />
-        <InputField
-          label="Repetir Nueva Contraseña"
-          id="repeat-password"
-          type="password"
-          placeholder="Repetir Nueva Contraseña"
-        />
+    <form className="flex flex-col gap-6">
+      <InputField label="WhatsApp" id="whatsapp" type="text" />
+      <InputField label="Nueva Contraseña" id="new-password" type="password" />
+      <InputField
+        label="Repetir Nueva Contraseña"
+        id="repeat-password"
+        type="password"
+      />
 
-        <ResetButton onClick={handleForgotPassword} />
+      <ResetButton onClick={handleForgotPassword} />
+      <TermsAndConditions />
 
-        <TermsAndConditions />
+      <div className="text-center">
+        <span className="text-gray-300 text-sm">¿Ya tienes cuenta?</span>
+        <Link
+          href="/login"
+          className="text-white hover:text-teal-400 text-sm transition-colors ml-1"
+        >
+          Inicia sesión
+        </Link>
+      </div>
 
-        <div className="mt-4 text-center">
-          <span className="text-gray-300"> Si ya tenés cuenta podes </span>
-          <Link href="/login" legacyBehavior>
-            <a className="text-blue-500 hover:text-blue-700">Inicia sesión</a>
-          </Link>
-        </div>
-
-        <GoogleLogin />
-
-        <BackLink />
-      </form>
-    </div>
+      <GoogleLogin />
+      <BackLink href="/" text="Volver atrás" />
+    </form>
   );
 }

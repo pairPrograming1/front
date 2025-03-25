@@ -4,11 +4,13 @@ import { useState } from "react";
 import InputField from "./InputField";
 import SubmitButton from "./SubmitButton";
 import BackLink from "./BackLink";
+import FormContainer from "./FormContainer";
 
 export default function MenorForm() {
   const [formData, setFormData] = useState({
     nombreApellido: "",
     dni: "",
+    // Puedes agregar más campos si necesitas
   });
 
   const handleChange = (e) => {
@@ -25,19 +27,9 @@ export default function MenorForm() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gray-0">
-      <header className="flex justify-between items-center p-4">
-        <div className="flex items-center">
-          <span className="text-white text-2xl font-bold">
-            <span className="text-white">Bienvenido a</span>
-          </span>
-        </div>
-      </header>
-
-      <div className="px-6 pt-4 pb-20 mt-20">
-        <h1 className="text-white text-2xl font-bold mb-6">Menores</h1>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <FormContainer title="Menores">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <InputField
             type="text"
             name="nombreApellido"
@@ -52,11 +44,16 @@ export default function MenorForm() {
             value={formData.dni}
             onChange={handleChange}
           />
-          <SubmitButton text="Asignar Entrada" />
-        </form>
+        </div>
 
-        <BackLink href="/" text="Volver atrás" />
+        <div className="mt-2 md:mt-4">
+          <SubmitButton text="Asignar Entrada" />
+        </div>
+      </form>
+
+      <div className="mt-6 md:mt-10">
+        <BackLink href="/" />
       </div>
-    </div>
+    </FormContainer>
   );
 }

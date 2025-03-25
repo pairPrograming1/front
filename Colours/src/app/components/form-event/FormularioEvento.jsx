@@ -4,6 +4,7 @@ import { useState } from "react";
 import InputField from "./InputField";
 import SubmitButton from "./SubmitButton";
 import BackButton from "./BackButton";
+import FormContainer from "./FormContainer";
 
 export default function FormularioEvento() {
   const [formData, setFormData] = useState({
@@ -28,88 +29,92 @@ export default function FormularioEvento() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Datos del formulario:", formData);
+    // Aquí iría la lógica de envío del formulario
   };
 
-  const handleGoBack = () => {
+  const handleGoBack = (e) => {
+    e.preventDefault();
     window.history.back();
   };
 
   return (
-    <div className="min-h-screen text-white">
-      <div className="container mx-auto px-4 py-4">
-        <header className="flex justify-between items-center mb-6">
-          <div className="text-2xl font-bold">COLOUR</div>
-        </header>
-
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold mb-6">
-            Formulario de pedido de evento
-          </h1>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <InputField
-              type="text"
-              name="dni"
-              placeholder="DNI"
-              value={formData.dni}
-              onChange={handleChange}
-            />
-            <InputField
-              type="text"
-              name="nombreApellido"
-              placeholder="Nombre y Apellido"
-              value={formData.nombreApellido}
-              onChange={handleChange}
-            />
-            <InputField
-              type="text"
-              name="direccion"
-              placeholder="Dirección"
-              value={formData.direccion}
-              onChange={handleChange}
-            />
-            <InputField
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-            <InputField
-              type="text"
-              name="whatsapp"
-              placeholder="WhatsApp"
-              value={formData.whatsapp}
-              onChange={handleChange}
-            />
-            <InputField
-              type="text"
-              name="usuario"
-              placeholder="Usuario"
-              value={formData.usuario}
-              onChange={handleChange}
-            />
-            <InputField
-              type="password"
-              name="contrasena"
-              placeholder="Contraseña"
-              value={formData.contrasena}
-              onChange={handleChange}
-            />
-            <InputField
-              type="password"
-              name="repetirContrasena"
-              placeholder="Repetir Contraseña"
-              value={formData.repetirContrasena}
-              onChange={handleChange}
-            />
-
-            <SubmitButton text="Registrarme" />
-          </form>
-
-          <BackButton onClick={handleGoBack} />
+    <FormContainer title="Formulario de pedido de evento">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <InputField
+            type="text"
+            name="dni"
+            placeholder="DNI"
+            value={formData.dni}
+            onChange={handleChange}
+          />
+          <InputField
+            type="text"
+            name="nombreApellido"
+            placeholder="Nombre y Apellido"
+            value={formData.nombreApellido}
+            onChange={handleChange}
+          />
         </div>
+
+        <InputField
+          type="text"
+          name="direccion"
+          placeholder="Dirección"
+          value={formData.direccion}
+          onChange={handleChange}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <InputField
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+          <InputField
+            type="text"
+            name="whatsapp"
+            placeholder="WhatsApp"
+            value={formData.whatsapp}
+            onChange={handleChange}
+          />
+        </div>
+
+        <InputField
+          type="text"
+          name="usuario"
+          placeholder="Usuario"
+          value={formData.usuario}
+          onChange={handleChange}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <InputField
+            type="password"
+            name="contrasena"
+            placeholder="Contraseña"
+            value={formData.contrasena}
+            onChange={handleChange}
+          />
+          <InputField
+            type="password"
+            name="repetirContrasena"
+            placeholder="Repetir Contraseña"
+            value={formData.repetirContrasena}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="mt-2 md:mt-4">
+          <SubmitButton text="Registrarme" />
+        </div>
+      </form>
+
+      <div className="mt-6 md:mt-10">
+        <BackButton onClick={handleGoBack} />
       </div>
-    </div>
+    </FormContainer>
   );
 }

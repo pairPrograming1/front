@@ -1,12 +1,18 @@
+"use client";
+
+import { ArrowLeft } from "lucide-react";
+
 export default function BackButton() {
   return (
-    <div className="mt-6 text-left">
-      <button
-        onClick={() => window.history.back()}
-        className="text-white-500 hover:underline"
-      >
-        Volver Atrás
-      </button>
-    </div>
+    <button
+      onClick={() => window.history.back()}
+      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+    >
+      <ArrowLeft
+        size={16}
+        className="group-hover:-translate-x-1 transition-transform"
+      />
+      <span>Volver Atrás</span>
+    </button>
   );
 }
