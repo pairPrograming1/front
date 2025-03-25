@@ -22,7 +22,7 @@ export default function SocialLogin() {
 
       <p className="mt-4 text-gray-300">
         Si ya tienes cuenta, puedes{" "}
-        <Link href="/login" className="text-teal-400 hover:text-teal-300">
+        <Link href="/login" className="text-teal-400 hover:text-teal-300 mb-4">
           Iniciar sesión
         </Link>
       </p>
