@@ -10,7 +10,6 @@ export default function MenorForm() {
   const [formData, setFormData] = useState({
     nombreApellido: "",
     dni: "",
-    // Puedes agregar más campos si necesitas
   });
 
   const handleChange = (e) => {
@@ -27,24 +26,22 @@ export default function MenorForm() {
   };
 
   return (
-    <FormContainer title="Menores">
+    <FormContainer title="Registro de Menores">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <InputField
-            type="text"
-            name="nombreApellido"
-            placeholder="Nombre y Apellido"
-            value={formData.nombreApellido}
-            onChange={handleChange}
-          />
-          <InputField
-            type="text"
-            name="dni"
-            placeholder="DNI"
-            value={formData.dni}
-            onChange={handleChange}
-          />
-        </div>
+        <InputField
+          type="text"
+          name="nombreApellido"
+          placeholder="Nombre y Apellido"
+          value={formData.nombreApellido}
+          onChange={handleChange}
+        />
+        <InputField
+          type="text"
+          name="dni"
+          placeholder="DNI"
+          value={formData.dni}
+          onChange={handleChange}
+        />
 
         <div className="mt-2 md:mt-4">
           <SubmitButton text="Asignar Entrada" />
@@ -52,7 +49,7 @@ export default function MenorForm() {
       </form>
 
       <div className="mt-6 md:mt-10">
-        <BackLink href="/" />
+        <BackLink />
       </div>
     </FormContainer>
   );
