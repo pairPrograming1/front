@@ -34,8 +34,9 @@ export default function FormAdult() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden ">
-      <header className="flex justify-between items-center p-4 md:p-8 lg:p-10 bg-black/30 backdrop-blur-sm">
+    <div className="h-screen flex flex-col ">
+      {/* Header */}
+      <header className="p-3 sm:p-6 bg-black/30 backdrop-blur-sm">
         <div className="flex items-center">
           <span className="text-white text-xl sm:text-2xl md:text-3xl font-bold">
             <span className="text-white">Bienvenido a</span>
@@ -44,8 +45,9 @@ export default function FormAdult() {
         </div>
       </header>
 
-      <div className="w-full px-4 sm:px-6 md:px-0 pt-6 pb-20 mt-4 sm:mt-8 md:mt-16">
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-none md:rounded-2xl p-6 md:p-10 max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto border-t border-b border-teal-400/30 md:border">
+      {/* Formulario centrado */}
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-md p-6 md:p-10 max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto border border-teal-400/30">
           <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-8 flex items-center">
             <span className="bg-teal-400 w-2 h-8 md:h-10 mr-3 rounded hidden md:block"></span>
             Formulario Adulto
@@ -62,7 +64,6 @@ export default function FormAdult() {
               value={formData.nombreApellido}
               onChange={handleChange}
             />
-
             <InputField
               type="text"
               name="dni"
@@ -70,7 +71,6 @@ export default function FormAdult() {
               value={formData.dni}
               onChange={handleChange}
             />
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <InputField
                 type="email"
@@ -79,7 +79,6 @@ export default function FormAdult() {
                 value={formData.email}
                 onChange={handleChange}
               />
-
               <InputField
                 type="tel"
                 name="whatsapp"
@@ -88,7 +87,6 @@ export default function FormAdult() {
                 onChange={handleChange}
               />
             </div>
-
             <div className="mt-2 md:mt-4">
               <SubmitButton text="Asignar Entrada" />
             </div>

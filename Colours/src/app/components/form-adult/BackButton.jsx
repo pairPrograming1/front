@@ -2,11 +2,11 @@
 
 import { ArrowLeft } from "lucide-react";
 
-export default function BackLink() {
+export default function BackButton({ onClick }) {
   return (
     <button
-      onClick={() => window.history.back()}
-      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
+      onClick={onClick}
+      className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group mt-20"
     >
       <ArrowLeft
         size={16}
