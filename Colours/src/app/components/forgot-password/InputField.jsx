@@ -1,17 +1,19 @@
-export default function InputField({ label, id, type, placeholder }) {
+"use client";
+
+export default function InputField({ label, id, type }) {
   return (
-    <div className="mb-4">
+    <div className="relative">
       <label
-        className="block text-gray-300 text-sm font-bold mb-2"
+        className="block text-gray-300 text-sm font-bold mb-1"
         htmlFor={id}
       >
         {label}
       </label>
       <input
-        className="shadow appearance-none border border-green-500 rounded-full w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline bg-gray-700"
         id={id}
         type={type}
-        placeholder={placeholder}
+        placeholder={label}
+        className="w-full bg-gray-900/50 text-white border border-gray-700 focus:border-teal-400 rounded-xl py-3 px-4 focus:outline-none focus:ring-1 focus:ring-teal-300 text-sm md:text-base transition-all placeholder-gray-500"
       />
     </div>
   );

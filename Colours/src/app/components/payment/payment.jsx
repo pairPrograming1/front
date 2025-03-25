@@ -6,29 +6,44 @@ import BackButton from "./BackButton";
 
 export default function Payment() {
   return (
-    <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm mx-auto">
-      <Header />
+    <div className="bg-gray-900/50 p-6 sm:p-10 rounded-2xl w-full max-w-5xl mx-auto shadow-xl grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="col-span-1 flex flex-col space-y-8">
+        <Header />
+        <PaymentSummary />
+        <PaymentOptions />
+        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500">
+          Ir a Pagar
+        </button>
+      </div>
 
-      <main className="flex flex-col space-y-4">
-        <div className="rounded-lg overflow-hidden mb-4 border border-gray-700">
+      <div className="col-span-1 flex flex-col space-y-6">
+        {/* Imagen de evento entre los dos bloques */}
+        <div className="rounded-xl overflow-hidden mb-8 border-2 border-gray-700 shadow-md">
           <Image
             src="/placeholder.svg?height=200&width=400"
             alt="Evento"
             width={400}
             height={200}
-            className="w-full object-cover"
+            className="w-full object-cover rounded-xl"
           />
         </div>
 
-        <PaymentSummary />
-        <PaymentOptions />
+        {/* Detalles del evento */}
+        <div className="flex flex-col justify-center items-start space-y-4">
+          <h2 className="text-3xl text-white font-bold mb-4">
+            Detalles del evento
+          </h2>
+          <p className="text-gray-300">
+            Aquí puedes incluir más detalles relacionados con el evento o
+            información adicional.
+          </p>
+        </div>
 
-        <button className="w-full bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-colors">
-          Ir a Pagar
-        </button>
-
-        <BackButton />
-      </main>
+        {/* Botón Volver abajo a la izquierda */}
+        <div className="mt-auto">
+          <BackButton />
+        </div>
+      </div>
     </div>
   );
 }

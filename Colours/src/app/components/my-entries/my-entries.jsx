@@ -1,3 +1,5 @@
+"use client";
+
 import UserCard from "./UserCard";
 import TicketsList from "./TicketList";
 import BackButton from "./BackButton";
@@ -12,17 +14,30 @@ export default function TicketsPage() {
   ];
 
   return (
-    <div className="min-h-screen text-white relative overflow-hidden">
-      <header className="flex justify-between items-center p-4"></header>
+    <div className="min-h-screen bg-gray-800/50 text-white relative overflow-hidden">
+      <header className="border-b border-gray-800 py-4">
+        <div className="max-w-7xl mx-auto px:4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold sm:text-2xl">Mi Evento</h1>
+            <nav className="hidden sm:block">
+              {/* Add navigation items here if needed */}
+            </nav>
+          </div>
+        </div>
+      </header>
 
-      <main className="px-12 pb-20 max-w-full">
-        <h1 className="text-2xl font-bold mb-4">Mis entradas</h1>
+      <main className="py-6 sm:py-8 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold mb-6 sm:text-3xl">Mis entradas</h1>
 
-        <UserCard name="Hernán Guillano" />
+          <UserCard name="Hernán Guillano" />
 
-        <TicketsList tickets={tickets} />
+          <div className="my-8">
+            <TicketsList tickets={tickets} />
+          </div>
 
-        <BackButton />
+          <BackButton />
+        </div>
       </main>
     </div>
   );

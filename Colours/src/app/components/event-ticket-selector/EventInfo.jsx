@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function EventInfo() {
   return (
-    <div className="text-center mb-6">
+    <div className="text-center">
       <div className="relative h-48 w-full mb-4">
         <Image
           src="/placeholder.svg?height=400&width=800"

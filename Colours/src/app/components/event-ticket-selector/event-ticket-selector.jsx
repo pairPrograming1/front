@@ -39,39 +39,33 @@ export default function EventTicketSelector() {
   };
 
   return (
-    <main className="min-h-screen text-white flex flex-col items-center justify-center p-4">
+    <main className="min-h-screen flex flex-col items-center justify-center p-4  text-white">
       <Header />
-      <div className="rounded-3xl w-full max-w-xl p-6">
-        <EventInfo />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-3xl w-full max-w-4xl bg-gray-800/50 p-6 shadow-lg">
+        {/* Columna Izquierda - Información y Selectores de Tickets */}
         <div className="space-y-4">
-          <TicketSelector
-            label="Adultos"
-            count={tickets.adultos}
-            onIncrement={() => handleIncrement("adultos")}
-            onDecrement={() => handleDecrement("adultos")}
-          />
-          <TicketSelector
-            label="Menores"
-            count={tickets.menores}
-            onIncrement={() => handleIncrement("menores")}
-            onDecrement={() => handleDecrement("menores")}
-          />
-          <TicketSelector
-            label="Adultos sin Cargo"
-            count={tickets.adultosSinCargo}
-            onIncrement={() => handleIncrement("adultosSinCargo")}
-            onDecrement={() => handleDecrement("adultosSinCargo")}
-          />
-          <TicketSelector
-            label="Menores sin Cargo"
-            count={tickets.menoresSinCargo}
-            onIncrement={() => handleIncrement("menoresSinCargo")}
-            onDecrement={() => handleDecrement("menoresSinCargo")}
-          />
+          <EventInfo />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {["adultos", "menores", "adultosSinCargo", "menoresSinCargo"].map(
+              (type, index) => (
+                <TicketSelector
+                  key={index}
+                  label={type.replace(/([A-Z])/g, " $1")}
+                  count={tickets[type]}
+                  onIncrement={() => handleIncrement(type)}
+                  onDecrement={() => handleDecrement(type)}
+                />
+              )
+            )}
+          </div>
         </div>
-        <Summary subtotal={subtotal} serviceFee={serviceFee} total={total} />
-        <PaymentButton />
-        <BackLink />
+
+        {/* Columna Derecha - Resumen de Compra */}
+        <div className="flex flex-col justify-between">
+          <Summary subtotal={subtotal} serviceFee={serviceFee} total={total} />
+          <PaymentButton />
+          <BackLink />
+        </div>
       </div>
     </main>
   );

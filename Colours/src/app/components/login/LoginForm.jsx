@@ -17,10 +17,7 @@ export default function LoginForm() {
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   const handleLogin = async () => {
@@ -32,8 +29,8 @@ export default function LoginForm() {
         "https://YOUR_AUTH0_DOMAIN/oauth/token",
         {
           grant_type: "password",
-          username: username,
-          password: password,
+          username,
+          password,
           audience: "YOUR_API_IDENTIFIER",
           scope: "openid",
           client_id: "YOUR_CLIENT_ID",
@@ -48,49 +45,33 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="bg-gray-0 p-8 rounded-lg w-full max-w-sm">
-      <h2 className="text-2xl font-bold mb-6 text-center text-white">
-        Bienvenido a
-      </h2>
+    <form className="flex flex-col gap-6">
+      <InputField id="username" type="text" label="Usuario" />
+      <InputField id="password" type="password" label="Contraseña" />
 
-      <form>
-        <InputField
-          id="username"
-          type="text"
-          placeholder="Usuario"
-          label="Usuario"
-        />
-        <InputField
-          id="password"
-          type="password"
-          placeholder="******************"
-          label="Contraseña"
-        />
+      <div className="text-right">
+        <Link
+          href="/forgot-password"
+          className="text-white hover:text-teal-400 text-sm transition-colors"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
 
-        <div className="mt-6 text-right">
-          <Link
-            href="/forgot-password"
-            className="text-white hover:text-blue-700"
-          >
-            ¿Olvidaste tu contraseña?
-          </Link>
-        </div>
+      <SubmitButton text="Ingresar" onClick={handleLogin} />
+      <OAuthButton />
 
-        <div className="flex items-center justify-center mt-4">
-          <SubmitButton text="Ingresar" onClick={handleLogin} />
-        </div>
+      <div className="text-center">
+        <span className="text-gray-300 text-sm">¿Aún no tienes cuenta?</span>
+        <Link
+          href="/register"
+          className="text-white hover:text-teal-400 text-sm transition-colors ml-1"
+        >
+          Regístrate
+        </Link>
+      </div>
 
-        <OAuthButton />
-
-        <div className="mt-4 text-center">
-          <span className="text-gray-300">Si aun no tenes cuenta podes </span>
-          <Link href="/register" className="text-white hover:text-blue-700">
-            Regístrate
-          </Link>
-        </div>
-
-        <BackLink href="/" text="Volver atrás" />
-      </form>
-    </div>
+      <BackLink href="/" text="Volver atrás" />
+    </form>
   );
 }
