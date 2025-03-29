@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import InputField from "./InputField";
 import SubmitButton from "./SubmitButton";
@@ -9,20 +9,15 @@ import BackLink from "./BackLink";
 import Link from "next/link";
 
 export default function LoginForm() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (event) => {
-      setMousePosition({ x: event.clientX, y: event.clientY });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
+
+    setLoading(true);
+    setError("");
 
     try {
       const response = await axios.post(
@@ -32,15 +27,25 @@ export default function LoginForm() {
           username,
           password,
           audience: "YOUR_API_IDENTIFIER",
-          scope: "openid",
+          scope: "openid profile email",
           client_id: "YOUR_CLIENT_ID",
           client_secret: "YOUR_CLIENT_SECRET",
+        },
+        {
+          headers: { "Content-Type": "application/json" },
         }
       );
 
-      console.log(response.data);
-    } catch (error) {
-      console.error(error);
+      console.log("Login exitoso:", response.data);
+      // Aquí puedes manejar el token de acceso (response.data.access_token)
+    } catch (err) {
+      console.error(
+        "Error de autenticación:",
+        err.response?.data || err.message
+      );
+      setError("Credenciales inválidas. Por favor, inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,6 +53,8 @@ export default function LoginForm() {
     <form className="flex flex-col gap-6">
       <InputField id="username" type="text" label="Usuario" />
       <InputField id="password" type="password" label="Contraseña" />
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <div className="text-right">
         <Link
@@ -58,7 +65,11 @@ export default function LoginForm() {
         </Link>
       </div>
 
-      <SubmitButton text="Ingresar" onClick={handleLogin} />
+      <SubmitButton
+        text={loading ? "Cargando..." : "Ingresar"}
+        onClick={handleLogin}
+        disabled={loading}
+      />
       <OAuthButton />
 
       <div className="text-center">
