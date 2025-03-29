@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Importar useRouter
+import axios from "axios";
 import InputField from "./InputField";
 
 export default function RegisterForm() {
@@ -18,37 +20,62 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const router = useRouter(); // Inicializar useRouter
 
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [id]: value }));
   };
 
-  const handleSubmit = async () => {
-    if (formData.password !== formData.confirmPassword) {
+  const handleRegister = async () => {
+    let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+    const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+
+    if (!domain || !clientId) {
+      console.error("Las variables de entorno de Auth0 no están configuradas.");
+      setError("Error interno. Por favor, contacta al administrador.");
+      return;
+    }
+
+    // Asegúrate de que el dominio no tenga un prefijo `https://`
+    domain = domain.replace(/^https?:\/\//, "");
+
+    const { username, password, confirmPassword } = formData;
+
+    // Validar que el username tenga un formato de correo electrónico válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username)) {
+      setError("Por favor, ingresa un correo electrónico válido.");
+      return;
+    }
+
+    // Validar que las contraseñas coincidan
+    if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    // Validar que la contraseña cumpla con los requisitos de seguridad
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError(
+        "La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas, números y caracteres especiales."
+      );
       return;
     }
 
     setLoading(true);
     setError("");
-    setSuccess("");
 
     try {
       const response = await axios.post(
-        "https://YOUR_AUTH0_DOMAIN/dbconnections/signup",
+        `https://${domain}/dbconnections/signup`,
         {
-          client_id: "YOUR_CLIENT_ID",
-          email: formData.email,
-          password: formData.password,
+          client_id: clientId,
+          email: username,
+          password,
           connection: "Username-Password-Authentication",
-          user_metadata: {
-            dni: formData.dni,
-            name: formData.name,
-            address: formData.address,
-            whatsapp: formData.whatsapp,
-            username: formData.username,
-          },
         },
         {
           headers: { "Content-Type": "application/json" },
@@ -56,10 +83,14 @@ export default function RegisterForm() {
       );
 
       console.log("Registro exitoso:", response.data);
-      setSuccess("Usuario registrado exitosamente.");
+      setSuccess("Registro exitoso. ¡Bienvenido!");
+      router.push("/"); // Redirigir a la ruta `/`
     } catch (err) {
-      console.error("Error en el registro:", err.response?.data || err.message);
-      setError("Error al registrar el usuario. Por favor, inténtalo de nuevo.");
+      console.error("Error de registro:", err.response?.data || err.message);
+      setError(
+        err.response?.data?.error_description ||
+          "Error al registrarse. Por favor, inténtalo de nuevo."
+      );
     } finally {
       setLoading(false);
     }
@@ -132,11 +163,11 @@ export default function RegisterForm() {
 
       <button
         type="button"
-        onClick={handleSubmit}
+        onClick={handleRegister}
         disabled={loading}
-        className="w-full bg-gradient-to-r from-teal-500 to-teal-400 hover:from-teal-600 hover:to-teal-500 text-white font-medium py-3 px-4 rounded-xl md:rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] text-sm md:text-base shadow-lg hover:shadow-xl flex items-center justify-center mb-4"
+        className={`btn ${loading ? "btn-disabled" : "btn-primary"}`}
       >
-        {loading ? "Registrando..." : "Registrarme"}
+        {loading ? "Cargando..." : "Registrarse"}
       </button>
     </form>
   );
