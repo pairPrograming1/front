@@ -12,7 +12,7 @@ export default function SocialLogin() {
         type="button"
       >
         <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px"
+          src="https://w7.pngwing.com/pngs/612/285/png-transparent-logo-google-g-google-s-logo-icon-thumbnail.png"
           alt="Google Icon"
           width={20}
           height={20}

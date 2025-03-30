@@ -11,7 +11,7 @@ export default function OAuthButton() {
         type="button"
       >
         <Image
-          src="https://img.freepik.com/premium-psd/google-icon-3d-render_68185-1080.jpg?semt=ais_hybrid"
+          src="https://w7.pngwing.com/pngs/612/285/png-transparent-logo-google-g-google-s-logo-icon-thumbnail.png"
           alt="Google Icon"
           width={20}
           height={20}
