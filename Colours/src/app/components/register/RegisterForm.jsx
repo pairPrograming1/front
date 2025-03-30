@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Importar useRouter
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import InputField from "./InputField";
 
@@ -37,25 +37,21 @@ export default function RegisterForm() {
       return;
     }
 
-    // Asegúrate de que el dominio no tenga un prefijo `https://`
     domain = domain.replace(/^https?:\/\//, "");
 
-    const { username, password, confirmPassword } = formData;
+    const { email, password, confirmPassword } = formData;
 
-    // Validar que el username tenga un formato de correo electrónico válido
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(username)) {
+    if (!emailRegex.test(email)) {
       setError("Por favor, ingresa un correo electrónico válido.");
       return;
     }
 
-    // Validar que las contraseñas coincidan
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden.");
       return;
     }
 
-    // Validar que la contraseña cumpla con los requisitos de seguridad
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
     if (!passwordRegex.test(password)) {
@@ -73,7 +69,7 @@ export default function RegisterForm() {
         `https://${domain}/dbconnections/signup`,
         {
           client_id: clientId,
-          email: username,
+          email,
           password,
           connection: "Username-Password-Authentication",
         },
@@ -84,7 +80,7 @@ export default function RegisterForm() {
 
       console.log("Registro exitoso:", response.data);
       setSuccess("Registro exitoso. ¡Bienvenido!");
-      router.push("/"); // Redirigir a la ruta `/`
+      router.push("/");
     } catch (err) {
       console.error("Error de registro:", err.response?.data || err.message);
       setError(
@@ -98,7 +94,6 @@ export default function RegisterForm() {
 
   return (
     <form className="flex flex-col gap-6">
-      {/* Distribución en 2 columnas para pantallas grandes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
           label="DNI"
