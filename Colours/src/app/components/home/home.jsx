@@ -20,7 +20,7 @@ const Home = () => {
     <div>
       <h1>Bienvenido a la página principal</h1>
       <Link href="/login" legacyBehavior>
-        <a>Ir a la página de inicio de sesión</a>
+        <a>hola Ir a la página de inicio de sesión</a>
       </Link>
       <div className="mt-4 text-center">
         <Link href="/profile" legacyBehavior>
