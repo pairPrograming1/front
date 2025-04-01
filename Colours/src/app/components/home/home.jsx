@@ -20,7 +20,7 @@ const Home = () => {
     <div>
       <h1>Bienvenido a la página principal</h1>
       <Link href="/login" legacyBehavior>
-        <a>hola Ir a la página de inicio de sesión</a>
+        <a>Ir a la página de inicio de sesión</a>
       </Link>
       <div className="mt-4 text-center">
         <Link href="/profile" legacyBehavior>
@@ -86,6 +86,11 @@ const Home = () => {
       <div className="mt-4 text-center">
         <Link href="/admin" legacyBehavior>
           <a className="text-white hover:text-blue-700">Ir a dashboard admin</a>
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link href="/wellcome" legacyBehavior>
+          <a className="text-white hover:text-blue-700">Ir a wellcome</a>
         </Link>
       </div>
     </div>
