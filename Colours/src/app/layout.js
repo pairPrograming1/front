@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Auth0Provider } from "@auth0/auth0-react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,24 +36,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Auth0Provider
-          domain="pabloelleproso.us.auth0.com" // Usar el dominio proporcionado
-          clientId="LQZvjXTatV5t7VzdekZ7sSYZYdoAyndN" // Usar el clientId proporcionado
-          redirectUri={
-            typeof window !== "undefined" ? window.location.origin : ""
-          }
+        <div
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative`}
+          style={{
+            background: isMounted
+              ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%), rgb(5, 34, 62)`
+              : "rgb(5, 34, 62)",
+          }}
         >
-          <div
-            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative`}
-            style={{
-              background: isMounted
-                ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%), rgb(5, 34, 62)`
-                : "rgb(5, 34, 62)",
-            }}
-          >
-            {children}
-          </div>
-        </Auth0Provider>
+          {children}
+        </div>
       </body>
     </html>
   );

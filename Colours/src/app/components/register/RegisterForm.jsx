@@ -12,7 +12,6 @@ export default function RegisterForm() {
     address: "",
     email: "",
     whatsapp: "",
-    username: "",
     password: "",
     confirmPassword: "",
   });
@@ -96,13 +95,6 @@ export default function RegisterForm() {
     <form className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
-          label="DNI"
-          type="text"
-          id="dni"
-          value={formData.dni}
-          onChange={handleChange}
-        />
-        <InputField
           label="Nombre y Apellido"
           type="text"
           id="name"
@@ -110,10 +102,10 @@ export default function RegisterForm() {
           onChange={handleChange}
         />
         <InputField
-          label="Dirección"
+          label="DNI"
           type="text"
-          id="address"
-          value={formData.address}
+          id="dni"
+          value={formData.dni}
           onChange={handleChange}
         />
         <InputField
@@ -124,17 +116,17 @@ export default function RegisterForm() {
           onChange={handleChange}
         />
         <InputField
+          label="Dirección"
+          type="text"
+          id="address"
+          value={formData.address}
+          onChange={handleChange}
+        />
+        <InputField
           label="WhatsApp"
           type="text"
           id="whatsapp"
           value={formData.whatsapp}
-          onChange={handleChange}
-        />
-        <InputField
-          label="Usuario"
-          type="text"
-          id="username"
-          value={formData.username}
           onChange={handleChange}
         />
         <InputField
