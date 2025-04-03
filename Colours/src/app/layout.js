@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
     setIsMounted(true); // Indica que el componente ya está montado.
 
     if (typeof window !== "undefined") {
-      const handleMouseMove = (event) => {
+      const handleMouseMove    = (event) => {
         setMousePosition({ x: event.clientX, y: event.clientY });
       };
 
