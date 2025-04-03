@@ -11,6 +11,38 @@ export default function SocialLogin() {
   useEffect(() => {
     if (user) {
       console.log("Datos del usuario:", user);
+
+      // Realizar el POST a la API
+      const registerUser = async () => {
+        try {
+          const response = await fetch(
+            "http://localhost:4000/api/users/register",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                auth0Id: user.sub,
+                email: user.email,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            console.error(
+              "Error al registrar el usuario:",
+              response.statusText
+            );
+          } else {
+            console.log("Usuario registrado exitosamente");
+          }
+        } catch (error) {
+          console.error("Error en la solicitud:", error);
+        }
+      };
+
+      registerUser();
     }
   }, [user]);
 
