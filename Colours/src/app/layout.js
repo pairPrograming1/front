@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Auth0Provider } from "@auth0/auth0-react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,19 +35,29 @@ export default function RootLayout({ children }) {
   }, []);
 
   return (
-    <html lang="en">
-      <body>
-        <div
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative`}
-          style={{
-            background: isMounted
-              ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%), rgb(5, 34, 62)`
-              : "rgb(5, 34, 62)",
-          }}
-        >
-          {children}
-        </div>
-      </body>
-    </html>
+    <Auth0Provider
+      domain="pabloelleproso.us.auth0.com"
+      clientId="WQbuELjdIzyXdVLQC7LJ8g1qkPzjSyuN"
+      authorizationParams={{
+        redirect_uri:
+          typeof window !== "undefined" ? window.location.origin : "",
+        audience: "https://pabloelleproso.us.auth0.com/api/v2/", // Cambia esto si usas una API personalizada
+      }}
+    >
+      <html lang="en">
+        <body>
+          <div
+            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative`}
+            style={{
+              background: isMounted
+                ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%), rgb(5, 34, 62)`
+                : "rgb(5, 34, 62)",
+            }}
+          >
+            {children}
+          </div>
+        </body>
+      </html>
+    </Auth0Provider>
   );
 }

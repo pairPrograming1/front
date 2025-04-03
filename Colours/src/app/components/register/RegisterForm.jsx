@@ -9,17 +9,20 @@ export default function RegisterForm() {
   const [formData, setFormData] = useState({
     dni: "",
     name: "",
+    apellido: "",
     address: "",
     email: "",
     whatsapp: "",
+    username: "",
     password: "",
     confirmPassword: "",
+    isActive: true,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const router = useRouter(); // Inicializar useRouter
+  const router = useRouter();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -38,7 +41,34 @@ export default function RegisterForm() {
 
     domain = domain.replace(/^https?:\/\//, "");
 
-    const { email, password, confirmPassword } = formData;
+    const {
+      email,
+      password,
+      confirmPassword,
+      dni,
+      name,
+      apellido,
+      address,
+      whatsapp,
+      username,
+      isActive,
+    } = formData;
+
+    // Validar que todos los campos estén completos
+    if (
+      !dni ||
+      !name ||
+      !apellido ||
+      !address ||
+      !email ||
+      !whatsapp ||
+      !username ||
+      !password ||
+      !confirmPassword
+    ) {
+      setError("Todos los campos son obligatorios.");
+      return;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -64,7 +94,8 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      const response = await axios.post(
+      // Registro en Auth0
+      const auth0Response = await axios.post(
         `https://${domain}/dbconnections/signup`,
         {
           client_id: clientId,
@@ -77,15 +108,51 @@ export default function RegisterForm() {
         }
       );
 
-      console.log("Registro exitoso:", response.data);
+      console.log("Registro exitoso en Auth0:", auth0Response.data);
+
+      // Registro en el backend personalizado
+      console.log("Datos enviados al backend:", {
+        dni,
+        nombre: name,
+        apellido,
+        direccion: address,
+        email,
+        whatsapp,
+        usuario: username,
+        password,
+        isActive,
+      });
+
+      const backendResponse = await axios.post(
+        "http://localhost:4000/api/users/register",
+        {
+          dni,
+          nombre: name,
+          apellido,
+          direccion: address,
+          email,
+          whatsapp,
+          usuario: username,
+          password,
+          isActive,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      console.log("Registro exitoso en el backend:", backendResponse.data);
       setSuccess("Registro exitoso. ¡Bienvenido!");
       router.push("/");
     } catch (err) {
       console.error("Error de registro:", err.response?.data || err.message);
       setError(
-        err.response?.data?.error_description ||
+        err.response?.data?.message ||
           "Error al registrarse. Por favor, inténtalo de nuevo."
       );
+      if (err.response?.data?.errors) {
+        console.error("Errores de validación:", err.response.data.errors);
+      }
     } finally {
       setLoading(false);
     }
@@ -95,10 +162,17 @@ export default function RegisterForm() {
     <form className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
-          label="Nombre y Apellido"
+          label="Nombre"
           type="text"
           id="name"
           value={formData.name}
+          onChange={handleChange}
+        />
+        <InputField
+          label="Apellido"
+          type="text"
+          id="apellido"
+          value={formData.apellido}
           onChange={handleChange}
         />
         <InputField
@@ -113,6 +187,13 @@ export default function RegisterForm() {
           type="email"
           id="email"
           value={formData.email}
+          onChange={handleChange}
+        />
+        <InputField
+          label="Usuario"
+          type="text"
+          id="username"
+          value={formData.username}
           onChange={handleChange}
         />
         <InputField
