@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function OAuthButton() {
-  const { loginWithRedirect } = useAuth0();
+  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
 
   return (
     <div className="text-center">
@@ -12,7 +12,14 @@ export default function OAuthButton() {
       <button
         className="bg-white text-gray-700 font-bold py-2 px-4 rounded-xl md:rounded-full focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto hover:bg-gray-100 transition-colors"
         type="button"
-        onClick={() => loginWithRedirect({ connection: "google-oauth2" })}
+        onClick={() => {
+          loginWithRedirect({ connection: "google-oauth2" });
+          if (isAuthenticated) {
+            console.log("Login exitoso:", user);
+          } else {
+            console.log("Login fallido");
+          }
+        }}
       >
         <Image
           src="https://w7.pngwing.com/pngs/612/285/png-transparent-logo-google-g-google-s-logo-icon-thumbnail.png"
