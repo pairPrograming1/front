@@ -3,9 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect } from "react";
 
 export default function SocialLogin() {
-  const { loginWithRedirect } = useAuth0();
+  const { loginWithRedirect, user } = useAuth0();
+
+  useEffect(() => {
+    if (user) {
+      console.log("Datos del usuario:", user);
+    }
+  }, [user]);
+
   return (
     <div className="text-center mt-6">
       <span className="text-gray-300">o continuar con Google</span>
