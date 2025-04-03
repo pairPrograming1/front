@@ -30,27 +30,16 @@ export default function RegisterForm() {
   };
 
   const handleRegister = async () => {
-    let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
-    const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
-
-    if (!domain || !clientId) {
-      console.error("Las variables de entorno de Auth0 no están configuradas.");
-      setError("Error interno. Por favor, contacta al administrador.");
-      return;
-    }
-
-    domain = domain.replace(/^https?:\/\//, "");
-
     const {
-      email,
-      password,
-      confirmPassword,
       dni,
       name,
       apellido,
       address,
+      email,
       whatsapp,
       username,
+      password,
+      confirmPassword,
       isActive,
     } = formData;
 
@@ -95,6 +84,19 @@ export default function RegisterForm() {
 
     try {
       // Registro en Auth0
+      let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+      const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+
+      if (!domain || !clientId) {
+        console.error(
+          "Las variables de entorno de Auth0 no están configuradas."
+        );
+        setError("Error interno. Por favor, contacta al administrador.");
+        return;
+      }
+
+      domain = domain.replace(/^https?:\/\//, "");
+
       const auth0Response = await axios.post(
         `https://${domain}/dbconnections/signup`,
         {
@@ -110,8 +112,14 @@ export default function RegisterForm() {
 
       console.log("Registro exitoso en Auth0:", auth0Response.data);
 
-      // Registro en el backend personalizado
-      console.log("Datos enviados al backend:", {
+      const auth0Id = auth0Response.data._id;
+
+      if (!auth0Id) {
+        throw new Error("El ID de Auth0 es nulo o no válido.");
+      }
+
+      // Registro en el backend
+      const backendData = {
         dni,
         nombre: name,
         apellido,
@@ -121,21 +129,14 @@ export default function RegisterForm() {
         usuario: username,
         password,
         isActive,
-      });
+        auth0Id, // Incluir el ID de Auth0
+      };
+
+      console.log("Datos enviados al backend:", backendData);
 
       const backendResponse = await axios.post(
         "http://localhost:4000/api/users/register",
-        {
-          dni,
-          nombre: name,
-          apellido,
-          direccion: address,
-          email,
-          whatsapp,
-          usuario: username,
-          password,
-          isActive,
-        },
+        backendData,
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -150,9 +151,6 @@ export default function RegisterForm() {
         err.response?.data?.message ||
           "Error al registrarse. Por favor, inténtalo de nuevo."
       );
-      if (err.response?.data?.errors) {
-        console.error("Errores de validación:", err.response.data.errors);
-      }
     } finally {
       setLoading(false);
     }
