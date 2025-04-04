@@ -2,8 +2,8 @@ import { Filter } from "lucide-react";
 
 export default function CobrosRecibidos() {
   return (
-    <div className="border border-green-500 rounded-lg p-6 mb-6 bg-gray-700">
-      <h3 className="text-green-500 font-medium mb-1">Cobros Recibidos</h3>
+    <div className="border border-[#C28B60] rounded-lg p-6 mb-6 bg-gray-700">
+      <h3 className="text-[#C28B60] font-medium mb-1">Cobros Recibidos</h3>
       <div className="flex justify-between items-center">
         <div>
           <p className="text-sm text-white">Total Recibido $ 1000000</p>
@@ -12,7 +12,7 @@ export default function CobrosRecibidos() {
             Dinámica de cobro en avance: 42.5%
           </p>
         </div>
-        <button className="bg-green-500 text-white px-4 py-2 rounded-md text-sm flex items-center">
+        <button className="bg-[#C28B60] text-white px-4 py-2 rounded-md text-sm flex items-center">
           Ver Filtros
           <Filter className="ml-1 h-4 w-4" />
         </button>
