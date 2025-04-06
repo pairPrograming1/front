@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import axios from "axios";
+import axios from "axios"; // Importar axios
 import InputField from "./InputField";
 import SubmitButton from "./SubmitButton";
 import OAuthButton from "./OAuthButton";
@@ -11,52 +11,28 @@ import { useRouter } from "next/navigation"; // Importar useRouter
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [tokenDeAcceso, setTokenDeAcceso] = useState("");
   const router = useRouter(); // Inicializar useRouter
-
-  const clientId = "LQZvjXTatV5t7VzdekZ7sSYZYdoAyndN";
-  const clientSecret =
-    "9h4oAvPgxyky-4cLGLDlhsi_VXbUvI8XmZ5KlOhwJDJtAUEQrl3m_6BBsBBmtHHC";
-  const dominioAuth0 = "pabloelleproso.us.auth0.com";
 
   const handleLogin = async () => {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
     const datosLogin = {
-      grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
-      username,
-      password,
-      audience: `https://${dominioAuth0}/api/v2/`,
-      realm: "Username-Password-Authentication",
+      usuario: username,
+      password: password,
     };
 
     try {
       setLoading(true);
       const respuesta = await axios.post(
-        `https://${dominioAuth0}/oauth/token`,
+        "http://localhost:4000/api/auth",
         datosLogin
       );
-      const tokenDeAcceso = respuesta.data.access_token;
-      setTokenDeAcceso(tokenDeAcceso);
-
-      console.log("Inicio de sesión exitoso.");
-
+      console.log("Inicio de sesión exitoso:", respuesta.data);
       router.push("/");
     } catch (error) {
       console.error("Error en la solicitud:", error);
-
-      if (error.response) {
-        console.error("Detalles del error:", error.response.data);
-        setError(
-          error.response.data.error_description ||
-            "Ocurrió un error inesperado. Por favor, inténtalo de nuevo."
-        );
-      } else {
-        setError("Error de red. Por favor, verifica tu conexión.");
-      }
+      setError("Ocurrió un error inesperado. Por favor, inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }

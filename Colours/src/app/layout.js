@@ -35,27 +35,60 @@ export default function RootLayout({ children }) {
   }, []);
 
   return (
-    <html lang="en">
-      <body>
-        <Auth0Provider
-          domain="pabloelleproso.us.auth0.com" // Usar el dominio proporcionado
-          clientId="LQZvjXTatV5t7VzdekZ7sSYZYdoAyndN" // Usar el clientId proporcionado
-          redirectUri={
-            typeof window !== "undefined" ? window.location.origin : ""
-          }
-        >
+    <Auth0Provider
+      domain="pabloelleproso.us.auth0.com"
+      clientId="WQbuELjdIzyXdVLQC7LJ8g1qkPzjSyuN"
+      authorizationParams={{
+        redirect_uri:
+          typeof window !== "undefined" ? window.location.origin : "",
+        audience: "https://pabloelleproso.us.auth0.com/api/v2/", // Cambia esto si usas una API personalizada
+      }}
+    >
+      <html lang="en">
+        <body>
           <div
-            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center relative`}
+            className={`${geistSans.variable} ${geistMono.variable} antialiased text-white min-h-screen flex flex-col items-center justify-center relative`}
             style={{
               background: isMounted
-                ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(25, 119, 97, 0.85), transparent 80%), rgb(5, 34, 62)`
-                : "rgb(5, 34, 62)",
+                ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(194, 139, 96, 0.85), transparent 80%), #1E2330`
+                : "#1E2330",
+              color: "#FFFFFF",
             }}
           >
+            <style jsx global>{`
+              body {
+                background-color: #1e2330;
+                color: #ffffff;
+              }
+              .secondary-text {
+                color: #a0a0a0;
+              }
+              button {
+                background-color: #c28b60;
+                color: #ffffff;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+              }
+              button:hover {
+                opacity: 0.9;
+              }
+              input {
+                background-color: #2a2f3d;
+                color: #ffffff;
+                border: 1px solid #a0a0a0;
+                padding: 10px;
+                border-radius: 5px;
+              }
+              input::placeholder {
+                color: #a0a0a0;
+              }
+            `}</style>
             {children}
           </div>
-        </Auth0Provider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </Auth0Provider>
   );
 }

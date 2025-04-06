@@ -9,18 +9,20 @@ export default function RegisterForm() {
   const [formData, setFormData] = useState({
     dni: "",
     name: "",
+    apellido: "",
     address: "",
     email: "",
     whatsapp: "",
     username: "",
     password: "",
     confirmPassword: "",
+    isActive: true,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const router = useRouter(); // Inicializar useRouter
+  const router = useRouter();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -28,18 +30,34 @@ export default function RegisterForm() {
   };
 
   const handleRegister = async () => {
-    let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
-    const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+    const {
+      dni,
+      name,
+      apellido,
+      address,
+      email,
+      whatsapp,
+      username,
+      password,
+      confirmPassword,
+      isActive,
+    } = formData;
 
-    if (!domain || !clientId) {
-      console.error("Las variables de entorno de Auth0 no están configuradas.");
-      setError("Error interno. Por favor, contacta al administrador.");
+    // Validar que todos los campos estén completos
+    if (
+      !dni ||
+      !name ||
+      !apellido ||
+      !address ||
+      !email ||
+      !whatsapp ||
+      !username ||
+      !password ||
+      !confirmPassword
+    ) {
+      setError("Todos los campos son obligatorios.");
       return;
     }
-
-    domain = domain.replace(/^https?:\/\//, "");
-
-    const { email, password, confirmPassword } = formData;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -65,7 +83,21 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      const response = await axios.post(
+      // Registro en Auth0
+      let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+      const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+
+      if (!domain || !clientId) {
+        console.error(
+          "Las variables de entorno de Auth0 no están configuradas."
+        );
+        setError("Error interno. Por favor, contacta al administrador.");
+        return;
+      }
+
+      domain = domain.replace(/^https?:\/\//, "");
+
+      const auth0Response = await axios.post(
         `https://${domain}/dbconnections/signup`,
         {
           client_id: clientId,
@@ -78,13 +110,45 @@ export default function RegisterForm() {
         }
       );
 
-      console.log("Registro exitoso:", response.data);
+      console.log("Registro exitoso en Auth0:", auth0Response.data);
+
+      const auth0Id = auth0Response.data._id;
+
+      if (!auth0Id) {
+        throw new Error("El ID de Auth0 es nulo o no válido.");
+      }
+
+      // Registro en el backend
+      const backendData = {
+        dni,
+        nombre: name,
+        apellido,
+        direccion: address,
+        email,
+        whatsapp,
+        usuario: username,
+        password,
+        isActive,
+        auth0Id, // Incluir el ID de Auth0
+      };
+
+      console.log("Datos enviados al backend:", backendData);
+
+      const backendResponse = await axios.post(
+        "http://localhost:4000/api/users/register",
+        backendData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      console.log("Registro exitoso en el backend:", backendResponse.data);
       setSuccess("Registro exitoso. ¡Bienvenido!");
       router.push("/");
     } catch (err) {
       console.error("Error de registro:", err.response?.data || err.message);
       setError(
-        err.response?.data?.error_description ||
+        err.response?.data?.message ||
           "Error al registrarse. Por favor, inténtalo de nuevo."
       );
     } finally {
@@ -96,24 +160,24 @@ export default function RegisterForm() {
     <form className="flex flex-col gap-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
-          label="DNI"
-          type="text"
-          id="dni"
-          value={formData.dni}
-          onChange={handleChange}
-        />
-        <InputField
-          label="Nombre y Apellido"
+          label="Nombre"
           type="text"
           id="name"
           value={formData.name}
           onChange={handleChange}
         />
         <InputField
-          label="Dirección"
+          label="Apellido"
           type="text"
-          id="address"
-          value={formData.address}
+          id="apellido"
+          value={formData.apellido}
+          onChange={handleChange}
+        />
+        <InputField
+          label="DNI"
+          type="text"
+          id="dni"
+          value={formData.dni}
           onChange={handleChange}
         />
         <InputField
@@ -124,17 +188,24 @@ export default function RegisterForm() {
           onChange={handleChange}
         />
         <InputField
-          label="WhatsApp"
-          type="text"
-          id="whatsapp"
-          value={formData.whatsapp}
-          onChange={handleChange}
-        />
-        <InputField
           label="Usuario"
           type="text"
           id="username"
           value={formData.username}
+          onChange={handleChange}
+        />
+        <InputField
+          label="Dirección"
+          type="text"
+          id="address"
+          value={formData.address}
+          onChange={handleChange}
+        />
+        <InputField
+          label="WhatsApp"
+          type="text"
+          id="whatsapp"
+          value={formData.whatsapp}
           onChange={handleChange}
         />
         <InputField
