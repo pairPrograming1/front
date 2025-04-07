@@ -159,13 +159,7 @@ export default function MyTicketsPage() {
 
   return (
     <div className="flex min-h-full w-full flex-col" style={{ backgroundColor: "#2D3443" }}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-[#464E5E]">
-        <h1 className="text-2xl font-bold text-white">XEVENT</h1>
-        <button className="text-white">
-          <Menu className="h-6 w-6" />
-        </button>
-      </div>
+
 
       <div className="p-4">
         {/* Título */}
