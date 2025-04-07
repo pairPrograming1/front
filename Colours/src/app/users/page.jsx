@@ -1,13 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
-import { Menu, X } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function UsersPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [showDetails, setShowDetails] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const router = useRouter()
+  // Añadir un estado para simular si el usuario ya tiene entradas
+  const [hasTickets, setHasTickets] = useState(false)
+
+  // Aseguramos que el componente solo se renderice completamente en el cliente
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const events = [
     {
@@ -62,12 +72,46 @@ export default function UsersPage() {
     },
   ]
 
-  const toggleDetails = () => {
-    setShowDetails(!showDetails)
+  const openDetails = () => {
+    setShowDetails(true)
+  }
+
+  const closeDetails = () => {
+    setShowDetails(false)
   }
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
+  }
+
+  // Modificar la función handleBuyTickets para que tenga en cuenta si el usuario ya tiene entradas
+  const handleBuyTickets = () => {
+    if (hasTickets) {
+      // Si ya tiene entradas, redirigir a la página de "Mis Entradas"
+      router.push(`/users/my-tickets/${events[currentSlide].id}`)
+    } else {
+      // Si no tiene entradas, redirigir a la página de compra
+      router.push(`/users/tickets/${events[currentSlide].id}`)
+    }
+  }
+
+  // Añadir un botón para simular la compra de entradas (solo para demostración)
+  const toggleTicketStatus = () => {
+    setHasTickets((prev) => !prev)
+  }
+
+  // Renderizamos un esqueleto básico durante la hidratación
+  if (!mounted) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center py-4">
+        <div className="relative mx-auto w-full max-w-md px-4">
+          <div
+            className="rounded-lg shadow-lg aspect-[3/4] w-full"
+            style={{ backgroundColor: "rgba(45, 52, 67, 0.5)" }}
+          ></div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -79,7 +123,7 @@ export default function UsersPage() {
             <div
               className="overflow-hidden rounded-lg shadow-lg cursor-pointer"
               style={{ backgroundColor: "rgba(45, 52, 67, 0.5)", backdropFilter: "blur(5px)" }}
-              onClick={toggleDetails}
+              onClick={openDetails}
             >
               <div className="relative aspect-[3/4] w-full overflow-hidden">
                 <div className="absolute top-4 left-0 right-0 text-center text-sm font-medium text-white z-10">
@@ -117,124 +161,62 @@ export default function UsersPage() {
             </div>
           </>
         ) : (
-          // Vista detallada con sidebar integrada
-          <div
-            className="fixed inset-0 z-50"
-            style={{ backgroundColor: "rgba(45, 52, 67, 0.95)", backdropFilter: "blur(5px)" }}
-          >
-            <div className="flex h-full">
-              {/* Sidebar directamente en la vista detallada */}
-              <div
-                className={`absolute inset-y-0 left-0 z-10 w-64 transform transition-transform duration-300 ease-in-out ${
-                  sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
-                style={{
-                  backgroundColor: "rgba(45, 52, 67, 0.95)",
-                  borderRight: "1px solid rgba(70, 78, 94, 0.7)",
-                  backdropFilter: "blur(10px)",
-                }}
+          // Vista detallada con estilo similar a la página de eventos
+          <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: "#2D3443" }}>
+            {/* Header con botón de volver */}
+            <div className="flex items-center p-4">
+              <button
+                onClick={closeDetails}
+                className="rounded-md p-2 text-white hover:bg-opacity-50"
+                style={{ backgroundColor: "rgba(70, 78, 94, 0.5)" }}
+                aria-label="Volver"
               >
-                <div
-                  className="flex h-16 items-center justify-between px-4"
-                  style={{ borderBottom: "1px solid rgba(70, 78, 94, 0.7)" }}
-                >
-                  <h2 className="text-xl font-semibold text-white">Menú</h2>
-                  <button
-                    onClick={toggleSidebar}
-                    className="rounded-md p-2 text-white hover:bg-opacity-50"
-                    style={{ backgroundColor: "rgba(70, 78, 94, 0.5)" }}
-                    aria-label="Close sidebar"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                <nav className="mt-4 px-2">
-                  <ul className="space-y-2">
-                    <li>
-                      <a
-                        href="#"
-                        className="block rounded-md px-4 py-2 text-gray-300 hover:text-white transition-colors"
-                        style={{
-                          backgroundColor: "rgba(70, 78, 94, 0.3)",
-                          borderLeft: "3px solid #BF8D6B",
-                        }}
-                      >
-                        Área Eventos
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="block rounded-md px-4 py-2 text-gray-300 hover:text-white transition-colors hover:bg-opacity-20"
-                        style={{
-                          backgroundColor: "rgba(70, 78, 94, 0.0)",
-                          borderLeft: "3px solid transparent",
-                        }}
-                      >
-                        Mi Perfil
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="block rounded-md px-4 py-2 text-gray-300 hover:text-white transition-colors hover:bg-opacity-20"
-                        style={{
-                          backgroundColor: "rgba(70, 78, 94, 0.0)",
-                          borderLeft: "3px solid transparent",
-                        }}
-                      >
-                        Configuración
-                      </a>
-                    </li>
-                  </ul>
-                </nav>
+                <ArrowLeft className="h-6 w-6" />
+              </button>
+              <h1 className="ml-4 text-2xl font-bold text-white">XEVENT</h1>
+            </div>
+
+            {/* Contenido principal */}
+            <div className="flex-1 overflow-auto p-4">
+              <div className="rounded-lg overflow-hidden mb-4">
+                <Image
+                  src={events[currentSlide].image || "/placeholder.svg"}
+                  alt={events[currentSlide].title}
+                  width={600}
+                  height={400}
+                  className="w-full object-cover"
+                />
               </div>
 
-              {/* Contenido principal */}
-              <div className="flex-1 overflow-auto">
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center">
-                    <button
-                      onClick={toggleSidebar}
-                      className="mr-4 rounded-md p-2 text-white hover:bg-opacity-50"
-                      style={{ backgroundColor: "rgba(70, 78, 94, 0.5)" }}
-                      aria-label="Toggle sidebar"
-                    >
-                      <Menu className="h-6 w-6" />
-                    </button>
-                    <h1 className="text-2xl font-bold text-white">XEVENT</h1>
-                  </div>
-                </div>
+              <h2 className="text-xl font-bold text-white mb-1">{events[currentSlide].title}</h2>
+              <p className="text-sm text-[#EDEEF0] mb-1">{events[currentSlide].area}</p>
+              <p className="text-sm text-[#EDEEF0] mb-6">{events[currentSlide].date}</p>
 
-                <div className="px-4 pb-20">
-                  <div className="rounded-lg overflow-hidden mb-4 cursor-pointer" onClick={toggleDetails}>
-                    <Image
-                      src={events[currentSlide].image || "/placeholder.svg"}
-                      alt={events[currentSlide].title}
-                      width={600}
-                      height={400}
-                      className="w-full object-cover"
-                    />
-                  </div>
-
-                  <h2 className="text-xl font-bold text-white mb-1">{events[currentSlide].title}</h2>
-                  <p className="text-sm text-gray-300 mb-1">{events[currentSlide].area}</p>
-                  <p className="text-sm text-gray-300 mb-6">{events[currentSlide].date}</p>
-
-                  <div className="text-sm text-gray-300 space-y-4 mb-6">
-                    {events[currentSlide].description.split("\n\n").map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </div>
-
-                  <button
-                    className="w-full py-3 rounded-md text-white font-medium mb-10"
-                    style={{ backgroundColor: "#BF8D6B" }}
-                  >
-                    Comprar Entradas
-                  </button>
-                </div>
+              <div className="text-sm text-[#EDEEF0] space-y-4 mb-6">
+                {events[currentSlide].description.split("\n\n").map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
               </div>
+            </div>
+
+            {/* Botón de comprar entradas */}
+            <div className="p-4 mt-auto">
+              <button
+                className="w-full py-3 rounded-md text-white font-medium"
+                style={{ backgroundColor: "#BF8D6B" }}
+                onClick={handleBuyTickets}
+              >
+                {hasTickets ? "Mis Entradas" : "Comprar Entradas"}
+              </button>
+
+              {/* Botón para simular cambio de estado (solo para demostración) */}
+              <button
+                className="w-full mt-2 py-2 rounded-md text-white font-medium text-sm"
+                style={{ backgroundColor: "rgba(70, 78, 94, 0.7)", border: "1px solid #BF8D6B" }}
+                onClick={toggleTicketStatus}
+              >
+                {hasTickets ? "Simular: No tengo entradas" : "Simular: Ya compré entradas"}
+              </button>
             </div>
           </div>
         )}
