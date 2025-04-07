@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import OAuthButton from "./OAuthButton";
+import Swal from "sweetalert2";
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -28,10 +29,21 @@ export default function LoginForm() {
         datosLogin
       );
       console.log("Inicio de sesión exitoso:", respuesta.data);
+      Swal.fire({
+        icon: "success",
+        title: "Inicio de sesión exitoso",
+        text: "Redirigiendo...",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       router.push("/users");
     } catch (error) {
       console.error("Error en la solicitud:", error);
-      setError("Ocurrió un error inesperado. Por favor, inténtalo de nuevo.");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+      });
     } finally {
       setLoading(false);
     }

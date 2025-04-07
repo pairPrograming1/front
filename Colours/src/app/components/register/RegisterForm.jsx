@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import InputField from "./InputField";
+import Swal from "sweetalert2"; // Importar SweetAlert
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -144,6 +145,11 @@ export default function RegisterForm() {
 
       console.log("Registro exitoso en el backend:", backendResponse.data);
       setSuccess("Registro exitoso. ¡Bienvenido!");
+      Swal.fire({
+        icon: "success",
+        title: "Registro exitoso",
+        text: "¡Bienvenido!",
+      }); // Mostrar alerta de éxito
       router.push("/");
     } catch (err) {
       console.error("Error de registro:", err.response?.data || err.message);
@@ -151,6 +157,13 @@ export default function RegisterForm() {
         err.response?.data?.message ||
           "Error al registrarse. Por favor, inténtalo de nuevo."
       );
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.message ||
+          "Error al registrarse. Por favor, inténtalo de nuevo.",
+      }); // Mostrar alerta de error
     } finally {
       setLoading(false);
     }
