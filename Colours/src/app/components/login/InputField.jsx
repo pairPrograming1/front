@@ -1,20 +1,24 @@
-"use client";
+"use client"
 
-export default function InputField({ id, type, label }) {
+export default function InputField({ id, type, label, showPassword, togglePassword }) {
   return (
     <div className="relative">
-      <label
-        className="block text-gray-300 text-sm font-bold mb-1"
-        htmlFor={id}
-      >
-        {label}
-      </label>
       <input
         id={id}
         type={type}
         placeholder={label}
-        className="w-full bg-gray-900/50 text-white border border-gray-700 focus:border-teal-400 rounded-xl py-3 px-4 focus:outline-none focus:ring-1 focus:ring-teal-300 text-sm md:text-base transition-all placeholder-gray-500"
+        className="w-full bg-transparent text-[#FFFFFF] border border-[#BF8D6B] rounded-md py-3 px-4 focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] placeholder-[#EDEEF0]/70"
       />
+      {type === "password" && (
+        <button
+          type="button"
+          onClick={togglePassword}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#EDEEF0]"
+        >
+          {/* Aquí irían tus iconos de ojo abierto/cerrado */}
+        </button>
+      )}
     </div>
-  );
+  )
 }
+
