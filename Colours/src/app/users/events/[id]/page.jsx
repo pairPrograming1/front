@@ -2,21 +2,29 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
+import { useSelector, useDispatch } from "react-redux"
+import { selectHasTickets, setEventId } from "@/lib/slices/ticketsSlice"
 
-export default function EventDetailPage({ params }) {
+export default function EventDetailPage() {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
-  const [eventId, setEventId] = useState(null)
+
+  // Redux
+  const dispatch = useDispatch()
+  const hasTickets = useSelector(selectHasTickets)
+
+  // Estado local para simulación
+  const [simulateHasTickets, setSimulateHasTickets] = useState(false)
 
   useEffect(() => {
-    // Extraer el ID de la URL en lugar de acceder directamente a params
+    // Extraer el ID de la URL
     if (pathname) {
       const pathSegments = pathname.split("/")
       const id = pathSegments[pathSegments.length - 1]
-      setEventId(id)
+      dispatch(setEventId(id))
     }
-  }, [pathname])
+  }, [pathname, dispatch])
 
   useEffect(() => {
     setMounted(true)
@@ -25,7 +33,7 @@ export default function EventDetailPage({ params }) {
   // Simulamos obtener los datos del evento basado en el ID
   const getEventData = () => {
     return {
-      id: eventId,
+      id: pathname ? pathname.split("/").pop() : null,
       title: "Colegio del Sol",
       date: "Sábado 20 de Diciembre a las 20hs",
       image: "/placeholder.svg?height=400&width=600",
@@ -36,12 +44,26 @@ export default function EventDetailPage({ params }) {
     }
   }
 
+  // Modificar la función handleBuyTickets para que tenga en cuenta si el usuario ya tiene entradas
   const handleBuyTickets = () => {
-    router.push(`/users/tickets/${eventId}`)
+    const eventId = pathname ? pathname.split("/").pop() : null
+
+    if (hasTickets || simulateHasTickets) {
+      // Si ya tiene entradas, redirigir a la página de "Mis Entradas"
+      router.push(`/users/my-tickets/${eventId}`)
+    } else {
+      // Si no tiene entradas, redirigir a la página de compra
+      router.push(`/users/tickets/${eventId}`)
+    }
   }
 
-  // Renderizamos un esqueleto básico durante la hidratación o si no tenemos eventId
-  if (!mounted || !eventId) {
+  // Añadir un botón para simular la compra de entradas (solo para demostración)
+  const toggleTicketStatus = () => {
+    setSimulateHasTickets((prev) => !prev)
+  }
+
+  // Renderizamos un esqueleto básico durante la hidratación
+  if (!mounted) {
     return (
       <div
         className="flex flex-col min-h-full w-full max-w-md mx-auto"
@@ -91,13 +113,23 @@ export default function EventDetailPage({ params }) {
         </div>
       </div>
 
+      {/* Modificar el botón en el return para que muestre el texto correcto */}
       <div className="p-4 mt-auto">
         <button
           className="w-full py-3 rounded-md text-white font-medium"
           style={{ backgroundColor: "#BF8D6B" }}
           onClick={handleBuyTickets}
         >
-          Comprar Entradas
+          {hasTickets || simulateHasTickets ? "Mis Entradas" : "Comprar Entradas"}
+        </button>
+
+        {/* Botón para simular cambio de estado (solo para demostración) */}
+        <button
+          className="w-full mt-2 py-2 rounded-md text-white font-medium text-sm"
+          style={{ backgroundColor: "rgba(70, 78, 94, 0.7)", border: "1px solid #BF8D6B" }}
+          onClick={toggleTicketStatus}
+        >
+          {simulateHasTickets ? "Simular: No tengo entradas" : "Simular: Ya compré entradas"}
         </button>
       </div>
     </div>

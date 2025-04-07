@@ -3,14 +3,19 @@
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { Share2, Menu } from "lucide-react"
+import { useSelector, useDispatch } from "react-redux"
+import { selectTickets, setEventId } from "@/lib/slices/ticketsSlice"
 import Modal from "@/app/components/user/adultChildModal"
 
 export default function MyTicketsPage() {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
-  const [eventId, setEventId] = useState(null)
   const [userName, setUserName] = useState("Hernán Gulliano")
+
+  // Redux
+  const dispatch = useDispatch()
+  const ticketsData = useSelector(selectTickets)
 
   // Estados para los modales
   const [showAdultModal, setShowAdultModal] = useState(false)
@@ -35,40 +40,31 @@ export default function MyTicketsPage() {
     if (pathname) {
       const pathSegments = pathname.split("/")
       const id = pathSegments[pathSegments.length - 1]
-      setEventId(id)
+      dispatch(setEventId(id))
     }
-  }, [pathname])
-
-  // Simulamos obtener los datos de las entradas compradas
-  // En una implementación real, esto vendría de la base de datos
-  const [tickets, setTickets] = useState({
-    adults: 3,
-    children: 2,
-    freeAdults: 0,
-    freeChildren: 0,
-  })
+  }, [pathname, dispatch])
 
   // Generar un array de entradas basado en las cantidades
   const generateTickets = () => {
     const ticketList = []
 
     // Añadir entradas de adultos
-    for (let i = 0; i < tickets.adults; i++) {
+    for (let i = 0; i < ticketsData.adults; i++) {
       ticketList.push({ type: "Adulto", assigned: false, assignedTo: null })
     }
 
     // Añadir entradas de menores
-    for (let i = 0; i < tickets.children; i++) {
+    for (let i = 0; i < ticketsData.children; i++) {
       ticketList.push({ type: "Menores", assigned: false, assignedTo: null })
     }
 
     // Añadir entradas de adultos sin cargo
-    for (let i = 0; i < tickets.freeAdults; i++) {
+    for (let i = 0; i < ticketsData.freeAdults; i++) {
       ticketList.push({ type: "Adulto sin Cargo", assigned: false, assignedTo: null })
     }
 
     // Añadir entradas de menores sin cargo
-    for (let i = 0; i < tickets.freeChildren; i++) {
+    for (let i = 0; i < ticketsData.freeChildren; i++) {
       ticketList.push({ type: "Menores sin Cargo", assigned: false, assignedTo: null })
     }
 
@@ -80,7 +76,7 @@ export default function MyTicketsPage() {
   useEffect(() => {
     setMounted(true)
     setTicketList(generateTickets())
-  }, [])
+  }, [ticketsData])
 
   // Manejar la apertura del modal según el tipo de entrada
   const handleAssignTicket = (index) => {
@@ -137,8 +133,8 @@ export default function MyTicketsPage() {
     setChildForm({ name: "", dni: "" })
   }
 
-  // Renderizamos un esqueleto básico durante la hidratación o si no tenemos eventId
-  if (!mounted || !eventId) {
+  // Renderizamos un esqueleto básico durante la hidratación
+  if (!mounted) {
     return (
       <div className="flex min-h-full w-full flex-col">
         <div className="w-full animate-pulse">
@@ -159,7 +155,7 @@ export default function MyTicketsPage() {
 
   return (
     <div className="flex min-h-full w-full flex-col" style={{ backgroundColor: "#2D3443" }}>
-
+     
 
       <div className="p-4">
         {/* Título */}
@@ -313,5 +309,7 @@ export default function MyTicketsPage() {
     </div>
   )
 }
+
+
 
 

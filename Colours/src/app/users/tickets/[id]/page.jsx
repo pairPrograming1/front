@@ -3,59 +3,42 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
+import {
+  setEventId,
+  incrementTicket,
+  decrementTicket,
+  selectTickets,
+  selectPrices,
+  selectSubtotal,
+  selectTotal,
+} from "@/lib/slices/ticketsSlice"
 
-export default function TicketPurchasePage({ params }) {
+export default function TicketPurchasePage() {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
-  const [eventId, setEventId] = useState(null)
 
-  // Estado para las cantidades de entradas
-  const [tickets, setTickets] = useState({
-    adults: 0,
-    children: 0,
-    freeAdults: 0,
-    freeChildren: 0,
-  })
-
-  // Precios de las entradas
-  const prices = {
-    adults: 65000,
-    children: 32500,
-    freeAdults: 0,
-    freeChildren: 0,
-    serviceCharge: 2600,
-  }
+  // Redux
+  const dispatch = useDispatch()
+  const tickets = useSelector(selectTickets)
+  const prices = useSelector(selectPrices)
+  const subtotal = useSelector(selectSubtotal)
+  const total = useSelector(selectTotal)
 
   // Extraer el ID de manera segura
   useEffect(() => {
-    // Extraer el ID de la URL en lugar de acceder directamente a params
     if (pathname) {
       const pathSegments = pathname.split("/")
       const id = pathSegments[pathSegments.length - 1]
-      setEventId(id)
+      dispatch(setEventId(id))
     }
-  }, [pathname])
-
-  // Calcular subtotal
-  const calculateSubtotal = () => {
-    return (
-      tickets.adults * prices.adults +
-      tickets.children * prices.children +
-      tickets.freeAdults * prices.freeAdults +
-      tickets.freeChildren * prices.freeChildren
-    )
-  }
-
-  // Calcular total
-  const calculateTotal = () => {
-    return calculateSubtotal() + prices.serviceCharge
-  }
+  }, [pathname, dispatch])
 
   // Evento simulado
   const getEventData = () => {
     return {
-      id: eventId,
+      id: pathname ? pathname.split("/").pop() : null,
       title: "Colegio del Sol",
       date: "Sábado 20 de Diciembre a las 20hs",
       image: "/placeholder.svg?height=400&width=600",
@@ -65,24 +48,25 @@ export default function TicketPurchasePage({ params }) {
 
   // Actualizar cantidad de entradas
   const updateTicketCount = (type, increment) => {
-    setTickets((prev) => ({
-      ...prev,
-      [type]: Math.max(0, prev[type] + increment),
-    }))
+    if (increment > 0) {
+      dispatch(incrementTicket(type))
+    } else {
+      dispatch(decrementTicket(type))
+    }
   }
 
   // Proceder al pago
   const proceedToPayment = () => {
-    alert("Redirigiendo a la página de pago...")
-    // Aquí iría la redirección a la pasarela de pago
+    // Redirigir a la página de pago
+    router.push(`/users/payment/${getEventData().id}`)
   }
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Renderizamos un esqueleto básico durante la hidratación o si no tenemos eventId
-  if (!mounted || !eventId) {
+  // Renderizamos un esqueleto básico durante la hidratación
+  if (!mounted) {
     return (
       <div className="flex min-h-full w-full flex-col items-center p-4">
         <div className="w-full max-w-md animate-pulse">
@@ -239,7 +223,7 @@ export default function TicketPurchasePage({ params }) {
         >
           <div className="flex justify-between mb-2">
             <span className="text-[#EDEEF0]">Subtotal</span>
-            <span className="text-white">{calculateSubtotal().toLocaleString()}$</span>
+            <span className="text-white">{subtotal.toLocaleString()}$</span>
           </div>
           <div className="flex justify-between">
             <span className="text-[#EDEEF0] text-sm">+ Cargo de Servicio</span>
@@ -250,7 +234,7 @@ export default function TicketPurchasePage({ params }) {
         {/* Total */}
         <div className="flex justify-between p-3 rounded-md mb-6 bg-[#EDEEF0]">
           <span className="font-medium text-[#202020]">Total a pagar</span>
-          <span className="font-bold text-[#202020]">{calculateTotal().toLocaleString()}$</span>
+          <span className="font-bold text-[#202020]">{total.toLocaleString()}$</span>
         </div>
 
         {/* Botón de pago */}
@@ -265,6 +249,7 @@ export default function TicketPurchasePage({ params }) {
     </div>
   )
 }
+
 
 
 
