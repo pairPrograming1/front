@@ -3,7 +3,7 @@
 import React from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Auth0Provider } from "@auth0/auth0-react";
-import { Providers } from "./providers"
+import { Providers } from "./providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
     setIsMounted(true); // Indica que el componente ya está montado.
 
     if (typeof window !== "undefined") {
-      const handleMouseMove    = (event) => {
+      const handleMouseMove = (event) => {
         setMousePosition({ x: event.clientX, y: event.clientY });
       };
 
@@ -65,7 +65,7 @@ export default function RootLayout({ children }) {
                 color: #a0a0a0;
               }
               button {
-                background-color: #c28b60;
+                background-color: transparen;
                 color: #ffffff;
                 border: none;
                 padding: 10px 20px;
@@ -74,6 +74,16 @@ export default function RootLayout({ children }) {
               }
               button:hover {
                 opacity: 0.9;
+              }
+              button.transparent {
+                background-color: transparent;
+                color: #ffffff;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+              }
+              button.transparent:hover {
+                opacity: 0.8;
               }
               input {
                 background-color: #2a2f3d;
@@ -86,7 +96,7 @@ export default function RootLayout({ children }) {
                 color: #a0a0a0;
               }
             `}</style>
-           <Providers>{children}</Providers>
+            <Providers>{children}</Providers>
           </div>
         </body>
       </html>
