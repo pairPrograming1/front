@@ -15,7 +15,10 @@ export default function Summary({ subtotal, serviceFee, total }) {
           <span className="text-gray-400">Cargo de Servicio:</span>
           <span>{formatCurrency(serviceFee)}$</span>
         </div>
-        <div className="bg-teal-500 text-white rounded p-3 mt-3 flex justify-between">
+        <div
+          className="text-white rounded p-3 mt-3 flex justify-between"
+          style={{ backgroundColor: "#C28B60" }} // Aplicación del color Cobre/Bronce
+        >
           <span className="font-medium">Total a pagar:</span>
           <span className="font-medium">{formatCurrency(total)}$</span>
         </div>

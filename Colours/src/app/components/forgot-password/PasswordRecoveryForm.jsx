@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react"; // Importar Auth0
 import InputField from "./InputField";
 import ResetButton from "./ResetButton";
 import TermsAndConditions from "./TermsAndCondition";
@@ -9,8 +10,17 @@ import BackLink from "./BackLink";
 import Link from "next/link";
 
 export default function PasswordRecoveryForm() {
-  const handleForgotPassword = () => {
-    console.log("Recuperar contraseña");
+  const { loginWithRedirect } = useAuth0(); // Obtener métodos de Auth0
+
+  const handleForgotPassword = async () => {
+    try {
+      await loginWithRedirect({
+        screen_hint: "reset-password", // Indicar a Auth0 que es para recuperación
+      });
+      console.log("Correo de recuperación enviado");
+    } catch (error) {
+      console.error("Error al recuperar contraseña:", error);
+    }
   };
 
   return (

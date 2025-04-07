@@ -1,25 +1,31 @@
-"use client";
+"use client"
 
-import Image from "next/image";
+import Image from "next/image"
+import { useAuth0 } from "@auth0/auth0-react"
 
 export default function OAuthButton() {
-  return (
-    <div className="text-center">
-      <span className="text-gray-300 text-sm">o continuar con Google</span>
-      <button
-        className="bg-white text-gray-700 font-bold py-2 px-4 rounded-xl md:rounded-full focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto hover:bg-gray-100 transition-colors"
-        type="button"
-      >
-        <Image
-          src="https://img.freepik.com/premium-psd/google-icon-3d-render_68185-1080.jpg?semt=ais_hybrid"
-          alt="Google Icon"
-          width={20}
-          height={20}
-          unoptimized
-        />
+  const { loginWithRedirect, isAuthenticated, user } = useAuth0()
 
-        <span className="ml-2">Google</span>
+  return (
+    <div className="text-center mt-4">
+      <p className="text-[#EDEEF0] text-sm mb-2">o continuar con Google</p>
+      <button
+        className="flex items-center justify-center mx-auto bg-black"
+        type="button"
+        onClick={() => {
+          loginWithRedirect({ connection: "google-oauth2" })
+          if (isAuthenticated) {
+            console.log("Login exitoso:", user)
+          } else {
+            console.log("Login fallido")
+          }
+        }}
+      >
+        {/* Usando el logo colorido de Google como en la imagen */}
+        <Image src="/google-icon.svg" alt="Google Icon" width={40} height={40} />
       </button>
     </div>
-  );
+  )
 }
+
+

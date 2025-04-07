@@ -2,17 +2,60 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect } from "react";
 
 export default function SocialLogin() {
+  const { loginWithRedirect, user } = useAuth0();
+
+  useEffect(() => {
+    if (user) {
+      console.log("Datos del usuario:", user);
+
+      // Realizar el POST a la API
+      const registerUser = async () => {
+        try {
+          const response = await fetch(
+            "http://localhost:4000/api/users/register",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                auth0Id: user.sub,
+                email: user.email,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            console.error(
+              "Error al registrar el usuario:",
+              response.statusText
+            );
+          } else {
+            console.log("Usuario registrado exitosamente");
+          }
+        } catch (error) {
+          console.error("Error en la solicitud:", error);
+        }
+      };
+
+      registerUser();
+    }
+  }, [user]);
+
   return (
     <div className="text-center mt-6">
       <span className="text-gray-300">o continuar con Google</span>
       <button
         className="bg-white text-gray-700 font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center justify-center mt-2 mx-auto"
         type="button"
+        onClick={() => loginWithRedirect({ connection: "google-oauth2" })}
       >
         <Image
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px"
+          src="https://w7.pngwing.com/pngs/612/285/png-transparent-logo-google-g-google-s-logo-icon-thumbnail.png"
           alt="Google Icon"
           width={20}
           height={20}

@@ -11,7 +11,7 @@ export default function Payment() {
         <Header />
         <PaymentSummary />
         <PaymentOptions />
-        <button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-500">
+        <button className="w-full bg-gradient-to-r from-[#C28B60] to-[#C28B60] hover:from-[#b07c55] hover:to-[#b07c55] text-white py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#C28B60]">
           Ir a Pagar
         </button>
       </div>
