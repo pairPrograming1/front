@@ -1,17 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import OAuthButton from "./OAuthButton";
 import Swal from "sweetalert2";
+import { AuthContext } from "../../context/AuthContext"; // Importar el contexto
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const { setAuthData } = useContext(AuthContext); // Usar el contexto
 
   const handleLogin = async () => {
     const username = document.getElementById("username").value;
@@ -29,6 +31,7 @@ export default function LoginForm() {
         datosLogin
       );
       console.log("Inicio de sesión exitoso:", respuesta.data);
+      setAuthData(respuesta.data); // Guardar los datos de sesión en el contexto
       Swal.fire({
         icon: "success",
         title: "Inicio de sesión exitoso",
