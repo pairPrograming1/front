@@ -15,5 +15,3 @@ export function LogoutButton() {
 
   return <button onClick={handleLogout}>Logout</button>;
 }
-
-export { LogoutButton };

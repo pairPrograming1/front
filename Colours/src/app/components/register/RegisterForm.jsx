@@ -21,8 +21,6 @@ export default function RegisterForm() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const router = useRouter();
 
   const handleChange = (e) => {
@@ -56,32 +54,45 @@ export default function RegisterForm() {
       !password ||
       !confirmPassword
     ) {
-      setError("Todos los campos son obligatorios.");
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Todos los campos son obligatorios.",
+      });
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("Por favor, ingresa un correo electrónico válido.");
+      Swal.fire({
+        icon: "warning",
+        title: "Correo inválido",
+        text: "Por favor, ingresa un correo electrónico válido.",
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
+      Swal.fire({
+        icon: "warning",
+        title: "Contraseñas no coinciden",
+        text: "Las contraseñas no coinciden.",
+      });
       return;
     }
 
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
     if (!passwordRegex.test(password)) {
-      setError(
-        "La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas, números y caracteres especiales."
-      );
+      Swal.fire({
+        icon: "warning",
+        title: "Contraseña inválida",
+        text: "La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas, números y caracteres especiales.",
+      });
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       // Registro en Auth0
@@ -92,7 +103,11 @@ export default function RegisterForm() {
         console.error(
           "Las variables de entorno de Auth0 no están configuradas."
         );
-        setError("Error interno. Por favor, contacta al administrador.");
+        Swal.fire({
+          icon: "error",
+          title: "Error interno",
+          text: "Por favor, contacta al administrador.",
+        });
         return;
       }
 
@@ -144,7 +159,6 @@ export default function RegisterForm() {
       );
 
       console.log("Registro exitoso en el backend:", backendResponse.data);
-      setSuccess("Registro exitoso. ¡Bienvenido!");
       Swal.fire({
         icon: "success",
         title: "Registro exitoso",
@@ -153,10 +167,6 @@ export default function RegisterForm() {
       router.push("/");
     } catch (err) {
       console.error("Error de registro:", err.response?.data || err.message);
-      setError(
-        err.response?.data?.message ||
-          "Error al registrarse. Por favor, inténtalo de nuevo."
-      );
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -236,9 +246,6 @@ export default function RegisterForm() {
           onChange={handleChange}
         />
       </div>
-
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-green-500 text-sm">{success}</p>}
 
       <button
         type="button"

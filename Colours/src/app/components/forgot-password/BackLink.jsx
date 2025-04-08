@@ -7,7 +7,7 @@ export default function BackLink({ href, text }) {
     <div className="text-left">
       <Link
         href={href}
-        className="text-gray-400 hover:text-teal-400 transition-colors text-sm md:text-base flex items-center group"
+        className="text-white hover:text-teal-400 transition-colors text-sm md:text-base flex items-center group"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

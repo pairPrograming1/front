@@ -115,7 +115,7 @@ export default function LoginForm() {
         </span>
         <Link
           href="/register"
-          className="text-[#BF8D6B] hover:underline text-sm font-medium"
+          className="text-[#FFFFFF] hover:underline text-sm font-medium"
         >
           Registrarte
         </Link>
