@@ -5,14 +5,13 @@ import Link from "next/link";
 import { Menu, ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/app/components/user/sidebarUser";
-import { LogoutButton } from "@/app/components/logout/LogoutButton"; // Cambiar a una exportación nombrada
+import { LogoutButton } from "../components/logout/LogoutButton";
 
 export default function UsersLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
-  // Aseguramos que el componente solo se renderice completamente en el cliente
   useEffect(() => {
     setMounted(true);
   }, []);
