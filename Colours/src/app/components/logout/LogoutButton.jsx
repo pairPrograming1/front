@@ -13,7 +13,9 @@ export function LogoutButton() {
     setAuthData(null); // Borra el estado de la sesión
     localStorage.removeItem("authData"); // Borra los datos del localStorage
     logout({ returnTo: window.location.origin }); // Cierra la sesión de Auth0
-    router.push("/login"); // Redirige a la ruta /login
+    setTimeout(() => {
+      router.push("/login"); // Redirige a la ruta /login después de un breve retraso
+    }, 500); // Retraso de 500ms
   };
 
   return <button onClick={handleLogout}>Logout</button>;
