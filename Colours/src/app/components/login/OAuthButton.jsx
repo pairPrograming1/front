@@ -2,9 +2,26 @@
 
 import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2"; // Importar SweetAlert2
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      Swal.fire({
+        title: "¡Inicio de sesión exitoso!",
+        text: `Bienvenido, ${user.name}`,
+        icon: "success",
+        confirmButtonText: "Continuar",
+      }).then(() => {
+        router.push("/users");
+      });
+    }
+  }, [isAuthenticated, user, router]);
 
   return (
     <div className="text-center mt-4">
@@ -14,11 +31,6 @@ export default function OAuthButton() {
         type="button"
         onClick={() => {
           loginWithRedirect({ connection: "google-oauth2" });
-          if (isAuthenticated) {
-            console.log("Login exitoso:", user);
-          } else {
-            console.log("Login fallido");
-          }
         }}
       >
         <Image
