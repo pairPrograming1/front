@@ -1,13 +1,14 @@
 import Header from "./Header";
 import VideoPlayer from "./VideoPlayer";
-import ActionButton from "./ActionButtons";
+import ActionButtons from "./ActionButtons";
 
 export default function VendorLayout({ children }) {
   return (
-    <div>
+    <div className="flex flex-col min-h-screen  text-white relative overflow-hidden">
       <Header />
       <VideoPlayer />
-      <ActionButton />
+      <ActionButtons />
+      {children}
     </div>
   );
 }

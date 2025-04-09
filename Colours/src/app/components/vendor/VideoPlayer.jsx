@@ -1,10 +1,10 @@
 export default function VideoPlayer() {
   return (
-    <div className="w-full relative rounded-lg overflow-hidden lg:w-3/4 lg:mx-auto">
+    <div className="w-full relative rounded-lg overflow-hidden">
       <img
         src="/placeholder.svg?height=200&width=400"
         alt="Event preview"
-        className="w-full h-auto lg:h-64"
+        className="w-full h-auto lg:h-150"
       />
       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
         <div className="flex items-center">
