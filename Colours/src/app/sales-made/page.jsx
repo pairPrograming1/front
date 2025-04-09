@@ -1,4 +1,4 @@
-import SalesDashboard from "../components/sales-made/sales-dashboard";
+import SalesDashboard from "../components/vendor/sales-made/sales-dashboard";
 
 export default function Home() {
   return (
