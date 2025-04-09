@@ -22,101 +22,15 @@ export default function CobrosYPagos() {
       fecha: "20/12/2026",
       monto: "200.000$",
     },
-    {
-      id: 2,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 3,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 4,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 5,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 6,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 7,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 8,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
-    {
-      id: 9,
-      usuario: "Juan Pérez",
-      evento: "Sagrado Corazón Turno Mañana 2025",
-      salon: "Aires Eventos",
-      puntoVenta: "Colour Producciones",
-      tipoEvento: "Graduación",
-      formaPago: "Mercado Pago",
-      fecha: "20/12/2026",
-      monto: "200.000$",
-    },
+    // ... otros reportes
   ];
 
   return (
     <div className="p-6">
       <Header title="Cobros y Pagos" />
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      {/* Resumen Total */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4 text-center">
           <p className="text-gray-400 mb-2">Total Entradas</p>
           <p className="text-2xl font-bold">30.000.000$</p>
@@ -131,47 +45,53 @@ export default function CobrosYPagos() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex gap-2 w-full">
-          <div className="relative w-1/5">
-            <input
-              type="text"
-              placeholder="Buscar por Salón"
-              className="search-input pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          </div>
-          <div className="relative w-1/5">
-            <input
-              type="text"
-              placeholder="Buscar por Punto de Venta"
-              className="search-input pl-10"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          </div>
+      {/* Filtros de Búsqueda */}
+      <div className="flex flex-wrap gap-2 justify-between items-center mb-6">
+        <div className="relative w-full sm:w-1/5 md:w-1/5 lg:w-1/5 xl:w-1/5">
+          <input
+            type="text"
+            placeholder="Buscar por Salón"
+            className="search-input pl-10"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        </div>
+        <div className="relative w-full sm:w-1/5 md:w-1/5 lg:w-1/5 xl:w-1/5">
+          <input
+            type="text"
+            placeholder="Buscar por Punto de Venta"
+            className="search-input pl-10"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        </div>
+        <div className="w-full sm:w-1/5 md:w-1/5 lg:w-1/5 xl:w-1/5">
           <input
             type="date"
             placeholder="Fecha desde"
-            className="input w-1/5"
+            className="input w-full"
           />
+        </div>
+        <div className="w-full sm:w-1/5 md:w-1/5 lg:w-1/5 xl:w-1/5">
           <input
             type="date"
             placeholder="Fecha hasta"
-            className="input w-1/5"
+            className="input w-full"
           />
-          <select className="input w-1/5">
+        </div>
+        <div className="w-full sm:w-1/5 md:w-1/5 lg:w-1/5 xl:w-1/5">
+          <select className="input w-full">
             <option value="">Tipo de Evento</option>
             <option value="graduacion">Graduación</option>
           </select>
-          <button className="btn btn-primary flex items-center gap-2 ml-2">
-            <Download className="h-4 w-4" />
-            Descargar CSV
-          </button>
         </div>
+        <button className="btn btn-primary flex items-center gap-2 ml-2 mt-2 sm:mt-0">
+          <Download className="h-4 w-4" />
+          Descargar CSV
+        </button>
       </div>
 
-      <div className="table-container">
-        <table className="table">
+      {/* Tabla de Reportes */}
+      <div className="table-container overflow-x-auto">
+        <table className="table w-full min-w-full">
           <thead>
             <tr>
               <th className="w-10">
@@ -211,7 +131,8 @@ export default function CobrosYPagos() {
         </table>
       </div>
 
-      <div className="pagination mt-4">
+      {/* Paginación */}
+      <div className="pagination mt-4 flex justify-center gap-2">
         <button className="pagination-item active">1</button>
         <button className="pagination-item">2</button>
         <button className="pagination-item">3</button>

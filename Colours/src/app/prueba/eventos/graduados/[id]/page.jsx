@@ -6,10 +6,10 @@ import Header from "../../../../components/header";
 import GraduadoCrearModal from "@/components/graduado-crear-modal";
 
 export default function Graduados({ params }) {
-  const [showModal, setShowModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [showModal, setShowModal] = useState(false); // Controlar la visibilidad del modal
+  const [currentPage, setCurrentPage] = useState(1); // Controlar la página actual para la paginación
 
-  // Datos de ejemplo
+  // Datos de ejemplo de graduados
   const graduados = [
     {
       id: 1,
@@ -115,8 +115,10 @@ export default function Graduados({ params }) {
 
   return (
     <div className="p-6">
+      {/* Header con el título y botón de regreso */}
       <Header title="Sagrado Corazón Turno Mañana 2025" showBack={true} />
 
+      {/* Sección de filtro y agregar graduado */}
       <div className="flex justify-between items-center mb-6">
         <button className="btn btn-outline">Cargar CSV</button>
 
@@ -133,7 +135,7 @@ export default function Graduados({ params }) {
           />
           <button
             className="btn btn-primary flex items-center gap-2"
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowModal(true)} // Mostrar modal al hacer clic
           >
             <Plus className="h-4 w-4" />
             Agregar
@@ -141,6 +143,7 @@ export default function Graduados({ params }) {
         </div>
       </div>
 
+      {/* Tabla de graduados */}
       <div className="table-container">
         <table className="table">
           <thead>
@@ -180,6 +183,7 @@ export default function Graduados({ params }) {
         </table>
       </div>
 
+      {/* Paginación */}
       <div className="pagination mt-4">
         <button className="pagination-item active">1</button>
         <button className="pagination-item">2</button>
@@ -192,6 +196,7 @@ export default function Graduados({ params }) {
         </button>
       </div>
 
+      {/* Modal para agregar un nuevo graduado */}
       {showModal && <GraduadoCrearModal onClose={() => setShowModal(false)} />}
     </div>
   );

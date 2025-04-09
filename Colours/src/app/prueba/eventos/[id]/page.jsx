@@ -47,6 +47,7 @@ export default function DetalleEvento({ params }) {
       <Header title="Sagrado Corazón Turno Mañana 2025" showBack={true} />
 
       <div className="grid grid-cols-1 gap-4 mb-6">
+        {/* Información del evento */}
         <div className="grid grid-cols-2 gap-4">
           <input
             type="text"
@@ -77,6 +78,7 @@ export default function DetalleEvento({ params }) {
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2">
           <div className="mb-6">
+            {/* Descripción del evento */}
             <textarea
               placeholder="Descripción del Evento"
               className="w-full h-32 bg-[#1a2535] border border-[#2a3545] rounded-lg p-4 text-white"
@@ -122,6 +124,7 @@ export default function DetalleEvento({ params }) {
         </div>
 
         <div>
+          {/* Imágenes del evento */}
           <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4 mb-6">
             <div className="grid grid-cols-2 gap-2 mb-4">
               <img
@@ -147,6 +150,7 @@ export default function DetalleEvento({ params }) {
             </div>
           </div>
 
+          {/* Restricciones y porcentajes */}
           <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4 mb-4">
             <h3 className="font-semibold mb-4">Restricciones y Porcentajes</h3>
             <div className="mb-4">
@@ -161,6 +165,7 @@ export default function DetalleEvento({ params }) {
             </div>
           </div>
 
+          {/* Aumentar valores */}
           <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4">
             <h3 className="font-semibold mb-4">Aumentar Valores</h3>
             <div className="mb-4">

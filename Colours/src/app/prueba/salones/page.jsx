@@ -97,21 +97,23 @@ export default function Salones() {
     <div className="p-6">
       <Header title="Salones" />
 
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-1/3">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+        <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
           <input
             type="text"
             placeholder="Buscar Salones"
-            className="search-input pl-10"
+            className="search-input pl-10 w-full"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
 
-        <div className="flex items-center gap-4">
-          <button className="btn btn-outline">Ver Salones Inactivos</button>
-          <button className="btn btn-outline">Borrar</button>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+          <button className="btn btn-outline w-full sm:w-auto">
+            Ver Salones Inactivos
+          </button>
+          <button className="btn btn-outline w-full sm:w-auto">Borrar</button>
           <button
-            className="btn btn-primary flex items-center gap-2"
+            className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
             onClick={() => setShowModal(true)}
           >
             <Plus className="h-4 w-4" />
@@ -120,8 +122,8 @@ export default function Salones() {
         </div>
       </div>
 
-      <div className="table-container">
-        <table className="table">
+      <div className="table-container overflow-x-auto">
+        <table className="table min-w-full">
           <thead>
             <tr>
               <th className="w-10">
@@ -162,7 +164,7 @@ export default function Salones() {
         </table>
       </div>
 
-      <div className="pagination mt-4">
+      <div className="pagination mt-4 flex justify-center gap-2">
         <button className="pagination-item active">1</button>
         <button className="pagination-item">2</button>
         <button className="pagination-item">3</button>
