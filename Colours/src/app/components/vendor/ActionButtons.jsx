@@ -1,6 +1,6 @@
 export default function ActionButtons() {
   return (
-    <div className="w-full mt-10 space-y-3 lg:space-y-0 flex flex-col items-center gap-4">
+    <div className="w-full mt-10 flex flex-col lg:flex-row justify-center items-center gap-4">
       <button className="w-full py-3 bg-amber-600 text-white rounded-md font-medium hover:bg-amber-700 transition-colors lg:w-auto lg:px-6">
         Vender entradas
       </button>
