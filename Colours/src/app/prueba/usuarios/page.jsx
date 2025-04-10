@@ -6,14 +6,19 @@ import UsuarioEditarModal from "../components/usuario-editar-modal";
 import Header from "../components/header";
 
 export default function Usuarios() {
+  const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filterInactive, setFilterInactive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Función para cargar usuarios desde la base de datos
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
@@ -31,10 +36,11 @@ export default function Usuarios() {
   };
 
   useEffect(() => {
-    fetchUsuarios();
-  }, [filterInactive]);
+    if (isClient) {
+      fetchUsuarios();
+    }
+  }, [filterInactive, isClient]);
 
-  // Cambiar el estado del usuario (activar o desactivar)
   const changeUserStatus = async (id, currentStatus) => {
     try {
       const response = await fetch(
@@ -47,7 +53,7 @@ export default function Usuarios() {
       );
 
       if (response.ok) {
-        await fetchUsuarios(); // Refrescar lista después del cambio
+        await fetchUsuarios();
       } else {
         console.error(
           "Error al cambiar el estado del usuario:",
@@ -59,8 +65,6 @@ export default function Usuarios() {
     }
   };
 
-  // Función para agregar un nuevo usuario
-  // Función para agregar un nuevo usuario
   const agregarUsuario = async (nuevoUsuario) => {
     try {
       const response = await fetch(
@@ -82,7 +86,6 @@ export default function Usuarios() {
     }
   };
 
-  // Función para modificar usuario
   const modificarUsuario = async (id, datosActualizados) => {
     try {
       const response = await fetch(
@@ -107,7 +110,6 @@ export default function Usuarios() {
     }
   };
 
-  // Función para borrar un usuario
   const borrarUsuario = async (id) => {
     try {
       const response = await fetch(
@@ -126,6 +128,14 @@ export default function Usuarios() {
     }
   };
 
+  const usuariosFiltrados = usuarios.filter((usuario) =>
+    `${usuario.usuario} ${usuario.nombre} ${usuario.apellido} ${usuario.email}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
+  if (!isClient) return null;
+
   return (
     <div className="p-6">
       <Header title="Usuarios" />
@@ -136,6 +146,8 @@ export default function Usuarios() {
             type="text"
             placeholder="Buscar Usuario"
             className="search-input pl-10 w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
@@ -180,7 +192,7 @@ export default function Usuarios() {
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((usuario) => (
+              {usuariosFiltrados.map((usuario) => (
                 <tr key={usuario.id}>
                   <td>
                     <input type="checkbox" />
