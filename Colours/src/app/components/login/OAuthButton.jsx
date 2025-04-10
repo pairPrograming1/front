@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2"; // Importar SweetAlert2
+import Swal from "sweetalert2";
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
@@ -17,7 +17,60 @@ export default function OAuthButton() {
         text: `Bienvenido, ${user.name}`,
         icon: "success",
         confirmButtonText: "Continuar",
-      }).then(() => {
+      }).then(async () => {
+        try {
+          const verifyResponse = await fetch(
+            "http://localhost:4000/api/users/verificar",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: user.email,
+              }),
+            }
+          );
+
+          const verifyData = await verifyResponse.json();
+          console.log("Respuesta de verificación:", verifyData);
+
+          if (!verifyResponse.ok || !verifyData.registered) {
+            const registerUser = async () => {
+              try {
+                const response = await fetch(
+                  "http://localhost:4000/api/users/register",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      auth0Id: user.sub,
+                      email: user.email,
+                    }),
+                  }
+                );
+
+                if (!response.ok) {
+                  console.error(
+                    "Error al registrar el usuario:",
+                    response.statusText
+                  );
+                } else {
+                  console.log("Usuario registrado exitosamente");
+                }
+              } catch (error) {
+                console.error("Error en la solicitud:", error);
+              }
+            };
+
+            await registerUser();
+          }
+        } catch (error) {
+          console.error("Error en la solicitud de verificación:", error);
+        }
+
         router.push("/users");
       });
     }

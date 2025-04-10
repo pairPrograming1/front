@@ -1,7 +1,7 @@
 "use client";
 
 import RegisterForm from "./RegisterForm";
-import SocialLogin from "./SocialLogin";
+import OAuthButton from "../../components/login/OAuthButton";
 import BackButton from "./BackButton";
 import TermsAndConditions from "./TermsAndCondition";
 
@@ -15,7 +15,7 @@ export default function Register() {
 
         <RegisterForm />
         <TermsAndConditions />
-        <SocialLogin />
+        <OAuthButton />
         <BackButton />
       </div>
     </div>
