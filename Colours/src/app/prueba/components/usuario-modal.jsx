@@ -11,6 +11,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     email: "",
     address: "",
     whatsapp: "",
+    password: "", // Nuevo campo
   });
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         email: userData.email || "",
         address: userData.direccion || "",
         whatsapp: userData.whatsapp || "",
+        password: "", // Dejar vacío por seguridad
       });
     }
   }, [userData]);
@@ -95,6 +97,14 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             placeholder="WhatsApp"
             className="input"
             value={formData.whatsapp}
+            onChange={handleChange}
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            className="input"
+            value={formData.password}
             onChange={handleChange}
           />
           <button type="submit" className="btn btn-primary w-full mt-4">

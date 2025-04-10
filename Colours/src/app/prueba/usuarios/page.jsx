@@ -13,23 +13,24 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(true);
   const [filterInactive, setFilterInactive] = useState(false);
 
-  // Cargar usuarios desde la base de datos con filtro por estado de actividad
+  // Función para cargar usuarios desde la base de datos
+  const fetchUsuarios = async () => {
+    setLoading(true);
+    try {
+      const statusQuery = filterInactive ? "false" : "true";
+      const response = await fetch(
+        `http://localhost:4000/api/users/usuarios?status=${statusQuery}`
+      );
+      const data = await response.json();
+      setUsuarios(data);
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchUsuarios = async () => {
-      setLoading(true);
-      try {
-        const statusQuery = filterInactive ? "false" : "true";
-        const response = await fetch(
-          `http://localhost:4000/api/users/usuarios?status=${statusQuery}`
-        );
-        const data = await response.json();
-        setUsuarios(data);
-      } catch (error) {
-        console.error("Error al cargar usuarios:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUsuarios();
   }, [filterInactive]);
 
@@ -41,38 +42,35 @@ export default function Usuarios() {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isActive: !currentStatus }), // Enviar el nuevo estado
+          body: JSON.stringify({ isActive: !currentStatus }),
         }
       );
 
       if (response.ok) {
-        // Cambiar el estado en el frontend
-        setUsuarios(
-          usuarios.map((usuario) =>
-            usuario.id === id
-              ? { ...usuario, isActive: !currentStatus } // Actualizar el estado localmente
-              : usuario
-          )
-        );
+        await fetchUsuarios(); // Refrescar lista después del cambio
       } else {
         console.error(
           "Error al cambiar el estado del usuario:",
-          await response.text() // Mostrar el error recibido desde el servidor
+          await response.text()
         );
       }
     } catch (error) {
-      console.error("Error al cambiar el estado del usuario:", error); // Manejo de errores
+      console.error("Error al cambiar el estado del usuario:", error);
     }
   };
 
   // Función para agregar un nuevo usuario
+  // Función para agregar un nuevo usuario
   const agregarUsuario = async (nuevoUsuario) => {
     try {
-      const response = await fetch("http://localhost:4000/api/users/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevoUsuario),
-      });
+      const response = await fetch(
+        "http://localhost:4000/api/users/create-user",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nuevoUsuario),
+        }
+      );
       if (response.ok) {
         const usuarioCreado = await response.json();
         setUsuarios([...usuarios, usuarioCreado]);
@@ -109,7 +107,7 @@ export default function Usuarios() {
     }
   };
 
-  // Función para borrar un usuario (esto no se usará directamente, pero la dejamos por si es necesario)
+  // Función para borrar un usuario
   const borrarUsuario = async (id) => {
     try {
       const response = await fetch(
@@ -149,7 +147,7 @@ export default function Usuarios() {
           >
             {filterInactive ? "Ver Usuarios Activos" : "Ver Usuarios Inactivos"}
           </button>
-          <button className="btn btn-outline w-full sm:w-auto">Borrar</button>
+
           <button className="btn btn-outline w-full sm:w-auto">
             Quitar Roles
           </button>
@@ -209,7 +207,7 @@ export default function Usuarios() {
                       </button>
                       <select
                         value={usuario.isActive ? "true" : "false"}
-                        onChange={(e) =>
+                        onChange={() =>
                           changeUserStatus(usuario.id, usuario.isActive)
                         }
                         className="ml-2 p-2 border border-gray-300 rounded-md text-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
