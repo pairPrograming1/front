@@ -192,45 +192,48 @@ export default function Usuarios() {
               </tr>
             </thead>
             <tbody>
-              {usuariosFiltrados.map((usuario) => (
-                <tr key={usuario.id}>
-                  <td>
-                    <input type="checkbox" />
-                  </td>
-                  <td>{usuario.usuario}</td>
-                  <td>
-                    {usuario.nombre} {usuario.apellido}
-                  </td>
-                  <td>{usuario.email}</td>
-                  <td>{usuario.tipo}</td>
-                  <td>
-                    <div className="flex gap-2">
-                      <button
-                        className="btn btn-outline py-1 px-2"
-                        onClick={() => setUsuarioEditar(usuario)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="btn btn-outline py-1 px-2"
-                        onClick={() => borrarUsuario(usuario.id)}
-                      >
-                        Borrar
-                      </button>
-                      <select
-                        value={usuario.isActive ? "true" : "false"}
-                        onChange={() =>
-                          changeUserStatus(usuario.id, usuario.isActive)
-                        }
-                        className="ml-2 p-2 border border-gray-300 rounded-md text-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
-                      >
-                        <option value="true">Activo</option>
-                        <option value="false">Inactivo</option>
-                      </select>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {usuariosFiltrados.map((usuario, index) => {
+                const key = usuario.id ?? `usuario-${index}`;
+                return (
+                  <tr key={key}>
+                    <td>
+                      <input type="checkbox" />
+                    </td>
+                    <td>{usuario.usuario}</td>
+                    <td>
+                      {usuario.nombre} {usuario.apellido}
+                    </td>
+                    <td>{usuario.email}</td>
+                    <td>{usuario.tipo}</td>
+                    <td>
+                      <div className="flex gap-2">
+                        <button
+                          className="btn btn-outline py-1 px-2"
+                          onClick={() => setUsuarioEditar(usuario)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="btn btn-outline py-1 px-2"
+                          onClick={() => borrarUsuario(usuario.id)}
+                        >
+                          Borrar
+                        </button>
+                        <select
+                          value={usuario.isActive ? "true" : "false"}
+                          onChange={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                          className="ml-2 p-2 border border-gray-300 rounded-md text-sm bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out"
+                        >
+                          <option value="true">Activo</option>
+                          <option value="false">Inactivo</option>
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

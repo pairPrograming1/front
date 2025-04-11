@@ -10,10 +10,9 @@ export default function Salones() {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Aquí es donde mostramos el mensaje de bienvenida en lugar de los salones */}
       <div className="welcome-message text-center mt-10">
         <h2 className="text-xl font-semibold">
-          ¡Bienvenido a la gestión de salones!
+          ¡Bienvenido a la app de gestión !
         </h2>
         <p className="mt-2 text-white-600">
           Desde aquí puedes gestionar todos lo que necesite.

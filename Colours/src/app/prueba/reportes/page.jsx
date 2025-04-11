@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, ChevronRight, Download } from "lucide-react";
-import GraduadoModal from "../../components/graduado-modal";
+import GraduadoModal from "../components/graduado-modal";
 
 export default function Reportes() {
   const [showModal, setShowModal] = useState(false);

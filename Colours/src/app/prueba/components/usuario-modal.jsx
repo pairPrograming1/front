@@ -11,7 +11,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     email: "",
     address: "",
     whatsapp: "",
-    password: "", // Nuevo campo
+    password: "",
   });
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         email: userData.email || "",
         address: userData.direccion || "",
         whatsapp: userData.whatsapp || "",
-        password: "", // Dejar vacío por seguridad
+        password: "", // Por seguridad, no mostramos la contraseña
       });
     }
   }, [userData]);
@@ -33,9 +33,10 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData); // Llamar a la función onSave con los datos actualizados
+    await onSave(formData); // Espera a que se guarden los datos
+    onClose(); // Cierra el modal
   };
 
   return (

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import Header from "../../../components/header";
-import VendedorModal from "../../../components/vendedor-modal";
+import Header from "../../components/header";
+import VendedorModal from "../../components/vendedor-modal";
 
 export default function DetalleSalon({ params }) {
   const [activeTab, setActiveTab] = useState("informacion");
