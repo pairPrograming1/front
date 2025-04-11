@@ -7,8 +7,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <div className="flex h-screen">
-      <main className="flex-1 overflow-auto">{children}</main>
+    <div className=" min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-7xl h-screen  bg-[#1E2330]/70 shadow-md rounded-xl overflow-hidden">
+        <main className="h-full overflow-auto p-6">{children}</main>
+      </div>
     </div>
   );
 }
