@@ -76,8 +76,7 @@ export default function Usuarios() {
         }
       );
       if (response.ok) {
-        const usuarioCreado = await response.json();
-        setUsuarios([...usuarios, usuarioCreado]);
+        await fetchUsuarios(); // 🔄 recarga la lista desde el backend
       } else {
         console.error("Error al agregar usuario:", await response.text());
       }
