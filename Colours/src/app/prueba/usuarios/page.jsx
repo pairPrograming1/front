@@ -4,6 +4,7 @@ import { Search, Plus, ChevronRight } from "lucide-react";
 import UsuarioModal from "../components/usuario-modal";
 import UsuarioEditarModal from "../components/usuario-editar-modal";
 import Header from "../components/header";
+import Swal from "sweetalert2"; // Importar SweetAlert2
 
 export default function Usuarios() {
   const [isClient, setIsClient] = useState(false);
@@ -110,20 +111,49 @@ export default function Usuarios() {
   };
 
   const borrarUsuario = async (id) => {
-    try {
-      const response = await fetch(
-        `http://localhost:4000/api/users/delete/${id}`,
-        {
-          method: "DELETE",
+    // Muestra el SweetAlert2 de confirmación
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "¡Esta acción eliminará al usuario permanentemente!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    });
+
+    // Si el usuario confirma, procede con el borrado
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/users/delete/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
+        if (response.ok) {
+          setUsuarios(usuarios.filter((usuario) => usuario.id !== id));
+          Swal.fire(
+            "Eliminado!",
+            "El usuario ha sido eliminado correctamente.",
+            "success"
+          );
+        } else {
+          console.error("Error al borrar usuario:", await response.text());
+          Swal.fire(
+            "Error!",
+            "Hubo un problema al eliminar el usuario.",
+            "error"
+          );
         }
-      );
-      if (response.ok) {
-        setUsuarios(usuarios.filter((usuario) => usuario.id !== id));
-      } else {
-        console.error("Error al borrar usuario:", await response.text());
+      } catch (error) {
+        console.error("Error al borrar usuario:", error);
+        Swal.fire(
+          "Error!",
+          "Hubo un problema al eliminar el usuario.",
+          "error"
+        );
       }
-    } catch (error) {
-      console.error("Error al borrar usuario:", error);
     }
   };
 
