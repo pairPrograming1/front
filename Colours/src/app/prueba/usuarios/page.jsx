@@ -30,7 +30,11 @@ export default function Usuarios() {
       const data = await response.json();
       setUsuarios(data);
     } catch (error) {
-      console.error("Error al cargar usuarios:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al cargar usuarios",
+        text: "Hubo un problema al cargar los usuarios. Intenta nuevamente.",
+      });
     } finally {
       setLoading(false);
     }
@@ -56,13 +60,18 @@ export default function Usuarios() {
       if (response.ok) {
         await fetchUsuarios();
       } else {
-        console.error(
-          "Error al cambiar el estado del usuario:",
-          await response.text()
-        );
+        Swal.fire({
+          icon: "error",
+          title: "Error al cambiar el estado",
+          text: "Hubo un problema al cambiar el estado del usuario. Intenta nuevamente.",
+        });
       }
     } catch (error) {
-      console.error("Error al cambiar el estado del usuario:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al cambiar el estado",
+        text: "Hubo un problema al cambiar el estado del usuario. Intenta nuevamente.",
+      });
     }
   };
 
@@ -78,11 +87,24 @@ export default function Usuarios() {
       );
       if (response.ok) {
         await fetchUsuarios(); // 🔄 recarga la lista desde el backend
+        Swal.fire({
+          icon: "success",
+          title: "Usuario agregado",
+          text: "El usuario fue agregado correctamente.",
+        });
       } else {
-        console.error("Error al agregar usuario:", await response.text());
+        Swal.fire({
+          icon: "error",
+          title: "Error al agregar usuario",
+          text: "Hubo un problema al agregar el usuario. Intenta nuevamente.",
+        });
       }
     } catch (error) {
-      console.error("Error al agregar usuario:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al agregar usuario",
+        text: "Hubo un problema al agregar el usuario. Intenta nuevamente.",
+      });
     }
   };
 
@@ -102,11 +124,24 @@ export default function Usuarios() {
             usuario.id === id ? { ...usuario, ...datosActualizados } : usuario
           )
         );
+        Swal.fire({
+          icon: "success",
+          title: "Usuario modificado",
+          text: "Los datos del usuario han sido modificados correctamente.",
+        });
       } else {
-        console.error("Error al modificar usuario:", await response.text());
+        Swal.fire({
+          icon: "error",
+          title: "Error al modificar usuario",
+          text: "Hubo un problema al modificar el usuario. Intenta nuevamente.",
+        });
       }
     } catch (error) {
-      console.error("Error al modificar usuario:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al modificar usuario",
+        text: "Hubo un problema al modificar el usuario. Intenta nuevamente.",
+      });
     }
   };
 
@@ -139,7 +174,6 @@ export default function Usuarios() {
             "success"
           );
         } else {
-          console.error("Error al borrar usuario:", await response.text());
           Swal.fire(
             "Error!",
             "Hubo un problema al eliminar el usuario.",
@@ -147,7 +181,6 @@ export default function Usuarios() {
           );
         }
       } catch (error) {
-        console.error("Error al borrar usuario:", error);
         Swal.fire(
           "Error!",
           "Hubo un problema al eliminar el usuario.",
