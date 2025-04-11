@@ -4,17 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import InputField from "./InputField";
-import Swal from "sweetalert2"; // Importar SweetAlert
+import Swal from "sweetalert2";
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
     dni: "",
-    name: "",
+    nombre: "",
     apellido: "",
-    address: "",
+    direccion: "",
     email: "",
     whatsapp: "",
-    username: "",
+    usuario: "",
     password: "",
     confirmPassword: "",
     isActive: true,
@@ -31,26 +31,26 @@ export default function RegisterForm() {
   const handleRegister = async () => {
     const {
       dni,
-      name,
+      nombre,
       apellido,
-      address,
+      direccion,
       email,
       whatsapp,
-      username,
+      usuario,
       password,
       confirmPassword,
       isActive,
     } = formData;
 
-    // Validar que todos los campos estén completos
+    // Validación de campos obligatorios
     if (
       !dni ||
-      !name ||
+      !nombre ||
       !apellido ||
-      !address ||
+      !direccion ||
       !email ||
       !whatsapp ||
-      !username ||
+      !usuario ||
       !password ||
       !confirmPassword
     ) {
@@ -127,7 +127,6 @@ export default function RegisterForm() {
       );
 
       console.log("Registro exitoso en Auth0:", auth0Response.data);
-
       const auth0Id = auth0Response.data._id;
 
       if (!auth0Id) {
@@ -137,15 +136,15 @@ export default function RegisterForm() {
       // Registro en el backend
       const backendData = {
         dni,
-        nombre: name,
+        nombre,
         apellido,
-        direccion: address,
+        direccion,
         email,
         whatsapp,
-        usuario: username,
+        usuario,
         password,
         isActive,
-        auth0Id, // Incluir el ID de Auth0
+        auth0Id,
       };
 
       console.log("Datos enviados al backend:", backendData);
@@ -163,7 +162,7 @@ export default function RegisterForm() {
         icon: "success",
         title: "Registro exitoso",
         text: "¡Bienvenido!",
-      }); // Mostrar alerta de éxito
+      });
       router.push("/");
     } catch (err) {
       console.error("Error de registro:", err.response?.data || err.message);
@@ -173,7 +172,7 @@ export default function RegisterForm() {
         text:
           err.response?.data?.message ||
           "Error al registrarse. Por favor, inténtalo de nuevo.",
-      }); // Mostrar alerta de error
+      });
     } finally {
       setLoading(false);
     }
@@ -185,8 +184,8 @@ export default function RegisterForm() {
         <InputField
           label="Nombre"
           type="text"
-          id="name"
-          value={formData.name}
+          id="nombre"
+          value={formData.nombre}
           onChange={handleChange}
         />
         <InputField
@@ -213,15 +212,15 @@ export default function RegisterForm() {
         <InputField
           label="Usuario"
           type="text"
-          id="username"
-          value={formData.username}
+          id="usuario"
+          value={formData.usuario}
           onChange={handleChange}
         />
         <InputField
           label="Dirección"
           type="text"
-          id="address"
-          value={formData.address}
+          id="direccion"
+          value={formData.direccion}
           onChange={handleChange}
         />
         <InputField

@@ -5,25 +5,33 @@ import { useState, useEffect } from "react";
 
 export default function UsuarioModal({ onClose, onSave, userData }) {
   const [formData, setFormData] = useState({
-    username: "",
-    name: "",
+    id: "",
+    auth0Id: null,
+    usuario: "",
+    nombre: "",
     apellido: "",
     email: "",
-    address: "",
+    direccion: "",
     whatsapp: "",
     password: "",
+    dni: "",
+    roleId: null, // solo si aplica para admin
   });
 
   useEffect(() => {
     if (userData) {
       setFormData({
-        username: userData.usuario || "",
-        name: userData.nombre || "",
+        id: userData.id || "",
+        auth0Id: userData.auth0Id || "",
+        usuario: userData.usuario || "",
+        nombre: userData.nombre || "",
         apellido: userData.apellido || "",
         email: userData.email || "",
-        address: userData.direccion || "",
+        direccion: userData.direccion || "",
         whatsapp: userData.whatsapp || "",
-        password: "", // Por seguridad, no mostramos la contraseña
+        password: "", // seguridad
+        dni: userData.dni || "",
+        roleId: userData.roleId || "", // por si el admin lo edita
       });
     }
   }, [userData]);
@@ -35,8 +43,8 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSave(formData); // Espera a que se guarden los datos
-    onClose(); // Cierra el modal
+    await onSave(formData);
+    onClose();
   };
 
   return (
@@ -54,18 +62,18 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         <form onSubmit={handleSubmit}>
           <input
             type="text"
-            name="username"
+            name="usuario"
             placeholder="Usuario"
             className="input"
-            value={formData.username}
+            value={formData.usuario}
             onChange={handleChange}
           />
           <input
             type="text"
-            name="name"
+            name="nombre"
             placeholder="Nombre"
             className="input"
-            value={formData.name}
+            value={formData.nombre}
             onChange={handleChange}
           />
           <input
@@ -74,6 +82,14 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             placeholder="Apellido"
             className="input"
             value={formData.apellido}
+            onChange={handleChange}
+          />
+          <input
+            type="text"
+            name="dni"
+            placeholder="DNI"
+            className="input"
+            value={formData.dni}
             onChange={handleChange}
           />
           <input
@@ -86,10 +102,10 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
           />
           <input
             type="text"
-            name="address"
+            name="direccion"
             placeholder="Dirección"
             className="input"
-            value={formData.address}
+            value={formData.direccion}
             onChange={handleChange}
           />
           <input
@@ -106,6 +122,15 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             placeholder="Contraseña"
             className="input"
             value={formData.password}
+            onChange={handleChange}
+          />
+          {/* Campo opcional para admins */}
+          <input
+            type="text"
+            name="roleId"
+            placeholder="Rol ID (opcional)"
+            className="input"
+            value={formData.roleId}
             onChange={handleChange}
           />
           <button type="submit" className="btn btn-primary w-full mt-4">
