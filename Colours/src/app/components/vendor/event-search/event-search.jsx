@@ -58,12 +58,14 @@ export default function EventSearch() {
   ]);
 
   return (
-    <div>
-      <Header />
-      <h2 className="text-xl font-semibold text-white mb-4">Buscar Evento</h2>
-      <SearchFilters />
-      <div className="h-px bg-gradient-to-r from-transparent via-[#b3964c] to-transparent my-6"></div>
-      <EventList events={events} />
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40">
+      <div className="w-full max-w-5xl bg-[#1E2330]/80 p-6 rounded-xl shadow-lg">
+        <Header />
+        <h2 className="text-xl font-semibold text-white mb-4">Buscar Evento</h2>
+        <SearchFilters />
+        <div className="h-px bg-gradient-to-r from-transparent via-[#b3964c] to-transparent my-6"></div>
+        <EventList events={events} />
+      </div>
     </div>
   );
 }

@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, ChevronRight } from "lucide-react";
 import SalonModal from "../../app/prueba/components/salon-modal";
-import Header from "../../app/prueba/components/header";
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
