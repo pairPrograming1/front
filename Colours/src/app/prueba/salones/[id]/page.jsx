@@ -1,6 +1,6 @@
 "use client";
 import { Plus } from "lucide-react";
-import Header from "../../../components/header";
+import Header from "../../components/header";
 
 export default function DetalleSalon({ params }) {
   return (
