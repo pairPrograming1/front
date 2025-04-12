@@ -1,26 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Plus,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Trash2,
+  Power,
+  Archive,
+  Edit,
+} from "lucide-react";
 import PuntoModal from "../components/punto-modal";
+import EditarModal from "../components/editar-modal";
 import Header from "../components/header";
 import Swal from "sweetalert2";
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
   const [puntos, setPuntos] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [verInactivos, setVerInactivos] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [puntoAEditar, setPuntoAEditar] = useState(null);
 
-  // Fetch puntos de venta from API
+  const itemsPerPage = 10;
+
   useEffect(() => {
     const fetchPuntos = async () => {
       try {
         const response = await fetch("http://localhost:4000/api/puntodeventa");
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error("Error al obtener los puntos de venta");
-        }
         const data = await response.json();
         if (data.success) {
           setPuntos(data.data);
@@ -40,38 +54,15 @@ export default function PuntosDeVenta() {
 
   const handleAddPunto = async (newPunto) => {
     try {
-      const puntoData = {
-        razon: newPunto.razon,
-        nombre: newPunto.nombre,
-        direccion: newPunto.direccion,
-        telefono: newPunto.telefono,
-        cuit: newPunto.cuit,
-        email: newPunto.email,
-        es_online: newPunto.es_online,
-      };
-
       const response = await fetch("http://localhost:4000/api/puntodeventa", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(puntoData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPunto),
       });
 
-      if (!response.ok) {
-        throw new Error("Error al crear el punto de venta");
-      }
+      if (!response.ok) throw new Error("Error al crear el punto de venta");
 
-      // Refresh the list after successful creation
-      const refreshResponse = await fetch(
-        "http://localhost:4000/api/puntodeventa"
-      );
-      if (refreshResponse.ok) {
-        const refreshData = await refreshResponse.json();
-        if (refreshData.success) {
-          setPuntos(refreshData.data);
-        }
-      }
+      await refreshPuntos();
 
       setShowModal(false);
       Swal.fire({
@@ -89,11 +80,26 @@ export default function PuntosDeVenta() {
     }
   };
 
-  // Función para borrado físico
+  const refreshPuntos = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/puntodeventa");
+      const data = await res.json();
+      if (data.success) {
+        setPuntos(data.data);
+      }
+    } catch (error) {
+      console.error("Error refreshing puntos:", error);
+    }
+  };
+
+  const handleUpdatePunto = async () => {
+    await refreshPuntos();
+  };
+
   const handleDeletePunto = async (id) => {
     const confirmResult = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "Esta acción eliminará el punto de venta de forma permanente.",
+      title: "¿Eliminar permanentemente?",
+      text: "Esta acción no se puede deshacer. ¿Deseas continuar?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -106,9 +112,7 @@ export default function PuntosDeVenta() {
       try {
         const response = await fetch(
           `http://localhost:4000/api/puntodeventa/delete/${id}`,
-          {
-            method: "DELETE",
-          }
+          { method: "DELETE" }
         );
 
         const data = await response.json();
@@ -120,16 +124,85 @@ export default function PuntosDeVenta() {
         }
 
         Swal.fire("Eliminado", data.message, "success");
-
-        // Actualizar la lista
-        const updated = await fetch("http://localhost:4000/api/puntodeventa");
-        const updatedData = await updated.json();
-        setPuntos(updatedData.data);
+        await refreshPuntos();
       } catch (error) {
         Swal.fire("Error", error.message, "error");
       }
     }
   };
+
+  const handleTogglePuntoStatus = async (id, isCurrentlyActive) => {
+    const newStatus = !isCurrentlyActive;
+    const actionText = newStatus ? "activar" : "desactivar";
+
+    const confirmResult = await Swal.fire({
+      title: `¿${newStatus ? "Activar" : "Desactivar"} punto de venta?`,
+      text: `Estás a punto de ${actionText} este punto de venta.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, ${actionText}`,
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/puntodeventa/soft-delete/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: newStatus }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `Error al ${actionText} el punto`);
+      }
+
+      setPuntos((prevPuntos) =>
+        prevPuntos.map((punto) =>
+          punto.id === id ? { ...punto, isActive: newStatus } : punto
+        )
+      );
+
+      await Swal.fire({
+        title: `Punto ${newStatus ? "activado" : "desactivado"}`,
+        text: data.message,
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      Swal.fire({
+        title: "Error",
+        text: error.message,
+        icon: "error",
+      });
+    }
+  };
+
+  const filteredPuntos = puntos.filter((p) => {
+    const matchSearch =
+      p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.razon.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.cuit.toString().includes(searchTerm);
+
+    const matchActivo = verInactivos ? !p.isActive : p.isActive;
+
+    return matchSearch && matchActivo;
+  });
+
+  const totalPages = Math.ceil(filteredPuntos.length / itemsPerPage);
+  const currentItems = filteredPuntos.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   if (loading) {
     return (
@@ -162,14 +235,26 @@ export default function PuntosDeVenta() {
           <input
             type="text"
             placeholder="Buscar Punto de Venta"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input pl-10 w-full"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-          <button className="btn btn-outline w-full sm:w-auto">
-            Ver Puntos de Venta Inactivos
+          <button
+            className={`btn ${
+              verInactivos ? "btn-warning" : "btn-outline"
+            } flex items-center gap-2 w-full sm:w-auto`}
+            onClick={() => setVerInactivos((prev) => !prev)}
+          >
+            {verInactivos ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            {verInactivos ? "Ver Activos" : "Ver Inactivos"}
           </button>
 
           <button
@@ -186,9 +271,6 @@ export default function PuntosDeVenta() {
         <table className="table min-w-full">
           <thead>
             <tr>
-              <th className="w-10">
-                <input type="checkbox" />
-              </th>
               <th>Razón Social</th>
               <th>Nombre</th>
               <th>Dirección</th>
@@ -196,15 +278,16 @@ export default function PuntosDeVenta() {
               <th>Email</th>
               <th>Teléfono</th>
               <th>Tipo</th>
-              <th className="w-32">Acciones</th>
+              <th>Estado</th>
+              <th className="w-48">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {puntos.map((punto) => (
-              <tr key={punto.id}>
-                <td>
-                  <input type="checkbox" />
-                </td>
+            {currentItems.map((punto) => (
+              <tr
+                key={punto.id}
+                className={!punto.isActive ? "opacity-70 bg-gray-50" : ""}
+              >
                 <td>{punto.razon}</td>
                 <td>{punto.nombre}</td>
                 <td>{punto.direccion}</td>
@@ -213,15 +296,46 @@ export default function PuntosDeVenta() {
                 <td>{punto.telefono}</td>
                 <td>{punto.es_online ? "Online" : "Físico"}</td>
                 <td>
+                  <span
+                    className={`badge ${
+                      punto.isActive ? "badge-success" : "badge-error"
+                    }`}
+                  >
+                    {punto.isActive ? "Activo" : "Inactivo"}
+                  </span>
+                </td>
+                <td>
                   <div className="flex gap-2">
-                    <button className="btn btn-outline py-1 px-2">
-                      Editar
-                    </button>
                     <button
-                      className="btn btn-outline py-1 px-2"
-                      onClick={() => handleDeletePunto(punto.id)}
+                      className="btn btn-sm btn-outline btn-primary p-1"
+                      onClick={() => setPuntoAEditar(punto)}
+                      title="Editar"
                     >
-                      Borrar
+                      <Edit className="h-4 w-4" />
+                    </button>
+
+                    <button
+                      className={`btn btn-sm btn-outline ${
+                        punto.isActive ? "btn-warning" : "btn-success"
+                      } p-1`}
+                      onClick={() =>
+                        handleTogglePuntoStatus(punto.id, punto.isActive)
+                      }
+                      title={punto.isActive ? "Desactivar" : "Activar"}
+                    >
+                      {punto.isActive ? (
+                        <Archive className="h-4 w-4" />
+                      ) : (
+                        <Power className="h-4 w-4" />
+                      )}
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-outline btn-error p-1"
+                      onClick={() => handleDeletePunto(punto.id)}
+                      title="Eliminar permanentemente"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </td>
@@ -231,22 +345,42 @@ export default function PuntosDeVenta() {
         </table>
       </div>
 
-      <div className="pagination mt-4 flex justify-center gap-2">
-        <button className="pagination-item active">1</button>
-        <button className="pagination-item">2</button>
-        <button className="pagination-item">3</button>
-        <button className="pagination-item">4</button>
-        <button className="pagination-item">5</button>
-        <button className="pagination-item">30</button>
-        <button className="pagination-item">
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="pagination mt-4 flex justify-center gap-2">
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index}
+              className={`pagination-item ${
+                currentPage === index + 1 ? "active" : ""
+              }`}
+              onClick={() => setCurrentPage(index + 1)}
+            >
+              {index + 1}
+            </button>
+          ))}
+          {currentPage < totalPages && (
+            <button
+              className="pagination-item"
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
 
       {showModal && (
         <PuntoModal
           onClose={() => setShowModal(false)}
           onSubmit={handleAddPunto}
+        />
+      )}
+
+      {puntoAEditar && (
+        <EditarModal
+          punto={puntoAEditar}
+          onClose={() => setPuntoAEditar(null)}
+          onUpdate={handleUpdatePunto}
         />
       )}
     </div>
