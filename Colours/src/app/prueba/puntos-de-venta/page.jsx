@@ -1,97 +1,142 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, ChevronRight } from "lucide-react";
 import PuntoModal from "../components/punto-modal";
 import Header from "../components/header";
+import Swal from "sweetalert2";
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
+  const [puntos, setPuntos] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Datos de ejemplo
-  const puntos = [
-    {
-      id: 1,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 2,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 3,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 4,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 5,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 6,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 7,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 8,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 9,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-    {
-      id: 10,
-      direccion: "Calle Falsa 123",
-      cuit: "30-90257931-1",
-      contacto: "Homer Simpson",
-      email: "hsimpson@gmail.com",
-      whatsapp: "3416879652",
-    },
-  ];
+  // Fetch puntos de venta from API
+  useEffect(() => {
+    const fetchPuntos = async () => {
+      try {
+        const response = await fetch("http://localhost:4000/api/puntodeventa");
+        if (!response.ok) {
+          throw new Error("Error al obtener los puntos de venta");
+        }
+        const data = await response.json();
+        if (data.success) {
+          setPuntos(data.data);
+        } else {
+          throw new Error(data.message || "Error en los datos recibidos");
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching puntos de venta:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPuntos();
+  }, []);
+
+  const handleAddPunto = async (newPunto) => {
+    try {
+      const puntoData = {
+        razon: newPunto.razon,
+        nombre: newPunto.nombre,
+        direccion: newPunto.direccion,
+        telefono: newPunto.telefono,
+        cuit: newPunto.cuit,
+        email: newPunto.email,
+        es_online: newPunto.es_online,
+      };
+
+      const response = await fetch("http://localhost:4000/api/puntodeventa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(puntoData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al crear el punto de venta");
+      }
+
+      // Refresh the list after successful creation
+      const refreshResponse = await fetch(
+        "http://localhost:4000/api/puntodeventa"
+      );
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        if (refreshData.success) {
+          setPuntos(refreshData.data);
+        }
+      }
+
+      setShowModal(false);
+      Swal.fire({
+        icon: "success",
+        title: "Punto creado",
+        text: "El punto de venta fue creado correctamente",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al crear punto",
+        text: error.message || "Hubo un error al crear el punto de venta",
+      });
+    }
+  };
+
+  // Función para borrado físico
+  const handleDeletePunto = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/puntodeventa/delete/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Error al eliminar el punto de venta");
+      }
+
+      Swal.fire("Eliminado", data.message, "success");
+
+      // Actualizar la lista
+      const updated = await fetch("http://localhost:4000/api/puntodeventa");
+      const updatedData = await updated.json();
+      setPuntos(updatedData.data);
+    } catch (error) {
+      Swal.fire("Error", error.message, "error");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <Header title="Puntos de Venta" />
+        <div className="flex justify-center items-center h-64">
+          <p>Cargando puntos de venta...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Header title="Puntos de Venta" />
+        <div className="alert alert-error">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -129,11 +174,13 @@ export default function PuntosDeVenta() {
               <th className="w-10">
                 <input type="checkbox" />
               </th>
+              <th>Razón Social</th>
+              <th>Nombre</th>
               <th>Dirección</th>
               <th>CUIT</th>
-              <th>Nombre del Contacto</th>
               <th>Email</th>
-              <th>WhatsApp</th>
+              <th>Teléfono</th>
+              <th>Tipo</th>
               <th className="w-32">Acciones</th>
             </tr>
           </thead>
@@ -143,17 +190,22 @@ export default function PuntosDeVenta() {
                 <td>
                   <input type="checkbox" />
                 </td>
+                <td>{punto.razon}</td>
+                <td>{punto.nombre}</td>
                 <td>{punto.direccion}</td>
                 <td>{punto.cuit}</td>
-                <td>{punto.contacto}</td>
                 <td>{punto.email}</td>
-                <td>{punto.whatsapp}</td>
+                <td>{punto.telefono}</td>
+                <td>{punto.es_online ? "Online" : "Físico"}</td>
                 <td>
                   <div className="flex gap-2">
                     <button className="btn btn-outline py-1 px-2">
                       Editar
                     </button>
-                    <button className="btn btn-outline py-1 px-2">
+                    <button
+                      className="btn btn-outline py-1 px-2"
+                      onClick={() => handleDeletePunto(punto.id)}
+                    >
                       Borrar
                     </button>
                   </div>
@@ -176,7 +228,12 @@ export default function PuntosDeVenta() {
         </button>
       </div>
 
-      {showModal && <PuntoModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <PuntoModal
+          onClose={() => setShowModal(false)}
+          onSubmit={handleAddPunto}
+        />
+      )}
     </div>
   );
 }
