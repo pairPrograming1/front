@@ -171,7 +171,7 @@ export default function PuntosDeVenta() {
           <button className="btn btn-outline w-full sm:w-auto">
             Ver Puntos de Venta Inactivos
           </button>
-          <button className="btn btn-outline w-full sm:w-auto">Borrar</button>
+
           <button
             className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
             onClick={() => setShowModal(true)}
