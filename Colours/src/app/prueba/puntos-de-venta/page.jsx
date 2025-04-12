@@ -91,28 +91,43 @@ export default function PuntosDeVenta() {
 
   // Función para borrado físico
   const handleDeletePunto = async (id) => {
-    try {
-      const response = await fetch(
-        `http://localhost:4000/api/puntodeventa/delete/${id}`,
-        {
-          method: "DELETE",
+    const confirmResult = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción eliminará el punto de venta de forma permanente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        const response = await fetch(
+          `http://localhost:4000/api/puntodeventa/delete/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.message || "Error al eliminar el punto de venta"
+          );
         }
-      );
 
-      const data = await response.json();
+        Swal.fire("Eliminado", data.message, "success");
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Error al eliminar el punto de venta");
+        // Actualizar la lista
+        const updated = await fetch("http://localhost:4000/api/puntodeventa");
+        const updatedData = await updated.json();
+        setPuntos(updatedData.data);
+      } catch (error) {
+        Swal.fire("Error", error.message, "error");
       }
-
-      Swal.fire("Eliminado", data.message, "success");
-
-      // Actualizar la lista
-      const updated = await fetch("http://localhost:4000/api/puntodeventa");
-      const updatedData = await updated.json();
-      setPuntos(updatedData.data);
-    } catch (error) {
-      Swal.fire("Error", error.message, "error");
     }
   };
 
