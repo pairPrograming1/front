@@ -1,9 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { X } from "lucide-react";
-import { useState } from "react";
 
-export default function PuntoModal({ onClose, onSubmit }) {
+export default function EditarModal({ punto, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
     razon: "",
     nombre: "",
@@ -11,27 +12,76 @@ export default function PuntoModal({ onClose, onSubmit }) {
     telefono: "",
     cuit: "",
     email: "",
-    es_online: false,
+    es_online: true,
   });
+
+  useEffect(() => {
+    if (punto) {
+      setFormData({
+        razon: punto.razon,
+        nombre: punto.nombre,
+        direccion: punto.direccion,
+        telefono: punto.telefono,
+        cuit: punto.cuit,
+        email: punto.email,
+        es_online: punto.es_online,
+      });
+    }
+  }, [punto]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
+    setFormData({
+      ...formData,
       [name]: type === "checkbox" ? checked : value,
-    }));
+    });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/puntodeventa/${punto.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || "Error al actualizar el punto de venta"
+        );
+      }
+
+      onUpdate();
+      onClose();
+      Swal.fire({
+        icon: "success",
+        title: "Actualizado",
+        text: "Punto de venta actualizado correctamente",
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+    }
   };
+
+  if (!punto) return null;
 
   return (
     <div className="modal-overlay">
       <div className="modal">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Agregar Punto</h2>
+          <h2 className="text-xl font-semibold">Editar Punto</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X className="h-5 w-5" />
           </button>
@@ -86,6 +136,8 @@ export default function PuntoModal({ onClose, onSubmit }) {
             placeholder="CUIT"
             className="input"
             required
+            pattern="\d{2}-\d{8}-\d{1}"
+            title="Formato de CUIT: 20-12345678-9"
           />
 
           <input
@@ -110,9 +162,18 @@ export default function PuntoModal({ onClose, onSubmit }) {
             <label htmlFor="es_online">Punto Online</label>
           </div>
 
-          <button type="submit" className="btn btn-primary w-full mt-4">
-            Crear
-          </button>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-secondary"
+            >
+              Cancelar
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Guardar Cambios
+            </button>
+          </div>
         </form>
       </div>
     </div>

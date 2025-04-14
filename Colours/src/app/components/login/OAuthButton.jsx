@@ -48,6 +48,8 @@ export default function OAuthButton() {
                     body: JSON.stringify({
                       auth0Id: user.sub,
                       email: user.email,
+                      apellido: user.family_name,
+                      nombre: user.given_name,
                     }),
                   }
                 );
