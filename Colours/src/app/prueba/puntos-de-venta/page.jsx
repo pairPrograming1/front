@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Plus,
@@ -18,6 +19,8 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 
 export default function PuntosDeVenta() {
+  const router = useRouter();
+
   const [showModal, setShowModal] = useState(false);
   const [puntos, setPuntos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,8 +66,8 @@ export default function PuntosDeVenta() {
       if (!response.ok) throw new Error("Error al crear el punto de venta");
 
       await refreshPuntos();
-
       setShowModal(false);
+
       Swal.fire({
         icon: "success",
         title: "Punto creado",
@@ -286,7 +289,10 @@ export default function PuntosDeVenta() {
             {currentItems.map((punto) => (
               <tr
                 key={punto.id}
-                className={!punto.isActive ? "opacity-70 bg-gray-50" : ""}
+                className={`cursor-pointer ${
+                  !punto.isActive ? "opacity-70 bg-gray-50" : ""
+                }`}
+                onClick={() => router.push("/prueba/vista-salon-editar")}
               >
                 <td>{punto.razon}</td>
                 <td>{punto.nombre}</td>
@@ -308,7 +314,10 @@ export default function PuntosDeVenta() {
                   <div className="flex gap-2">
                     <button
                       className="btn btn-sm btn-outline btn-primary p-1"
-                      onClick={() => setPuntoAEditar(punto)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPuntoAEditar(punto);
+                      }}
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
@@ -318,9 +327,10 @@ export default function PuntosDeVenta() {
                       className={`btn btn-sm btn-outline ${
                         punto.isActive ? "btn-warning" : "btn-success"
                       } p-1`}
-                      onClick={() =>
-                        handleTogglePuntoStatus(punto.id, punto.isActive)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePuntoStatus(punto.id, punto.isActive);
+                      }}
                       title={punto.isActive ? "Desactivar" : "Activar"}
                     >
                       {punto.isActive ? (
@@ -332,7 +342,10 @@ export default function PuntosDeVenta() {
 
                     <button
                       className="btn btn-sm btn-outline btn-error p-1"
-                      onClick={() => handleDeletePunto(punto.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePunto(punto.id);
+                      }}
                       title="Eliminar permanentemente"
                     >
                       <Trash2 className="h-4 w-4" />
