@@ -257,7 +257,7 @@ export default function PuntosDeVenta() {
             ) : (
               <Eye className="h-4 w-4" />
             )}
-            {verInactivos ? "Ver Activos" : "Ver Inactivos"}
+            {verInactivos ? "Ver activos" : "Ver inactivos"}
           </button>
 
           <button

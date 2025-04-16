@@ -419,7 +419,7 @@ export default function Usuarios() {
             ) : (
               <Eye className="h-4 w-4" />
             )}
-            {filterInactive ? "Ver Activos" : "Ver Inactivos"}
+            {filterInactive ? "Ver activos" : "Ver inactivos"}
           </button>
 
           <button
