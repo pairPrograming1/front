@@ -9,7 +9,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-7xl h-screen bg-[#1E2330]/70 shadow-md rounded-xl overflow-hidden">
+      <div className="w-full max-w-8xl h-screen bg-[#1E2330]/70 shadow-md rounded-xl overflow-hidden">
         <div className="flex justify-end p-4">
           <LogoutButton />
         </div>
