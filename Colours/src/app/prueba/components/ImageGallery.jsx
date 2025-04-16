@@ -1,10 +1,12 @@
 // components/ImageGallery.js
 "use client";
 
+import { useState } from "react";
+import { X } from "lucide-react";
 import useImageFetcher from "./ImageFetcher";
 import Swal from "sweetalert2";
 
-const ImageGallery = ({ onClose }) => {
+const ImageGallery = ({ onClose, onImageSelected }) => {
   const { images, loading } = useImageFetcher();
 
   return (
@@ -18,20 +20,7 @@ const ImageGallery = ({ onClose }) => {
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:hover:text-white"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-6 w-6" />
           </button>
         </div>
 
@@ -49,7 +38,13 @@ const ImageGallery = ({ onClose }) => {
               {images.map((image) => (
                 <div
                   key={image._id || image.id}
-                  className="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600"
+                  className="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 cursor-pointer"
+                  onClick={() => {
+                    if (onImageSelected) {
+                      onImageSelected(image.url);
+                      onClose();
+                    }
+                  }}
                 >
                   <img
                     src={image.url}
@@ -57,22 +52,37 @@ const ImageGallery = ({ onClose }) => {
                     className="w-full h-32 object-cover"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button
-                      onClick={() => {
-                        console.log("URL de la imagen:", image.url);
-                        navigator.clipboard.writeText(image.url);
-                        Swal.fire({
-                          icon: "success",
-                          title: "URL copiada",
-                          text: "La URL de la imagen ha sido copiada al portapapeles",
-                          timer: 1500,
-                          showConfirmButton: false,
-                        });
-                      }}
-                      className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
-                    >
-                      Copiar URL
-                    </button>
+                    <div className="flex flex-col space-y-2">
+                      {onImageSelected && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onImageSelected(image.url);
+                            onClose();
+                          }}
+                          className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+                        >
+                          Seleccionar
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log("URL de la imagen:", image.url);
+                          navigator.clipboard.writeText(image.url);
+                          Swal.fire({
+                            icon: "success",
+                            title: "URL copiada",
+                            text: "La URL de la imagen ha sido copiada al portapapeles",
+                            timer: 1500,
+                            showConfirmButton: false,
+                          });
+                        }}
+                        className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
+                      >
+                        Copiar URL
+                      </button>
+                    </div>
                   </div>
                   <div className="p-2">
                     <p className="text-xs text-gray-600 dark:text-gray-300 truncate">
