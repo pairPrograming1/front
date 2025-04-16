@@ -22,7 +22,6 @@ import Swal from "sweetalert2";
 export default function Usuarios() {
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showRolModal, setShowRolModal] = useState(false);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,7 +30,6 @@ export default function Usuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [selectedRole, setSelectedRole] = useState("vendor");
 
   const itemsPerPage = 10;
 
@@ -90,7 +88,40 @@ export default function Usuarios() {
       });
       return;
     }
-    setShowRolModal(true);
+
+    Swal.fire({
+      title: `Asignar rol de administrador`,
+      html: `
+        <div class="text-left">
+          <p>¿Estás seguro de asignar el rol de <strong>administrador</strong> a <strong>${selectedUsers.length}</strong> usuario(s) seleccionado(s)?</p>
+          <div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                  Los administradores tendrán acceso completo al sistema.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, asignar administrador (${selectedUsers.length})`,
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        asignarRolMultiple("admin");
+      }
+    });
   };
 
   const handleQuitarRoles = () => {
@@ -137,7 +168,6 @@ export default function Usuarios() {
       const fallidos = results.length - exitosos;
 
       await fetchUsuarios();
-      setShowRolModal(false);
       setSelectedUsers([]);
 
       Swal.fire({
@@ -558,35 +588,6 @@ export default function Usuarios() {
           onClose={() => setUsuarioEditar(null)}
           onSave={modificarUsuario}
         />
-      )}
-
-      {showRolModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h3 className="text-lg font-bold mb-4">
-              Asignar rol de administrador
-            </h3>
-            <p className="mb-6">
-              ¿Estás seguro de que deseas asignar el rol de administrador a los{" "}
-              {selectedUsers.length} usuario(s) seleccionado(s)?
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                className="btn btn-outline"
-                onClick={() => setShowRolModal(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => asignarRolMultiple("admin")}
-              >
-                Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
