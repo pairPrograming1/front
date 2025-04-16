@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import PuntoModal from "../components/punto-modal";
 import EditarModal from "../components/editar-modal";
+import EdicionCompleta from "../components/edicion-completa";
 import Header from "../components/header";
 import Swal from "sweetalert2";
 
@@ -26,6 +27,8 @@ export default function PuntosDeVenta() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [puntoAEditar, setPuntoAEditar] = useState(null);
+  const [showEdicionCompleta, setShowEdicionCompleta] = useState(false);
+  const [selectedPunto, setSelectedPunto] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -63,8 +66,8 @@ export default function PuntosDeVenta() {
       if (!response.ok) throw new Error("Error al crear el punto de venta");
 
       await refreshPuntos();
-
       setShowModal(false);
+
       Swal.fire({
         icon: "success",
         title: "Punto creado",
@@ -227,11 +230,11 @@ export default function PuntosDeVenta() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <Header title="Puntos de Venta" />
 
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
+        <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
           <input
             type="text"
             placeholder="Buscar Punto de Venta"
@@ -286,7 +289,13 @@ export default function PuntosDeVenta() {
             {currentItems.map((punto) => (
               <tr
                 key={punto.id}
-                className={!punto.isActive ? "opacity-70 bg-gray-50" : ""}
+                className={`cursor-pointer ${
+                  !punto.isActive ? "opacity-70 bg-gray-50" : ""
+                }`}
+                onClick={() => {
+                  setSelectedPunto(punto);
+                  setShowEdicionCompleta(true);
+                }}
               >
                 <td>{punto.razon}</td>
                 <td>{punto.nombre}</td>
@@ -308,7 +317,10 @@ export default function PuntosDeVenta() {
                   <div className="flex gap-2">
                     <button
                       className="btn btn-sm btn-outline btn-primary p-1"
-                      onClick={() => setPuntoAEditar(punto)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPuntoAEditar(punto);
+                      }}
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
@@ -318,9 +330,10 @@ export default function PuntosDeVenta() {
                       className={`btn btn-sm btn-outline ${
                         punto.isActive ? "btn-warning" : "btn-success"
                       } p-1`}
-                      onClick={() =>
-                        handleTogglePuntoStatus(punto.id, punto.isActive)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePuntoStatus(punto.id, punto.isActive);
+                      }}
                       title={punto.isActive ? "Desactivar" : "Activar"}
                     >
                       {punto.isActive ? (
@@ -332,7 +345,10 @@ export default function PuntosDeVenta() {
 
                     <button
                       className="btn btn-sm btn-outline btn-error p-1"
-                      onClick={() => handleDeletePunto(punto.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePunto(punto.id);
+                      }}
                       title="Eliminar permanentemente"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -381,6 +397,21 @@ export default function PuntosDeVenta() {
           punto={puntoAEditar}
           onClose={() => setPuntoAEditar(null)}
           onUpdate={handleUpdatePunto}
+        />
+      )}
+
+      {showEdicionCompleta && selectedPunto && (
+        <EdicionCompleta
+          punto={selectedPunto}
+          onClose={() => {
+            setShowEdicionCompleta(false);
+            setSelectedPunto(null);
+          }}
+          onUpdate={() => {
+            refreshPuntos();
+            setShowEdicionCompleta(false);
+            setSelectedPunto(null);
+          }}
         />
       )}
     </div>
