@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   Search,
   Plus,
@@ -15,12 +14,11 @@ import {
 } from "lucide-react";
 import PuntoModal from "../components/punto-modal";
 import EditarModal from "../components/editar-modal";
+import EdicionCompleta from "../components/edicion-completa";
 import Header from "../components/header";
 import Swal from "sweetalert2";
 
 export default function PuntosDeVenta() {
-  const router = useRouter();
-
   const [showModal, setShowModal] = useState(false);
   const [puntos, setPuntos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +27,8 @@ export default function PuntosDeVenta() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [puntoAEditar, setPuntoAEditar] = useState(null);
+  const [showEdicionCompleta, setShowEdicionCompleta] = useState(false);
+  const [selectedPunto, setSelectedPunto] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -292,7 +292,10 @@ export default function PuntosDeVenta() {
                 className={`cursor-pointer ${
                   !punto.isActive ? "opacity-70 bg-gray-50" : ""
                 }`}
-                onClick={() => router.push("/prueba/vista-salon-editar")}
+                onClick={() => {
+                  setSelectedPunto(punto);
+                  setShowEdicionCompleta(true);
+                }}
               >
                 <td>{punto.razon}</td>
                 <td>{punto.nombre}</td>
@@ -394,6 +397,21 @@ export default function PuntosDeVenta() {
           punto={puntoAEditar}
           onClose={() => setPuntoAEditar(null)}
           onUpdate={handleUpdatePunto}
+        />
+      )}
+
+      {showEdicionCompleta && selectedPunto && (
+        <EdicionCompleta
+          punto={selectedPunto}
+          onClose={() => {
+            setShowEdicionCompleta(false);
+            setSelectedPunto(null);
+          }}
+          onUpdate={() => {
+            refreshPuntos();
+            setShowEdicionCompleta(false);
+            setSelectedPunto(null);
+          }}
         />
       )}
     </div>
