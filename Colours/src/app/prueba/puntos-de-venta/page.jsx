@@ -230,11 +230,11 @@ export default function PuntosDeVenta() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <Header title="Puntos de Venta" />
 
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
+        <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
           <input
             type="text"
             placeholder="Buscar Punto de Venta"

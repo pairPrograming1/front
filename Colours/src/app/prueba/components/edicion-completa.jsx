@@ -115,14 +115,14 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-slate-900/90 transition-opacity"
+        className="fixed inset-0 bg-slate-900/40 transition-opacity"
         onClick={onClose}
       ></div>
 
       {/* Modal container */}
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* Modal content */}
-        <div className="inline-block align-bottom bg-slate-900/40 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+        <div className="inline-block align-bottom bg-slate-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
           {/* Close button */}
           <button
             onClick={onClose}
