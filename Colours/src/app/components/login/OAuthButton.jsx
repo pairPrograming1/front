@@ -2,16 +2,18 @@
 
 import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { AuthContext } from "../../context/AuthContext"; // Ajusta la ruta según tu estructura
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const router = useRouter();
+  const { setAuthData } = useContext(AuthContext);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       Swal.fire({
         title: "¡Inicio de sesión exitoso!",
         text: `Bienvenido, ${user.name}`,
@@ -19,6 +21,7 @@ export default function OAuthButton() {
         confirmButtonText: "Continuar",
       }).then(async () => {
         try {
+          // Verificar si el usuario existe en la base de datos
           const verifyResponse = await fetch(
             "http://localhost:4000/api/users/verificar",
             {
@@ -35,7 +38,8 @@ export default function OAuthButton() {
           const verifyData = await verifyResponse.json();
           console.log("Respuesta de verificación:", verifyData);
 
-          if (!verifyResponse.ok || !verifyData.registered) {
+          if (!verifyResponse.ok || !verifyData.registrado) {
+            // Si el usuario no existe, registrarlo
             const registerUser = async () => {
               try {
                 const response = await fetch(
@@ -48,8 +52,8 @@ export default function OAuthButton() {
                     body: JSON.stringify({
                       auth0Id: user.sub,
                       email: user.email,
-                      apellido: user.family_name,
-                      nombre: user.given_name,
+                      apellido: user.family_name || "",
+                      nombre: user.given_name || user.name,
                     }),
                   }
                 );
@@ -61,6 +65,25 @@ export default function OAuthButton() {
                   );
                 } else {
                   console.log("Usuario registrado exitosamente");
+                  // Verificar de nuevo para obtener el usuario recién creado
+                  const newVerifyResponse = await fetch(
+                    "http://localhost:4000/api/users/verificar",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        email: user.email,
+                      }),
+                    }
+                  );
+
+                  const newVerifyData = await newVerifyResponse.json();
+
+                  if (newVerifyResponse.ok && newVerifyData.registrado) {
+                    verifyData.usuario = newVerifyData.usuario;
+                  }
                 }
               } catch (error) {
                 console.error("Error en la solicitud:", error);
@@ -69,14 +92,42 @@ export default function OAuthButton() {
 
             await registerUser();
           }
+
+          // Guardar datos del usuario en el contexto
+          if (verifyData.usuario) {
+            const userData = verifyData.usuario;
+            setAuthData({
+              user: userData,
+              rol: userData.rol,
+              auth0User: user,
+              isAuthenticated: true,
+            });
+
+            // Redireccionar según el rol
+            if (userData.rol === "admin") {
+              router.push("/prueba");
+            } else if (userData.rol === "vendor") {
+              router.push("/vendor");
+            } else {
+              // Usuario común u otro rol
+              router.push("/users");
+            }
+          } else {
+            // Si no se pudo obtener el rol, redirigir a la ruta predeterminada
+            setAuthData({
+              auth0User: user,
+              isAuthenticated: true,
+            });
+            router.push("/users");
+          }
         } catch (error) {
           console.error("Error en la solicitud de verificación:", error);
+          // En caso de error, redirigir a la ruta predeterminada
+          router.push("/users");
         }
-
-        router.push("/users");
       });
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, setAuthData]);
 
   return (
     <div className="text-center mt-4">
