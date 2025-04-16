@@ -88,12 +88,39 @@ export default function Usuarios() {
       });
       return;
     }
-    // Lógica para asignar roles aquí
-    console.log("Asignar roles a:", selectedUsers);
+
     Swal.fire({
-      icon: "success",
-      title: "Roles asignados",
-      text: `Roles asignados a ${selectedUsers.length} usuario(s) seleccionado(s)`,
+      title: `Asignar rol de administrador`,
+      html: `
+        <div class="text-left">
+          <p>¿Estás seguro de asignar el rol de <strong>administrador</strong> a <strong>${selectedUsers.length}</strong> usuario(s) seleccionado(s)?</p>
+          <div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                  Los administradores tendrán acceso completo al sistema.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, asignar administrador (${selectedUsers.length})`,
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        asignarRolMultiple("admin");
+      }
     });
   };
 
@@ -106,13 +133,59 @@ export default function Usuarios() {
       });
       return;
     }
-    // Lógica para quitar roles aquí
-    console.log("Quitar roles de:", selectedUsers);
+
     Swal.fire({
-      icon: "success",
-      title: "Roles removidos",
-      text: `Roles removidos de ${selectedUsers.length} usuario(s) seleccionado(s)`,
+      title: "¿Asignar rol de vendor?",
+      text: "Esto cambiará el rol de los usuarios seleccionados a 'vendor'",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cambiar a vendor",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        asignarRolMultiple("vendor");
+      }
     });
+  };
+
+  const asignarRolMultiple = async (rol) => {
+    try {
+      const promises = selectedUsers.map((userId) =>
+        fetch(`http://localhost:4000/api/users/change-role/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rol }),
+        })
+      );
+
+      const results = await Promise.allSettled(promises);
+
+      const exitosos = results.filter(
+        (result) => result.status === "fulfilled"
+      ).length;
+      const fallidos = results.length - exitosos;
+
+      await fetchUsuarios();
+      setSelectedUsers([]);
+
+      Swal.fire({
+        icon: exitosos > 0 ? "success" : "error",
+        title: exitosos > 0 ? "Roles asignados" : "Error",
+        text: `${exitosos} usuario(s) actualizados con éxito. ${
+          fallidos > 0
+            ? `${fallidos} usuario(s) no pudieron ser actualizados.`
+            : ""
+        }`,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al asignar roles",
+        text: error.message || "Ocurrió un error al asignar los roles",
+      });
+    }
   };
 
   const changeUserStatus = async (id, currentStatus) => {
@@ -254,6 +327,34 @@ export default function Usuarios() {
     }
   };
 
+  const cambiarRolUsuario = async (id, rol) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/users/change-role/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rol }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al cambiar el rol del usuario");
+
+      await fetchUsuarios();
+      Swal.fire({
+        icon: "success",
+        title: "Rol actualizado",
+        text: `El rol ha sido actualizado a ${rol}`,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al cambiar rol",
+        text: error.message || "Ocurrió un error al cambiar el rol",
+      });
+    }
+  };
+
   const usuariosFiltrados = usuarios.filter((usuario) =>
     `${usuario.usuario} ${usuario.nombre} ${usuario.apellido} ${usuario.email}`
       .toLowerCase()
@@ -327,7 +428,7 @@ export default function Usuarios() {
             disabled={selectedUsers.length === 0}
           >
             <UserMinus className="h-4 w-4" />
-            Quitar Roles
+            Asignar Vendor
           </button>
 
           <button
@@ -336,7 +437,7 @@ export default function Usuarios() {
             disabled={selectedUsers.length === 0}
           >
             <UserPlus className="h-4 w-4" />
-            Asignar Roles
+            Asignar Admin
           </button>
 
           <button
@@ -366,7 +467,7 @@ export default function Usuarios() {
               <th>Usuario</th>
               <th>Nombre y Apellido</th>
               <th>Email</th>
-              <th>Tipo de Usuario</th>
+              <th>Rol</th>
               <th>Estado</th>
               <th className="w-48">Acciones</th>
             </tr>
@@ -389,7 +490,17 @@ export default function Usuarios() {
                   {usuario.nombre} {usuario.apellido}
                 </td>
                 <td>{usuario.email}</td>
-                <td>{usuario.tipo}</td>
+                <td>
+                  <span
+                    className={`badge ${
+                      usuario.rol === "admin"
+                        ? "badge-primary"
+                        : "badge-secondary"
+                    }`}
+                  >
+                    {usuario.rol || "vendor"}
+                  </span>
+                </td>
                 <td>
                   <span
                     className={`badge ${
