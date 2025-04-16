@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, LogOut, Menu, User } from "lucide-react"
+import { ArrowLeft, Home, LogOut, Menu, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useState } from "react"
@@ -32,7 +32,15 @@ export default function Navbar() {
         {menuOpen && (
           <div className="absolute left-0 top-14 mt-2 w-48 bg-[#252e3f] rounded-md shadow-lg z-50">
             <Link
-              href="/profile"
+              href="/vendor"
+              className="block px-4 py-2 text-sm hover:bg-[#1e2533] flex items-center"
+              onClick={() => setMenuOpen(false)}
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Link>
+            <Link
+              href="/vendor/profile"
               className="block px-4 py-2 text-sm hover:bg-[#1e2533] flex items-center"
               onClick={() => setMenuOpen(false)}
             >

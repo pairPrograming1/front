@@ -135,7 +135,7 @@ export default function PaymentPage() {
 
           {/* Botón de pago */}
           <button
-            onClick={handlePayment}
+            
             className="w-full py-3 rounded-md text-white font-medium"
             style={{ backgroundColor: "#BF8D6B" }}
           >
