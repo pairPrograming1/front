@@ -22,6 +22,7 @@ import Swal from "sweetalert2";
 export default function Usuarios() {
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showRolModal, setShowRolModal] = useState(false);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [usuarios, setUsuarios] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,6 +31,7 @@ export default function Usuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedRole, setSelectedRole] = useState("vendor");
 
   const itemsPerPage = 10;
 
@@ -88,13 +90,7 @@ export default function Usuarios() {
       });
       return;
     }
-    // Lógica para asignar roles aquí
-    console.log("Asignar roles a:", selectedUsers);
-    Swal.fire({
-      icon: "success",
-      title: "Roles asignados",
-      text: `Roles asignados a ${selectedUsers.length} usuario(s) seleccionado(s)`,
-    });
+    setShowRolModal(true);
   };
 
   const handleQuitarRoles = () => {
@@ -106,13 +102,60 @@ export default function Usuarios() {
       });
       return;
     }
-    // Lógica para quitar roles aquí
-    console.log("Quitar roles de:", selectedUsers);
+
     Swal.fire({
-      icon: "success",
-      title: "Roles removidos",
-      text: `Roles removidos de ${selectedUsers.length} usuario(s) seleccionado(s)`,
+      title: "¿Asignar rol de vendor?",
+      text: "Esto cambiará el rol de los usuarios seleccionados a 'vendor'",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cambiar a vendor",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        asignarRolMultiple("vendor");
+      }
     });
+  };
+
+  const asignarRolMultiple = async (rol) => {
+    try {
+      const promises = selectedUsers.map((userId) =>
+        fetch(`http://localhost:4000/api/users/change-role/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rol }),
+        })
+      );
+
+      const results = await Promise.allSettled(promises);
+
+      const exitosos = results.filter(
+        (result) => result.status === "fulfilled"
+      ).length;
+      const fallidos = results.length - exitosos;
+
+      await fetchUsuarios();
+      setShowRolModal(false);
+      setSelectedUsers([]);
+
+      Swal.fire({
+        icon: exitosos > 0 ? "success" : "error",
+        title: exitosos > 0 ? "Roles asignados" : "Error",
+        text: `${exitosos} usuario(s) actualizados con éxito. ${
+          fallidos > 0
+            ? `${fallidos} usuario(s) no pudieron ser actualizados.`
+            : ""
+        }`,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al asignar roles",
+        text: error.message || "Ocurrió un error al asignar los roles",
+      });
+    }
   };
 
   const changeUserStatus = async (id, currentStatus) => {
@@ -254,6 +297,34 @@ export default function Usuarios() {
     }
   };
 
+  const cambiarRolUsuario = async (id, rol) => {
+    try {
+      const response = await fetch(
+        `http://localhost:4000/api/users/change-role/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rol }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al cambiar el rol del usuario");
+
+      await fetchUsuarios();
+      Swal.fire({
+        icon: "success",
+        title: "Rol actualizado",
+        text: `El rol ha sido actualizado a ${rol}`,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al cambiar rol",
+        text: error.message || "Ocurrió un error al cambiar el rol",
+      });
+    }
+  };
+
   const usuariosFiltrados = usuarios.filter((usuario) =>
     `${usuario.usuario} ${usuario.nombre} ${usuario.apellido} ${usuario.email}`
       .toLowerCase()
@@ -327,7 +398,7 @@ export default function Usuarios() {
             disabled={selectedUsers.length === 0}
           >
             <UserMinus className="h-4 w-4" />
-            Quitar Roles
+            Asignar Vendor
           </button>
 
           <button
@@ -336,7 +407,7 @@ export default function Usuarios() {
             disabled={selectedUsers.length === 0}
           >
             <UserPlus className="h-4 w-4" />
-            Asignar Roles
+            Asignar Admin
           </button>
 
           <button
@@ -366,7 +437,7 @@ export default function Usuarios() {
               <th>Usuario</th>
               <th>Nombre y Apellido</th>
               <th>Email</th>
-              <th>Tipo de Usuario</th>
+              <th>Rol</th>
               <th>Estado</th>
               <th className="w-48">Acciones</th>
             </tr>
@@ -389,7 +460,17 @@ export default function Usuarios() {
                   {usuario.nombre} {usuario.apellido}
                 </td>
                 <td>{usuario.email}</td>
-                <td>{usuario.tipo}</td>
+                <td>
+                  <span
+                    className={`badge ${
+                      usuario.rol === "admin"
+                        ? "badge-primary"
+                        : "badge-secondary"
+                    }`}
+                  >
+                    {usuario.rol || "vendor"}
+                  </span>
+                </td>
                 <td>
                   <span
                     className={`badge ${
@@ -477,6 +558,35 @@ export default function Usuarios() {
           onClose={() => setUsuarioEditar(null)}
           onSave={modificarUsuario}
         />
+      )}
+
+      {showRolModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h3 className="text-lg font-bold mb-4">
+              Asignar rol de administrador
+            </h3>
+            <p className="mb-6">
+              ¿Estás seguro de que deseas asignar el rol de administrador a los{" "}
+              {selectedUsers.length} usuario(s) seleccionado(s)?
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                className="btn btn-outline"
+                onClick={() => setShowRolModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => asignarRolMultiple("admin")}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
