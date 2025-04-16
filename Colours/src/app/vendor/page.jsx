@@ -1,5 +1,6 @@
-"use client";
-import Vendor from "../components/vendor/vendor";
+"use client"
+
+import Vendor from "@/app/components/vendor/vendor"
 
 export default function VendorPage() {
   return (
@@ -8,5 +9,6 @@ export default function VendorPage() {
         <Vendor />
       </div>
     </main>
-  );
+  )
 }
+
