@@ -6,18 +6,23 @@ import { useRouter } from "next/navigation";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import OAuthButton from "./OAuthButton";
 import Swal from "sweetalert2";
-import { AuthContext } from "../../context/AuthContext"; // Importar el contexto
+import { AuthContext } from "../../context/AuthContext";
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { setAuthData } = useContext(AuthContext); // Usar el contexto
+  const { setAuthData } = useContext(AuthContext);
 
   const handleLogin = async () => {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+      setError("Por favor, complete todos los campos");
+      return;
+    }
 
     const datosLogin = {
       usuario: username,
@@ -26,12 +31,35 @@ export default function LoginForm() {
 
     try {
       setLoading(true);
+      // Primer paso: autenticación del usuario
       const respuesta = await axios.post(
         "http://localhost:4000/api/auth",
         datosLogin
       );
+
       console.log("Inicio de sesión exitoso:", respuesta.data);
-      setAuthData(respuesta.data); // Guardar los datos de sesión en el contexto
+
+      // Segundo paso: verificar el usuario para obtener su información completa incluyendo el rol
+      const verificarResponse = await axios.post(
+        "http://localhost:4000/api/users/verificar",
+        { usuario: username }
+      );
+
+      if (!verificarResponse.data.registrado) {
+        throw new Error("No se pudo verificar la información del usuario");
+      }
+
+      // Obtener el rol desde la respuesta de verificación
+      const userData = verificarResponse.data.usuario;
+      const userRole = userData.rol;
+
+      // Guardar los datos completos de sesión en el contexto
+      setAuthData({
+        ...respuesta.data,
+        userInfo: userData,
+        rol: userRole,
+      });
+
       Swal.fire({
         icon: "success",
         title: "Inicio de sesión exitoso",
@@ -39,14 +67,36 @@ export default function LoginForm() {
         timer: 2000,
         showConfirmButton: false,
       });
-      router.push("/users");
+
+      // Redireccionar según el rol
+      if (userRole === "admin") {
+        router.push("/prueba");
+      } else if (userRole === "vendor") {
+        router.push("/vendor");
+      } else {
+        // Si es un usuario común u otro rol
+        router.push("/users");
+      }
     } catch (error) {
       console.error("Error en la solicitud:", error);
+      let errorMessage =
+        "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.";
+
+      // Si hay un mensaje de error específico del servidor, mostrarlo
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        errorMessage = error.response.data.message;
+      }
+
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+        text: errorMessage,
       });
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -57,7 +107,13 @@ export default function LoginForm() {
   };
 
   return (
-    <form className="flex flex-col gap-4">
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleLogin();
+      }}
+    >
       <div className="mb-2">
         <input
           id="username"
@@ -73,6 +129,11 @@ export default function LoginForm() {
           type={showPassword ? "text" : "password"}
           placeholder="Contraseña"
           className="w-full bg-transparent text-[#FFFFFF] border border-[#BF8D6B] rounded-md py-3 px-4 focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] placeholder-[#EDEEF0]/70"
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              handleLogin();
+            }
+          }}
         />
         <button
           type="button"
@@ -99,8 +160,7 @@ export default function LoginForm() {
       </div>
 
       <button
-        type="button"
-        onClick={handleLogin}
+        type="submit"
         disabled={loading}
         className="w-full bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white font-medium py-3 px-4 rounded-md transition-all duration-300 mt-2"
       >
