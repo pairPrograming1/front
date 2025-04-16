@@ -75,7 +75,7 @@ export default function LoginForm() {
         router.push("/vendor");
       } else {
         // Si es un usuario común u otro rol
-        router.push("/users");
+        router.push("/wellcome");
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
