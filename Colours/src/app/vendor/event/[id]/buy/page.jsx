@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -7,26 +6,46 @@ export default function BuyTicketsPage({ params }) {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [tickets, setTickets] = useState([])
-  const [eventId, setEventId] = useState(null)
+  const [formData, setFormData] = useState({
+    name: "",
+    dni: "",
+    whatsapp: "",
+    email: "",
+  })
+  const [eventId, setEventId] = useState("1")
 
   useEffect(() => {
-    // Acceder a params de manera segura dentro de useEffect
-    if (params) {
-      setEventId(String(params.id || "1"))
+    setMounted(true)
+
+    // Extraer el ID de la URL en lugar de usar params
+    const pathname = window.location.pathname
+    const idMatch = pathname.match(/\/vendor\/event\/([^/]+)/)
+    if (idMatch && idMatch[1]) {
+      setEventId(idMatch[1])
     }
 
-    setMounted(true)
     setTickets([
       { id: 1, name: "Nombre del Graduado" },
       { id: 2, name: "Nombre del Graduado" },
       { id: 3, name: "Nombre del Graduado" },
     ])
-  }, [params])
+  }, [])
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
 
   const handleSell = () => {
-    // Aquí iría la lógica para procesar la venta
-    // Por ahora solo mostraremos una alerta
-    alert("Venta procesada con éxito")
+    // Redirigir a la página de selección de tickets
+    router.push(`/vendor/event/tickets/${eventId}`)
+  }
+
+  const isFormValid = () => {
+    return formData.name && formData.dni && formData.whatsapp && formData.email
   }
 
   if (!mounted) {
@@ -42,11 +61,14 @@ export default function BuyTicketsPage({ params }) {
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-4">
       <div className="w-full max-w-md bg-[#1E2330]/80 p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold text-white mb-6">Buscar Evento</h2>
+        <h2 className="text-xl font-semibold text-white mb-6">Datos del Comprador</h2>
 
         <div className="space-y-3 mb-6">
           <input
             type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
             placeholder="Nombre y Apellido"
             className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#b3964c]"
           />
@@ -54,11 +76,17 @@ export default function BuyTicketsPage({ params }) {
           <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
+              name="dni"
+              value={formData.dni}
+              onChange={handleInputChange}
               placeholder="DNI"
               className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#b3964c]"
             />
             <input
               type="text"
+              name="whatsapp"
+              value={formData.whatsapp}
+              onChange={handleInputChange}
               placeholder="WhatsApp"
               className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#b3964c]"
             />
@@ -66,6 +94,9 @@ export default function BuyTicketsPage({ params }) {
 
           <input
             type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
             placeholder="Email"
             className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#b3964c]"
           />
@@ -82,7 +113,10 @@ export default function BuyTicketsPage({ params }) {
               </div>
               <button
                 onClick={handleSell}
-                className="px-3 py-1 bg-[#b3964c] hover:bg-[#9a7f41] text-black font-medium rounded-md transition-colors ml-auto"
+                disabled={!isFormValid()}
+                className={`px-3 py-1 ${
+                  isFormValid() ? "bg-[#b3964c] hover:bg-[#9a7f41]" : "bg-gray-600 cursor-not-allowed"
+                } text-black font-medium rounded-md transition-colors ml-auto`}
               >
                 Vender
               </button>
@@ -93,3 +127,4 @@ export default function BuyTicketsPage({ params }) {
     </main>
   )
 }
+

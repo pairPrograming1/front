@@ -1,21 +1,25 @@
 "use client"
-
-import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 
 export default function EventDetailPage({ params }) {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const [eventId, setEventId] = useState(null)
+
+  // No accedemos a params directamente, usamos un ID hardcodeado para la demo
+  // o extraemos el ID de la URL usando pathname
+  const [eventId, setEventId] = useState("1")
 
   useEffect(() => {
-    // Acceder a params de manera segura dentro de useEffect
-    if (params) {
-      // Convertir a string para asegurar compatibilidad
-      setEventId(String(params.id || "1"))
-    }
     setMounted(true)
-  }, [params])
+
+    // Extraer el ID de la URL en lugar de usar params
+    const pathname = window.location.pathname
+    const idMatch = pathname.match(/\/vendor\/event\/([^/]+)/)
+    if (idMatch && idMatch[1]) {
+      setEventId(idMatch[1])
+    }
+  }, [])
 
   if (!mounted) {
     return (
@@ -56,11 +60,7 @@ export default function EventDetailPage({ params }) {
         </div>
 
         <button
-          onClick={() => {
-            if (eventId) {
-              router.push(`/vendor/event/${eventId}/buy`)
-            }
-          }}
+          onClick={() => router.push(`/vendor/event/${eventId}/buy`)}
           className="w-full py-3 bg-[#c28b5b] text-white rounded-md font-medium hover:bg-[#b37a4a] transition-colors"
         >
           Vender entrada
@@ -69,3 +69,4 @@ export default function EventDetailPage({ params }) {
     </main>
   )
 }
+
