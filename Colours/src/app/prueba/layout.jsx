@@ -1,4 +1,5 @@
 import "./globals.css";
+import { LogoutButton } from "../../app/components/logout/LogoutButton"; // You'll need to adjust this path
 
 export const metadata = {
   title: "Colour Admin",
@@ -7,8 +8,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <div className=" min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-7xl h-screen  bg-[#1E2330]/70 shadow-md rounded-xl overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-7xl h-screen bg-[#1E2330]/70 shadow-md rounded-xl overflow-hidden">
+        <div className="flex justify-end p-4">
+          <LogoutButton />
+        </div>
         <main className="h-full overflow-auto p-6">{children}</main>
       </div>
     </div>
