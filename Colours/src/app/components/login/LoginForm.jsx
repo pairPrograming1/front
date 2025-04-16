@@ -1,42 +1,60 @@
-"use client"
-import { useState } from "react"
-import axios from "axios"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { EyeIcon, EyeOffIcon } from "lucide-react"
-import OAuthButton from "./OAuthButton"
+"use client";
+import { useState, useContext } from "react";
+import axios from "axios";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
+import OAuthButton from "./OAuthButton";
+import Swal from "sweetalert2";
+import { AuthContext } from "../../context/AuthContext"; // Importar el contexto
 
 export default function LoginForm() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { setAuthData } = useContext(AuthContext); // Usar el contexto
 
   const handleLogin = async () => {
-    const username = document.getElementById("username").value
-    const password = document.getElementById("password").value
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
     const datosLogin = {
       usuario: username,
       password: password,
-    }
+    };
 
     try {
-      setLoading(true)
-      const respuesta = await axios.post("http://localhost:4000/api/auth", datosLogin)
-      console.log("Inicio de sesión exitoso:", respuesta.data)
-      router.push("/")
+      setLoading(true);
+      const respuesta = await axios.post(
+        "http://localhost:4000/api/auth",
+        datosLogin
+      );
+      console.log("Inicio de sesión exitoso:", respuesta.data);
+      setAuthData(respuesta.data); // Guardar los datos de sesión en el contexto
+      Swal.fire({
+        icon: "success",
+        title: "Inicio de sesión exitoso",
+        text: "Redirigiendo...",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      router.push("/users");
     } catch (error) {
-      console.error("Error en la solicitud:", error)
-      setError("Ocurrió un error inesperado. Por favor, inténtalo de nuevo.")
+      console.error("Error en la solicitud:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
+    setShowPassword(!showPassword);
+  };
 
   return (
     <form className="flex flex-col gap-4">
@@ -61,14 +79,21 @@ export default function LoginForm() {
           onClick={togglePasswordVisibility}
           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#BF8D6B]"
         >
-          {showPassword ?   <EyeIcon className="h-5 w-5" /> : <EyeOffIcon className="h-5 w-5" />}
+          {showPassword ? (
+            <EyeIcon className="h-5 w-5" />
+          ) : (
+            <EyeOffIcon className="h-5 w-5" />
+          )}
         </button>
       </div>
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <div className="text-right">
-        <Link href="/forgot-password" className="text-[#EDEEF0] hover:text-[#BF8D6B] text-xs transition-colors">
+        <Link
+          href="/forgot-password"
+          className="text-[#EDEEF0] hover:text-[#BF8D6B] text-xs transition-colors"
+        >
           ¿Olvidaste tu contraseña?
         </Link>
       </div>
@@ -85,12 +110,16 @@ export default function LoginForm() {
       <OAuthButton />
 
       <div className="text-center mt-4">
-        <span className="text-[#EDEEF0] text-sm">Si aún no tienes cuenta puedes </span>
-        <Link href="/register" className="text-[#BF8D6B] hover:underline text-sm font-medium">
+        <span className="text-[#EDEEF0] text-sm">
+          Si aún no tienes cuenta puedes{" "}
+        </span>
+        <Link
+          href="/register"
+          className="text-[#FFFFFF] hover:underline text-sm font-medium"
+        >
           Registrarte
         </Link>
       </div>
     </form>
-  )
+  );
 }
-

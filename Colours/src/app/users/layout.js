@@ -1,46 +1,52 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Menu, ArrowLeft } from "lucide-react"
-import { usePathname } from "next/navigation"
-import Sidebar from "@/app/components/user/sidebarUser"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Menu, ArrowLeft } from "lucide-react";
+import { usePathname } from "next/navigation";
+import Sidebar from "@/app/components/user/sidebarUser";
+import { LogoutButton } from "../components/logout/LogoutButton";
 
 export default function UsersLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
-  // Aseguramos que el componente solo se renderice completamente en el cliente
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   // Escuchar eventos de toggle-sidebar
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted) return;
 
     const handleToggleSidebar = () => {
-      setSidebarOpen((prev) => !prev)
-    }
+      setSidebarOpen((prev) => !prev);
+    };
 
-    window.addEventListener("toggle-sidebar", handleToggleSidebar)
+    window.addEventListener("toggle-sidebar", handleToggleSidebar);
     return () => {
-      window.removeEventListener("toggle-sidebar", handleToggleSidebar)
-    }
-  }, [mounted])
+      window.removeEventListener("toggle-sidebar", handleToggleSidebar);
+    };
+  }, [mounted]);
 
   // Renderizamos un esqueleto básico durante la hidratación
   if (!mounted) {
     return (
       <div
         className="w-full max-w-6xl mx-auto rounded-lg overflow-hidden shadow-2xl"
-        style={{ height: "calc(100vh - 40px)", backgroundColor: "rgba(45, 52, 67, 0.7)" }}
+        style={{
+          height: "calc(100vh - 40px)",
+          backgroundColor: "rgba(45, 52, 67, 0.7)",
+        }}
       >
-        <div className="h-16" style={{ borderBottom: "1px solid rgba(70, 78, 94, 0.7)" }}></div>
+        <div
+          className="h-16"
+          style={{ borderBottom: "1px solid rgba(70, 78, 94, 0.7)" }}
+        ></div>
         <div className="flex-1"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -50,7 +56,10 @@ export default function UsersLayout({ children }) {
     >
       <div
         className="flex flex-col h-full"
-        style={{ backgroundColor: "rgba(45, 52, 67, 0.7)", backdropFilter: "blur(5px)" }}
+        style={{
+          backgroundColor: "rgba(45, 52, 67, 0.7)",
+          backdropFilter: "blur(5px)",
+        }}
       >
         {/* Navbar */}
         <header
@@ -72,17 +81,21 @@ export default function UsersLayout({ children }) {
             </Link>
           </div>
 
-          {/* Botón de regresar a la derecha, solo visible en páginas que no son /users */}
-          {pathname !== "/users" && (
-            <Link
-              href="/users"
-              className="rounded-md p-2 text-white hover:bg-opacity-50"
-              style={{ backgroundColor: "rgba(70, 78, 94, 0.5)" }}
-              aria-label="Volver"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </Link>
-          )}
+          <div className="flex items-center">
+            {/* Botón de regresar a la derecha, solo visible en páginas que no son /users */}
+            {pathname !== "/users" && (
+              <Link
+                href="/users"
+                className="rounded-md p-2 text-white hover:bg-opacity-50"
+                style={{ backgroundColor: "rgba(70, 78, 94, 0.5)" }}
+                aria-label="Volver"
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </Link>
+            )}
+            {/* Botón de logout */}
+            <LogoutButton className="ml-4" />
+          </div>
         </header>
 
         <div className="relative flex flex-1 overflow-hidden">
@@ -94,8 +107,5 @@ export default function UsersLayout({ children }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-
-  

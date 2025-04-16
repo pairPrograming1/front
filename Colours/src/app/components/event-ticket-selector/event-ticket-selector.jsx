@@ -39,11 +39,11 @@ export default function EventTicketSelector() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4  text-white">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-[#12151f]/40 text-white px-4 py-8">
       <Header />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-3xl w-full max-w-4xl bg-gray-800/50 p-6 shadow-lg">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-3xl w-full max-w-5xl bg-gray-800/50 p-6 shadow-lg backdrop-blur-sm border border-teal-400/20">
         {/* Columna Izquierda - Información y Selectores de Tickets */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <EventInfo />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {["adultos", "menores", "adultosSinCargo", "menoresSinCargo"].map(
@@ -61,7 +61,7 @@ export default function EventTicketSelector() {
         </div>
 
         {/* Columna Derecha - Resumen de Compra */}
-        <div className="flex flex-col justify-between">
+        <div className="flex flex-col justify-between space-y-6">
           <Summary subtotal={subtotal} serviceFee={serviceFee} total={total} />
           <PaymentButton />
           <BackLink />
