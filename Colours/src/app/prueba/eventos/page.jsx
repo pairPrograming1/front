@@ -140,6 +140,265 @@ export default function Eventos() {
     });
   };
 
+  // Logical deletion implementation (using PATCH)
+  const handleLogicalDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "¿Desactivar evento?",
+      text: "El evento será desactivado pero permanecerá en la base de datos",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, desactivar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
+          method: "PATCH", // Using PATCH for logical deletion
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Error al desactivar el evento");
+        }
+
+        const data = await response.json();
+
+        Swal.fire({
+          title: "¡Completado!",
+          text: data.message || "El evento ha sido desactivado correctamente",
+          icon: "success",
+          confirmButtonText: "OK",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        fetchEventos();
+      } catch (err) {
+        console.error("Error al desactivar evento:", err);
+        Swal.fire({
+          title: "Error",
+          text: "No se pudo desactivar el evento.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    }
+  };
+
+  // Physical deletion implementation (using DELETE)
+  const handlePhysicalDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar permanentemente?",
+      text: "Esta acción no se puede deshacer y el evento será eliminado permanentemente",
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar permanentemente",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        // Double-check confirmation for permanent deletion
+        const secondConfirm = await Swal.fire({
+          title: "¿Está completamente seguro?",
+          text: "No podrá recuperar este evento después de eliminarlo",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Sí, eliminar definitivamente",
+          cancelButtonText: "Cancelar",
+        });
+
+        if (!secondConfirm.isConfirmed) return;
+
+        const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
+          method: "DELETE", // Using DELETE for physical deletion
+        });
+
+        if (!response.ok) {
+          throw new Error("Error al eliminar el evento");
+        }
+
+        const data = await response.json();
+
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: data.message || "El evento ha sido eliminado permanentemente",
+          icon: "success",
+          confirmButtonText: "OK",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        fetchEventos();
+      } catch (err) {
+        console.error("Error al eliminar evento:", err);
+        Swal.fire({
+          title: "Error",
+          text: "No se pudo eliminar el evento.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    }
+  };
+
+  // Bulk logical deletion
+  const bulkLogicalDelete = async () => {
+    if (selectedEventos.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Ningún evento seleccionado",
+        text: "Por favor selecciona al menos un evento para desactivar",
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "¿Desactivar eventos seleccionados?",
+      text: `¿Desea desactivar los ${selectedEventos.length} eventos seleccionados?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, desactivar (${selectedEventos.length})`,
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        Swal.fire({
+          title: "Procesando...",
+          text: "Desactivando eventos seleccionados",
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        const updatePromises = selectedEventos.map((id) =>
+          fetch(`http://localhost:4000/api/evento/${id}`, {
+            method: "PATCH", // Using PATCH for logical deletion
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+        );
+
+        await Promise.all(updatePromises);
+
+        Swal.fire({
+          title: "¡Completado!",
+          text: "Los eventos seleccionados han sido desactivados",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+
+        fetchEventos();
+        setSelectedEventos([]);
+      } catch (err) {
+        console.error("Error al desactivar eventos:", err);
+        Swal.fire({
+          title: "Error",
+          text: "No se pudieron desactivar los eventos seleccionados.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    }
+  };
+
+  // Bulk physical deletion
+  const bulkPhysicalDelete = async () => {
+    if (selectedEventos.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Ningún evento seleccionado",
+        text: "Por favor selecciona al menos un evento para eliminar",
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "¿Eliminar permanentemente?",
+      text: `¿Desea eliminar permanentemente los ${selectedEventos.length} eventos seleccionados? Esta acción no se puede deshacer.`,
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: `Sí, eliminar (${selectedEventos.length})`,
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      // Double-check confirmation for permanent deletion
+      const secondConfirm = await Swal.fire({
+        title: "¿Está completamente seguro?",
+        html: `
+          <div class="text-left">
+            <p>No podrá recuperar estos ${selectedEventos.length} eventos después de eliminarlos.</p>
+            <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
+          </div>
+        `,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Sí, eliminar definitivamente",
+        cancelButtonText: "Cancelar",
+      });
+
+      if (!secondConfirm.isConfirmed) return;
+
+      try {
+        Swal.fire({
+          title: "Procesando...",
+          text: "Eliminando eventos seleccionados",
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        const deletePromises = selectedEventos.map((id) =>
+          fetch(`http://localhost:4000/api/evento/${id}`, {
+            method: "DELETE", // Using DELETE for physical deletion
+          })
+        );
+
+        await Promise.all(deletePromises);
+
+        Swal.fire({
+          title: "¡Eliminados!",
+          text: "Los eventos seleccionados han sido eliminados permanentemente",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+
+        fetchEventos();
+        setSelectedEventos([]);
+      } catch (err) {
+        console.error("Error al eliminar eventos:", err);
+        Swal.fire({
+          title: "Error",
+          text: "No se pudieron eliminar los eventos seleccionados.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    }
+  };
+
   const handleEventoToggleActive = async (id, currentActiveState) => {
     const action = currentActiveState ? "desactivar" : "activar";
 
@@ -323,12 +582,22 @@ export default function Eventos() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           {selectedEventos.length > 0 && (
-            <button
-              className="btn btn-warning w-full sm:w-auto"
-              onClick={bulkDeactivateEventos}
-            >
-              Desactivar {selectedEventos.length} seleccionados
-            </button>
+            <>
+              <button
+                className="btn btn-warning w-full sm:w-auto flex items-center gap-2"
+                onClick={bulkLogicalDelete}
+              >
+                <Archive className="h-4 w-4" />
+                Desactivar {selectedEventos.length}
+              </button>
+              <button
+                className="btn btn-error w-full sm:w-auto flex items-center gap-2"
+                onClick={bulkPhysicalDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+                Eliminar {selectedEventos.length}
+              </button>
+            </>
           )}
 
           <button
@@ -380,7 +649,7 @@ export default function Eventos() {
               <th>Duración</th>
               <th>Capacidad</th>
               <th>Estado</th>
-              <th className="w-32">Acciones</th>
+              <th className="w-40">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -419,20 +688,31 @@ export default function Eventos() {
                       >
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button
-                        className={`btn btn-sm btn-outline ${
-                          evento.activo ? "btn-warning" : "btn-success"
-                        } p-1`}
-                        onClick={() =>
-                          handleEventoToggleActive(evento.id, evento.activo)
-                        }
-                        title={evento.activo ? "Desactivar" : "Activar"}
-                      >
-                        {evento.activo ? (
+                      {evento.activo ? (
+                        <button
+                          className="btn btn-sm btn-outline btn-warning p-1"
+                          onClick={() => handleLogicalDelete(evento.id)}
+                          title="Desactivar (borrado lógico)"
+                        >
                           <Archive className="h-4 w-4" />
-                        ) : (
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-outline btn-success p-1"
+                          onClick={() =>
+                            handleEventoToggleActive(evento.id, evento.activo)
+                          }
+                          title="Activar"
+                        >
                           <Power className="h-4 w-4" />
-                        )}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-sm btn-outline btn-error p-1"
+                        onClick={() => handlePhysicalDelete(evento.id)}
+                        title="Eliminar permanentemente (borrado físico)"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
