@@ -14,11 +14,13 @@ import {
 } from "lucide-react";
 import Header from "../components/header";
 import EventoModal from "../components/evento-modal";
+import EventoEditarModal from "../components/evento-editar-modal"; // Importamos el componente de edición
 import Swal from "sweetalert2";
 
 export default function Eventos() {
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false); // Estado para controlar la visibilidad del modal de edición
   const [currentPage, setCurrentPage] = useState(1);
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,7 @@ export default function Eventos() {
         // Map the API response to handle potential property name differences
         const mappedEventos = filteredData.map((evento) => ({
           id: evento.Id || evento.id, // Handle both Id and id
+          Id: evento.Id || evento.id, // Aseguramos que tengamos ambas propiedades
           nombre: evento.nombre,
           fecha: evento.fecha,
           duracion: evento.duracion || evento.duraccion, // Handle both spellings
@@ -134,6 +137,20 @@ export default function Eventos() {
     Swal.fire({
       title: "¡Éxito!",
       text: "El evento ha sido agregado correctamente",
+      icon: "success",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "OK",
+    });
+  };
+
+  // Manejador cuando un evento es actualizado
+  const handleEventoUpdated = () => {
+    setShowEditModal(false);
+    fetchEventos();
+
+    Swal.fire({
+      title: "¡Éxito!",
+      text: "El evento ha sido actualizado correctamente",
       icon: "success",
       confirmButtonColor: "#3085d6",
       confirmButtonText: "OK",
@@ -530,15 +547,10 @@ export default function Eventos() {
     }
   };
 
+  // Modificado para abrir el modal de edición
   const handleEditEvento = (evento) => {
     setEventoEditar(evento);
-    // Aquí implementarías el modal de edición
-    Swal.fire({
-      title: "Función en desarrollo",
-      text: "La edición de eventos estará disponible próximamente",
-      icon: "info",
-      confirmButtonText: "Entendido",
-    });
+    setShowEditModal(true);
   };
 
   const eventosFiltrados = eventos.filter((evento) =>
@@ -753,10 +765,23 @@ export default function Eventos() {
         </div>
       )}
 
+      {/* Modal para agregar eventos */}
       {showModal && (
         <EventoModal
           onClose={() => setShowModal(false)}
           onEventoAdded={handleEventoAdded}
+        />
+      )}
+
+      {/* Modal para editar eventos */}
+      {showEditModal && eventoEditar && (
+        <EventoEditarModal
+          evento={eventoEditar}
+          onClose={() => {
+            setShowEditModal(false);
+            setEventoEditar(null);
+          }}
+          onEventoUpdated={handleEventoUpdated}
         />
       )}
     </div>
