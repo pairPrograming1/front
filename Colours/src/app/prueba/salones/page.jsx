@@ -13,6 +13,7 @@ import {
   Edit,
 } from "lucide-react";
 import SalonModal from "../components/salon-modal";
+import SalonEditarModal from "../components/salon-editar-modal";
 import Header from "../components/header";
 import Swal from "sweetalert2";
 
@@ -102,8 +103,18 @@ export default function Salones() {
     }
   };
 
-  const handleUpdateSalon = async () => {
-    await refreshSalones();
+  const handleUpdateSalon = async (updated) => {
+    if (updated) {
+      await refreshSalones();
+      Swal.fire({
+        icon: "success",
+        title: "Salón actualizado",
+        text: "El salón fue actualizado correctamente",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+    setSalonAEditar(null);
   };
 
   const handleDeleteSalon = async (id) => {
@@ -402,6 +413,7 @@ export default function Salones() {
         </div>
       )}
 
+      {/* Modal para agregar salon */}
       {showModal && (
         <SalonModal
           onClose={() => setShowModal(false)}
@@ -410,13 +422,12 @@ export default function Salones() {
         />
       )}
 
+      {/* Modal para editar salon */}
       {salonAEditar && (
-        <SalonModal
-          onClose={() => setSalonAEditar(null)}
-          onAddSalon={handleUpdateSalon}
-          API_URL={API_URL}
+        <SalonEditarModal
           salon={salonAEditar}
-          isEditing={true}
+          onClose={handleUpdateSalon}
+          API_URL={API_URL}
         />
       )}
     </div>
