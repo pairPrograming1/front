@@ -55,6 +55,25 @@ export default function PuntosDeVenta() {
     fetchPuntos();
   }, []);
 
+  const removeAccents = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
+  const filteredPuntos = puntos.filter((p) => {
+    const searchText = removeAccents(searchTerm.toLowerCase());
+    const matchSearch =
+      removeAccents(p.nombre.toLowerCase()).includes(searchText) ||
+      removeAccents(p.razon.toLowerCase()).includes(searchText) ||
+      removeAccents(p.direccion.toLowerCase()).includes(searchText) ||
+      removeAccents(p.email.toLowerCase()).includes(searchText) ||
+      p.cuit.toString().includes(searchTerm) ||
+      p.telefono.toString().includes(searchTerm);
+
+    const matchActivo = verInactivos ? !p.isActive : p.isActive;
+
+    return matchSearch && matchActivo;
+  });
+
   const handleAddPunto = async (newPunto) => {
     try {
       const response = await fetch("http://localhost:4000/api/puntodeventa", {
@@ -190,17 +209,6 @@ export default function PuntosDeVenta() {
     }
   };
 
-  const filteredPuntos = puntos.filter((p) => {
-    const matchSearch =
-      p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.razon.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.cuit.toString().includes(searchTerm);
-
-    const matchActivo = verInactivos ? !p.isActive : p.isActive;
-
-    return matchSearch && matchActivo;
-  });
-
   const totalPages = Math.ceil(filteredPuntos.length / itemsPerPage);
   const currentItems = filteredPuntos.slice(
     (currentPage - 1) * itemsPerPage,
@@ -237,7 +245,7 @@ export default function PuntosDeVenta() {
         <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
           <input
             type="text"
-            placeholder="Buscar Punto de Venta"
+            placeholder="Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input pl-10 w-full"

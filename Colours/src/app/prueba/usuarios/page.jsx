@@ -65,6 +65,23 @@ export default function Usuarios() {
     }
   }, [filterInactive, isClient]);
 
+  const removeAccents = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
+  const usuariosFiltrados = usuarios.filter((usuario) => {
+    const searchText = removeAccents(searchTerm.toLowerCase());
+    return (
+      removeAccents(usuario.usuario.toLowerCase()).includes(searchText) ||
+      removeAccents(usuario.email.toLowerCase()).includes(searchText) ||
+      removeAccents(usuario.nombre.toLowerCase()).includes(searchText) ||
+      removeAccents(usuario.apellido.toLowerCase()).includes(searchText) ||
+      removeAccents(
+        `${usuario.nombre} ${usuario.apellido}`.toLowerCase()
+      ).includes(searchText)
+    );
+  });
+
   const toggleUserSelection = (id) => {
     setSelectedUsers((prev) =>
       prev.includes(id) ? prev.filter((userId) => userId !== id) : [...prev, id]
@@ -355,12 +372,6 @@ export default function Usuarios() {
     }
   };
 
-  const usuariosFiltrados = usuarios.filter((usuario) =>
-    `${usuario.usuario} ${usuario.nombre} ${usuario.apellido} ${usuario.email}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
-
   const totalPages = Math.ceil(usuariosFiltrados.length / itemsPerPage);
   const currentItems = usuariosFiltrados.slice(
     (currentPage - 1) * itemsPerPage,
@@ -399,7 +410,7 @@ export default function Usuarios() {
         <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
           <input
             type="text"
-            placeholder="Buscar Usuario"
+            placeholder="Buscar por nombre, usuario o email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input pl-10 w-full"

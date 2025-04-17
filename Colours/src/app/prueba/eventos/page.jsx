@@ -14,13 +14,13 @@ import {
 } from "lucide-react";
 import Header from "../components/header";
 import EventoModal from "../components/evento-modal";
-import EventoEditarModal from "../components/evento-editar-modal"; // Importamos el componente de edición
+import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
 
 export default function Eventos() {
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false); // Estado para controlar la visibilidad del modal de edición
+  const [showEditModal, setShowEditModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +42,10 @@ export default function Eventos() {
     }
   }, [showInactive, isClient]);
 
+  const removeAccents = (str) => {
+    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+  };
+
   const fetchEventos = async () => {
     try {
       setLoading(true);
@@ -53,22 +57,21 @@ export default function Eventos() {
 
       const resultData = await response.json();
 
-      // Based on your controller, the events are in data property
       if (resultData.success && Array.isArray(resultData.data)) {
         const filteredData = showInactive
           ? resultData.data
           : resultData.data.filter((evento) => evento.activo);
 
-        // Map the API response to handle potential property name differences
         const mappedEventos = filteredData.map((evento) => ({
-          id: evento.Id || evento.id, // Handle both Id and id
-          Id: evento.Id || evento.id, // Aseguramos que tengamos ambas propiedades
+          id: evento.Id || evento.id,
+          Id: evento.Id || evento.id,
           nombre: evento.nombre,
           fecha: evento.fecha,
-          duracion: evento.duracion || evento.duraccion, // Handle both spellings
+          duracion: evento.duracion || evento.duraccion,
           capacidad: evento.capacidad,
           activo: evento.activo,
           salonId: evento.salonId,
+          salonNombre: evento.salon?.nombre || "Sin salón asignado",
         }));
 
         setEventos(mappedEventos);
@@ -96,6 +99,7 @@ export default function Eventos() {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   };
 
   const formatDateTime = (dateString) => {
@@ -112,6 +116,19 @@ export default function Eventos() {
       return dateString || "Fecha no disponible";
     }
   };
+
+  const eventosFiltrados = eventos.filter((evento) => {
+    const searchText = removeAccents(searchTerm.toLowerCase());
+    return (
+      removeAccents(evento.nombre?.toLowerCase()).includes(searchText) ||
+      removeAccents(evento.salonNombre?.toLowerCase()).includes(searchText) ||
+      formatDateTime(evento.fecha)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (evento.duracion?.toString() || "").includes(searchTerm) ||
+      (evento.capacidad?.toString() || "").includes(searchTerm)
+    );
+  });
 
   const toggleEventoSelection = (id) => {
     setSelectedEventos((prev) =>
@@ -132,8 +149,6 @@ export default function Eventos() {
   const handleEventoAdded = () => {
     setShowModal(false);
     fetchEventos();
-
-    // Show success message with SweetAlert2
     Swal.fire({
       title: "¡Éxito!",
       text: "El evento ha sido agregado correctamente",
@@ -143,11 +158,9 @@ export default function Eventos() {
     });
   };
 
-  // Manejador cuando un evento es actualizado
   const handleEventoUpdated = () => {
     setShowEditModal(false);
     fetchEventos();
-
     Swal.fire({
       title: "¡Éxito!",
       text: "El evento ha sido actualizado correctamente",
@@ -157,7 +170,6 @@ export default function Eventos() {
     });
   };
 
-  // Logical deletion implementation (using PATCH)
   const handleLogicalDelete = async (id) => {
     const result = await Swal.fire({
       title: "¿Desactivar evento?",
@@ -173,7 +185,7 @@ export default function Eventos() {
     if (result.isConfirmed) {
       try {
         const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
-          method: "PATCH", // Using PATCH for logical deletion
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
@@ -207,7 +219,6 @@ export default function Eventos() {
     }
   };
 
-  // Physical deletion implementation (using DELETE)
   const handlePhysicalDelete = async (id) => {
     const result = await Swal.fire({
       title: "¿Eliminar permanentemente?",
@@ -222,10 +233,14 @@ export default function Eventos() {
 
     if (result.isConfirmed) {
       try {
-        // Double-check confirmation for permanent deletion
         const secondConfirm = await Swal.fire({
           title: "¿Está completamente seguro?",
-          text: "No podrá recuperar este evento después de eliminarlo",
+          html: `
+            <div class="text-left">
+              <p>No podrá recuperar este evento después de eliminarlo</p>
+              <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
+            </div>
+          `,
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#d33",
@@ -237,7 +252,7 @@ export default function Eventos() {
         if (!secondConfirm.isConfirmed) return;
 
         const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
-          method: "DELETE", // Using DELETE for physical deletion
+          method: "DELETE",
         });
 
         if (!response.ok) {
@@ -268,7 +283,6 @@ export default function Eventos() {
     }
   };
 
-  // Bulk logical deletion
   const bulkLogicalDelete = async () => {
     if (selectedEventos.length === 0) {
       Swal.fire({
@@ -304,7 +318,7 @@ export default function Eventos() {
 
         const updatePromises = selectedEventos.map((id) =>
           fetch(`http://localhost:4000/api/evento/${id}`, {
-            method: "PATCH", // Using PATCH for logical deletion
+            method: "PATCH",
             headers: {
               "Content-Type": "application/json",
             },
@@ -334,7 +348,6 @@ export default function Eventos() {
     }
   };
 
-  // Bulk physical deletion
   const bulkPhysicalDelete = async () => {
     if (selectedEventos.length === 0) {
       Swal.fire({
@@ -357,7 +370,6 @@ export default function Eventos() {
     });
 
     if (result.isConfirmed) {
-      // Double-check confirmation for permanent deletion
       const secondConfirm = await Swal.fire({
         title: "¿Está completamente seguro?",
         html: `
@@ -389,7 +401,7 @@ export default function Eventos() {
 
         const deletePromises = selectedEventos.map((id) =>
           fetch(`http://localhost:4000/api/evento/${id}`, {
-            method: "DELETE", // Using DELETE for physical deletion
+            method: "DELETE",
           })
         );
 
@@ -419,7 +431,6 @@ export default function Eventos() {
   const handleEventoToggleActive = async (id, currentActiveState) => {
     const action = currentActiveState ? "desactivar" : "activar";
 
-    // Replace confirm with SweetAlert2
     const result = await Swal.fire({
       title: `¿${currentActiveState ? "Desactivar" : "Activar"} evento?`,
       text: `¿Desea ${action} este evento?`,
@@ -445,7 +456,6 @@ export default function Eventos() {
           throw new Error(`Error al ${action} el evento`);
         }
 
-        // Show success message
         Swal.fire({
           title: "¡Completado!",
           text: `El evento ha sido ${action}do correctamente`,
@@ -455,107 +465,24 @@ export default function Eventos() {
           showConfirmButton: false,
         });
 
-        // Refresh the list
         fetchEventos();
       } catch (err) {
         console.error(`Error al ${action} evento:`, err);
-
-        // Show error message
         Swal.fire({
           title: "Error",
           text: `No se pudo ${action} el evento.`,
           icon: "error",
           confirmButtonText: "OK",
         });
-
         setError(`No se pudo ${action} el evento.`);
       }
     }
   };
 
-  const bulkDeactivateEventos = async () => {
-    if (selectedEventos.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Ningún evento seleccionado",
-        text: "Por favor selecciona al menos un evento para desactivar",
-      });
-      return;
-    }
-
-    // Replace confirm with SweetAlert2
-    const result = await Swal.fire({
-      title: "¿Está seguro?",
-      text: "¿Desea desactivar los eventos seleccionados?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: `Sí, desactivar (${selectedEventos.length})`,
-      cancelButtonText: "Cancelar",
-      reverseButtons: true,
-    });
-
-    if (result.isConfirmed) {
-      try {
-        // Show loading state
-        Swal.fire({
-          title: "Procesando...",
-          text: "Desactivando eventos seleccionados",
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        const updatePromises = selectedEventos.map((id) =>
-          fetch(`http://localhost:4000/api/evento/${id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ activo: false }),
-          })
-        );
-
-        await Promise.all(updatePromises);
-
-        // Close loading state and show success
-        Swal.fire({
-          title: "¡Completado!",
-          text: "Los eventos seleccionados han sido desactivados",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
-
-        fetchEventos();
-        setSelectedEventos([]);
-      } catch (err) {
-        console.error("Error al desactivar eventos:", err);
-
-        // Show error message
-        Swal.fire({
-          title: "Error",
-          text: "No se pudieron desactivar los eventos seleccionados.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-
-        setError("No se pudieron desactivar los eventos seleccionados.");
-      }
-    }
-  };
-
-  // Modificado para abrir el modal de edición
   const handleEditEvento = (evento) => {
     setEventoEditar(evento);
     setShowEditModal(true);
   };
-
-  const eventosFiltrados = eventos.filter((evento) =>
-    evento.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
   const currentItems = eventosFiltrados.slice(
@@ -584,7 +511,7 @@ export default function Eventos() {
         <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
           <input
             type="text"
-            placeholder="Buscar Eventos"
+            placeholder="Buscar por nombre, salón, fecha, duración o capacidad..."
             className="search-input pl-10 w-full"
             value={searchTerm}
             onChange={handleSearch}
@@ -657,6 +584,7 @@ export default function Eventos() {
                 />
               </th>
               <th>Nombre del Evento</th>
+              <th>Salón</th>
               <th>Fecha y Hora</th>
               <th>Duración</th>
               <th>Capacidad</th>
@@ -679,6 +607,7 @@ export default function Eventos() {
                     />
                   </td>
                   <td>{evento.nombre}</td>
+                  <td>{evento.salonNombre}</td>
                   <td>{formatDateTime(evento.fecha)}</td>
                   <td>{evento.duracion || "N/A"} minutos</td>
                   <td>{evento.capacidad || "Sin límite"}</td>
@@ -704,7 +633,7 @@ export default function Eventos() {
                         <button
                           className="btn btn-sm btn-outline btn-warning p-1"
                           onClick={() => handleLogicalDelete(evento.id)}
-                          title="Desactivar (borrado lógico)"
+                          title="Desactivar"
                         >
                           <Archive className="h-4 w-4" />
                         </button>
@@ -722,7 +651,7 @@ export default function Eventos() {
                       <button
                         className="btn btn-sm btn-outline btn-error p-1"
                         onClick={() => handlePhysicalDelete(evento.id)}
-                        title="Eliminar permanentemente (borrado físico)"
+                        title="Eliminar permanentemente"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -732,7 +661,7 @@ export default function Eventos() {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-4">
+                <td colSpan="8" className="text-center py-4">
                   No se encontraron eventos
                 </td>
               </tr>
@@ -765,7 +694,6 @@ export default function Eventos() {
         </div>
       )}
 
-      {/* Modal para agregar eventos */}
       {showModal && (
         <EventoModal
           onClose={() => setShowModal(false)}
@@ -773,7 +701,6 @@ export default function Eventos() {
         />
       )}
 
-      {/* Modal para editar eventos */}
       {showEditModal && eventoEditar && (
         <EventoEditarModal
           evento={eventoEditar}

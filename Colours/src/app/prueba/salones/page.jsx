@@ -30,12 +30,14 @@ export default function Salones() {
   const itemsPerPage = 10;
   const API_URL = "http://localhost:4000/api/salon";
 
+  const removeAccents = (str) => {
+    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+  };
+
   const fetchSalones = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `${API_URL}?page=${currentPage}&search=${searchTerm}`
-      );
+      const response = await fetch(API_URL);
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
@@ -63,11 +65,28 @@ export default function Salones() {
 
   useEffect(() => {
     fetchSalones();
-  }, [currentPage, searchTerm]);
+  }, []);
 
   const refreshSalones = async () => {
     await fetchSalones();
   };
+
+  const filteredSalones = salones.filter((s) => {
+    const searchText = removeAccents(searchTerm.toLowerCase());
+    const isActive = s.isActive ?? s.estatus ?? true;
+
+    const matchSearch =
+      removeAccents(s.salon?.toLowerCase() || "").includes(searchText) ||
+      removeAccents(s.nombre?.toLowerCase() || "").includes(searchText) ||
+      removeAccents(s.contacto?.toLowerCase() || "").includes(searchText) ||
+      removeAccents(s.email?.toLowerCase() || "").includes(searchText) ||
+      (s.cuit || "").toString().includes(searchTerm) ||
+      (s.whatsapp || "").toString().includes(searchTerm);
+
+    const matchActivo = verInactivos ? !isActive : isActive;
+
+    return matchSearch && matchActivo;
+  });
 
   const handleAddSalon = async (newSalon) => {
     try {
@@ -80,7 +99,6 @@ export default function Salones() {
       });
 
       if (!response.ok) {
-        // Parse the error response to get the specific message
         const errorData = await response.json();
         throw new Error(errorData.message || `Error: ${response.status}`);
       }
@@ -173,14 +191,12 @@ export default function Salones() {
     if (!confirmResult.isConfirmed) return;
 
     try {
-      // Usamos el nuevo endpoint para toggle-status
       const response = await fetch(`${API_URL}/toggle-status/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: newStatus }),
       });
 
-      // Check for non-OK status before attempting to parse JSON
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error ${response.status}: ${errorText}`);
@@ -192,7 +208,6 @@ export default function Salones() {
         throw new Error(data.message || `Error al ${actionText} el salón`);
       }
 
-      // Actualizar el estado local
       setSalones((prevSalones) =>
         prevSalones.map((salon) =>
           salon.id === id || salon._id === id || salon.Id === id
@@ -223,29 +238,33 @@ export default function Salones() {
     setCurrentPage(1);
   };
 
-  const filteredSalones = salones.filter((s) => {
-    const matchSearch =
-      (s.salon || s.nombre || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (s.cuit || "").toString().includes(searchTerm) ||
-      (s.contacto || "").toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Verificar si el salón está activo para filtrarlo
-    const salonActivo = s.isActive ?? s.estatus ?? true;
-    const matchActivo = verInactivos ? !salonActivo : salonActivo;
-
-    return matchSearch && matchActivo;
-  });
-
   const totalPages = Math.ceil(filteredSalones.length / itemsPerPage);
   const currentItems = filteredSalones.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  if (loading) return <div className="p-6">Cargando salones...</div>;
-  if (error) return <div className="p-6 text-red-500">Error: {error}</div>;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <Header title="Salones" />
+        <div className="flex justify-center items-center h-64">
+          <p>Cargando salones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Header title="Salones" />
+        <div className="alert alert-error">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-2">
@@ -255,7 +274,7 @@ export default function Salones() {
         <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
           <input
             type="text"
-            placeholder="Buscar Salones"
+            placeholder="Buscar por nombre, contacto, email, CUIT o WhatsApp..."
             className="search-input pl-10 w-full"
             value={searchTerm}
             onChange={handleSearch}
@@ -304,7 +323,6 @@ export default function Salones() {
           <tbody>
             {currentItems.length > 0 ? (
               currentItems.map((salon) => {
-                // Determinar el estado activo del salón, considerando ambos campos posibles
                 const isActive = salon.isActive ?? salon.estatus ?? true;
 
                 return (
@@ -413,7 +431,6 @@ export default function Salones() {
         </div>
       )}
 
-      {/* Modal para agregar salon */}
       {showModal && (
         <SalonModal
           onClose={() => setShowModal(false)}
@@ -422,7 +439,6 @@ export default function Salones() {
         />
       )}
 
-      {/* Modal para editar salon */}
       {salonAEditar && (
         <SalonEditarModal
           salon={salonAEditar}
