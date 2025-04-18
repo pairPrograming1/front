@@ -14,6 +14,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [showImageGallery, setShowImageGallery] = useState(false);
   const [loadingImages, setLoadingImages] = useState(false);
   const [errorImages, setErrorImages] = useState(null);
+  const [salones, setSalones] = useState([]);
+  const [loadingSalones, setLoadingSalones] = useState(false);
+  const [errorSalones, setErrorSalones] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -72,6 +75,40 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       });
     }
   }, [punto]);
+
+  // Función para obtener los salones activos
+  const fetchSalones = async () => {
+    try {
+      setLoadingSalones(true);
+      const response = await fetch("http://localhost:4000/api/salon");
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener salones: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        // Filtrar solo los salones activos
+        const salonesActivos = result.data.filter(
+          (salon) => salon.estatus === true
+        );
+        setSalones(salonesActivos);
+      } else {
+        throw new Error(result.message || "Error al obtener los salones");
+      }
+    } catch (err) {
+      console.error("Error fetching salones:", err);
+      setErrorSalones(err.message);
+    } finally {
+      setLoadingSalones(false);
+    }
+  };
+
+  // Cargar salones cuando el componente se monte
+  useEffect(() => {
+    fetchSalones();
+  }, []);
 
   // Función para cargar las imágenes del punto de venta
   const fetchPuntoImages = async () => {
@@ -333,19 +370,38 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           Salones Habilitados
                         </h3>
                         <div className="grid grid-cols-4 gap-4">
-                          {data.salonesHabilitados &&
-                            data.salonesHabilitados.map((salon, index) => (
+                          {loadingSalones ? (
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                              <p className="text-amber-600">
+                                Cargando salones...
+                              </p>
+                            </div>
+                          ) : errorSalones ? (
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                              <p className="text-red-500">
+                                Error: {errorSalones}
+                              </p>
+                            </div>
+                          ) : salones.length > 0 ? (
+                            salones.map((salon, index) => (
                               <div
                                 key={index}
                                 className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
                               >
                                 <div className="p-0 h-32 flex items-center justify-center">
                                   <span className="text-2xl font-light italic">
-                                    {salon}
+                                    {salon.nombre}
                                   </span>
                                 </div>
                               </div>
-                            ))}
+                            ))
+                          ) : (
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                              <p className="text-gray-400">
+                                No hay salones activos disponibles
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
 

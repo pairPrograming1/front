@@ -1,65 +1,83 @@
 "use client";
 
-import { X, Search, Check } from "lucide-react";
-import { useState } from "react";
+import { X, Check } from "lucide-react";
+import { useState, useEffect } from "react";
 
-export default function SalonModal({ onClose, onAddSalon, API_URL }) {
+export default function SalonEditarModal({ salon, onClose, API_URL }) {
   const [formData, setFormData] = useState({
-    salon: "",
-    nombre: "",
-    capacidad: "",
-    cuit: "",
-    email: "",
-    whatsapp: "",
-    MercadopagoKeyP: "",
-    Mercadopago: "",
-    cbu: "",
-    alias: "",
-    estatus: "true",
+    salon: salon?.salon || "",
+    nombre: salon?.nombre || "",
+    capacidad: salon?.capacidad || "",
+    cuit: salon?.cuit || "",
+    email: salon?.email || "",
+    whatsapp: salon?.whatsapp || "",
+    MercadopagoKeyP: salon?.MercadopagoKeyP || "",
+    Mercadopago: salon?.Mercadopago || "",
+    cbu: salon?.cbu || "",
+    alias: salon?.alias || "",
+    estatus: salon?.estatus ? true : false,
   });
 
+  const [initialSalonName, setInitialSalonName] = useState(salon?.salon || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("info");
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  useEffect(() => {
+    if (salon) {
+      setFormData({
+        salon: salon.salon || "",
+        nombre: salon.nombre || "",
+        capacidad: salon.capacidad || "",
+        cuit: salon.cuit || "",
+        email: salon.email || "",
+        whatsapp: salon.whatsapp || "",
+        MercadopagoKeyP: salon.MercadopagoKeyP || "",
+        Mercadopago: salon.Mercadopago || "",
+        cbu: salon.cbu || "",
+        alias: salon.alias || "",
+        estatus: salon.estatus === true,
+      });
+      setInitialSalonName(salon.salon || "");
+    }
+  }, [salon]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const checkSalonExists = async (name) => {
+    // Solo verificar si el nombre del salón cambió
+    if (name.toLowerCase() === initialSalonName.toLowerCase()) {
+      return false;
+    }
+
     try {
       const response = await fetch(`${API_URL}?search=${name}`);
       if (!response.ok) {
-        return false;
+        throw new Error("Error al verificar disponibilidad del nombre");
       }
       const data = await response.json();
-      const salones = Array.isArray(data)
-        ? data
-        : data.data
-        ? data.data
-        : data.salones
-        ? data.salones
-        : [];
+      const salones = data.data || [];
 
       return salones.some(
-        (salon) =>
-          salon.salon && salon.salon.toLowerCase() === name.toLowerCase()
+        (s) => s.salon && s.salon.toLowerCase() === name.toLowerCase()
       );
     } catch (error) {
       console.error("Error checking salon:", error);
-      return false;
+      throw new Error("Error al verificar disponibilidad del nombre");
     }
   };
 
   const formatCUIT = (cuit) => {
-    // Remove non-digits
+    // Remover caracteres no numéricos
     const digits = cuit.replace(/\D/g, "");
 
-    // If we have exactly 11 digits, format as XX-XXXXXXXX-X
+    // Si tenemos exactamente 11 dígitos, formatear como XX-XXXXXXXX-X
     if (digits.length === 11) {
       return `${digits.substring(0, 2)}-${digits.substring(
         2,
@@ -67,7 +85,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
       )}-${digits.substring(10)}`;
     }
 
-    // Otherwise return as is
+    // De lo contrario devolver como está
     return cuit;
   };
 
@@ -75,9 +93,10 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
-      // Validate required fields
+      // Validar campos requeridos
       const requiredFields = ["salon", "nombre", "cuit", "email", "whatsapp"];
       const missingFields = requiredFields.filter((field) => !formData[field]);
 
@@ -85,32 +104,57 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
         throw new Error("Todos los campos marcados con * son obligatorios");
       }
 
-      // Format and validate CUIT
+      // Formatear y validar CUIT
       const formattedCUIT = formatCUIT(formData.cuit);
       const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
       if (!cuitPattern.test(formattedCUIT)) {
         throw new Error("El formato del CUIT debe ser XX-XXXXXXXX-X");
       }
 
-      // Validate email format
+      // Validar formato de email
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(formData.email)) {
         throw new Error("El formato del correo electrónico es inválido");
       }
 
-      // Check if salon already exists
-      if (await checkSalonExists(formData.salon)) {
-        throw new Error("Ya existe un salón con este nombre");
+      // Verificar si el nombre del salón ya existe (si fue cambiado)
+      if (formData.salon !== initialSalonName) {
+        const exists = await checkSalonExists(formData.salon);
+        if (exists) {
+          throw new Error("Ya existe un salón con este nombre");
+        }
       }
 
-      // Submit with formatted data
+      // Preparar datos para envío
       const submissionData = {
         ...formData,
         cuit: formattedCUIT,
+        capacidad: formData.capacidad ? parseInt(formData.capacidad) : null,
       };
 
-      await onAddSalon(submissionData);
-      onClose();
+      // Realizar la petición PUT a la API
+      const response = await fetch(`${API_URL}/${salon.Id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Error al actualizar la información del salón"
+        );
+      }
+
+      const result = await response.json();
+      setSuccessMessage(result.message || "Salón actualizado correctamente");
+
+      // Cerrar modal después de 1.5 segundos para mostrar mensaje de éxito
+      setTimeout(() => {
+        onClose(true); // Pasar true para indicar que hubo una actualización exitosa
+      }, 1500);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -122,10 +166,10 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     <div className="modal-overlay">
       <div className="modal">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Agregar Salón</h2>
+          <h2 className="text-xl font-semibold">Editar Salón</h2>
           <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            onClick={() => onClose(false)}
+            className="text-gray-400 hover:text-gray-600"
             disabled={isSubmitting}
           >
             <X className="h-5 w-5" />
@@ -133,8 +177,14 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 text-sm rounded">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 text-sm rounded border border-red-200">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-100 text-green-700 text-sm rounded border border-green-200">
+            {successMessage}
           </div>
         )}
 
@@ -212,19 +262,24 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
               />
             </div>
 
-            <div className="relative">
-              <select
-                name="estatus"
-                value={formData.estatus}
-                onChange={handleChange}
-                className="search-input pl-3 w-full"
-              >
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
+            <div className="relative flex items-center gap-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="estatus"
+                  checked={formData.estatus}
+                  onChange={handleChange}
+                  className="mr-2 h-4 w-4"
+                />
+                <span>Salón Activo</span>
+              </label>
             </div>
 
             {/* Datos de MercadoPago */}
+            <div className="mt-6 mb-2">
+              <h3 className="text-md font-medium">Datos de Pago</h3>
+            </div>
+
             <div className="relative">
               <input
                 type="text"
@@ -276,11 +331,11 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              "Guardando..."
+              "Actualizando..."
             ) : (
               <>
                 <Check className="h-4 w-4" />
-                <span>Guardar Salón</span>
+                <span>Actualizar Salón</span>
               </>
             )}
           </button>
