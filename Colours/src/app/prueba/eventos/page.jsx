@@ -16,6 +16,9 @@ import Header from "../components/header";
 import EventoModal from "../components/evento-modal";
 import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function Eventos() {
   const [isClient, setIsClient] = useState(false);
@@ -49,7 +52,7 @@ export default function Eventos() {
   const fetchEventos = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:4000/api/evento/");
+      const response = await fetch(`${API_URL}/api/evento/`);
 
       if (!response.ok) {
         throw new Error("Error al cargar los eventos");
@@ -184,7 +187,7 @@ export default function Eventos() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
+        const response = await fetch(`${API_URL}/api/evento/${id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -251,7 +254,7 @@ export default function Eventos() {
 
         if (!secondConfirm.isConfirmed) return;
 
-        const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
+        const response = await fetch(`${API_URL}/api/evento/${id}`, {
           method: "DELETE",
         });
 
@@ -317,7 +320,7 @@ export default function Eventos() {
         });
 
         const updatePromises = selectedEventos.map((id) =>
-          fetch(`http://localhost:4000/api/evento/${id}`, {
+          fetch(`${API_URL}/api/evento/${id}`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -400,7 +403,7 @@ export default function Eventos() {
         });
 
         const deletePromises = selectedEventos.map((id) =>
-          fetch(`http://localhost:4000/api/evento/${id}`, {
+          fetch(`${API_URL}/api/evento/${id}`, {
             method: "DELETE",
           })
         );
@@ -444,7 +447,7 @@ export default function Eventos() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`http://localhost:4000/api/evento/${id}`, {
+        const response = await fetch(`${API_URL}/api/evento/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

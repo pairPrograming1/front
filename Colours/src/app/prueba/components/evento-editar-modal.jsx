@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function EventoEditarModal({
   evento,
@@ -45,7 +48,7 @@ export default function EventoEditarModal({
     const fetchSalones = async () => {
       try {
         setFetchingSalones(true);
-        const response = await fetch("http://localhost:4000/api/salon/");
+        const response = await fetch(`${API_URL}/api/salon/`);
         if (!response.ok) {
           throw new Error("Error al cargar los salones");
         }
@@ -132,7 +135,7 @@ export default function EventoEditarModal({
       console.log("Sending updated data to API:", formattedData);
 
       const response = await fetch(
-        `http://localhost:4000/api/evento/${evento.Id}`,
+        `${API_URL}/api/evento/${evento.Id}`,
         {
           method: "PUT",
           headers: {

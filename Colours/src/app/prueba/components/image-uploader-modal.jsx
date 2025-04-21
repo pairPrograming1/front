@@ -5,6 +5,9 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import useImageFetcher from "./ImageFetcher";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 const ImageUploaderModal = ({ onClose, onImageSelected }) => {
   const [imageFile, setImageFile] = useState(null);
@@ -41,7 +44,7 @@ const ImageUploaderModal = ({ onClose, onImageSelected }) => {
     formData.append("image", imageFile);
 
     try {
-      const res = await fetch("http://localhost:4000/api/upload/image", {
+      const res = await fetch(`${API_URL}/api/upload/image`, {
         method: "POST",
         body: formData,
       });

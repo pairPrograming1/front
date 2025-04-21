@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import InputField from "./InputField";
 import Swal from "sweetalert2";
+import apiUrls from "../utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -150,7 +153,7 @@ export default function RegisterForm() {
       console.log("Datos enviados al backend:", backendData);
 
       const backendResponse = await axios.post(
-        "http://localhost:4000/api/users/register",
+        `${API_URL}/api/users/register`,
         backendData,
         {
           headers: { "Content-Type": "application/json" },

@@ -17,6 +17,9 @@ import EditarModal from "../components/editar-modal";
 import EdicionCompleta from "../components/edicion-completa";
 import Header from "../components/header";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
@@ -35,7 +38,7 @@ export default function PuntosDeVenta() {
   useEffect(() => {
     const fetchPuntos = async () => {
       try {
-        const response = await fetch("http://localhost:4000/api/puntodeventa");
+        const response = await fetch(`${API_URL}/api/puntodeventa`);
         if (!response.ok)
           throw new Error("Error al obtener los puntos de venta");
         const data = await response.json();
@@ -75,36 +78,45 @@ export default function PuntosDeVenta() {
   });
 
   const handleAddPunto = async (newPunto) => {
-    try {
-      const response = await fetch("http://localhost:4000/api/puntodeventa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPunto),
-      });
-
-      if (!response.ok) throw new Error("Error al crear el punto de venta");
-
-      await refreshPuntos();
-      setShowModal(false);
-
-      Swal.fire({
-        icon: "success",
-        title: "Punto creado",
-        text: "El punto de venta fue creado correctamente",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error al crear punto",
-        text: error.message || "Hubo un error al crear el punto de venta",
-      });
+  try {
+    // First check if a punto with this name already exists
+    const checkResponse = await fetch(`${API_URL}/api/puntodeventa`);
+    const existingPuntos = await checkResponse.json();
+    
+    if (existingPuntos.success && existingPuntos.data.some(p => p.nombre === newPunto.nombre)) {
+      throw new Error("Ya existe un punto de venta con este nombre");
     }
-  };
+    
+    // Continue with creation if name is unique
+    const response = await fetch(`${API_URL}/api/puntodeventa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newPunto),
+    });
+    
+    if (!response.ok) throw new Error("Error al crear el punto de venta");
+
+    await refreshPuntos();
+    setShowModal(false);
+
+    Swal.fire({
+      icon: "success",
+      title: "Punto creado",
+      text: "El punto de venta fue creado correctamente",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error al crear punto",
+      text: error.message || "Hubo un error al crear el punto de venta",
+    });
+  }
+};
 
   const refreshPuntos = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/puntodeventa");
+      const res = await fetch(`${API_URL}/api/puntodeventa`);
       const data = await res.json();
       if (data.success) {
         setPuntos(data.data);
@@ -133,7 +145,7 @@ export default function PuntosDeVenta() {
     if (confirmResult.isConfirmed) {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/puntodeventa/delete/${id}`,
+          `${API_URL}/api/puntodeventa/delete/${id}`,
           { method: "DELETE" }
         );
 
@@ -172,7 +184,7 @@ export default function PuntosDeVenta() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/puntodeventa/soft-delete/${id}`,
+        `${API_URL}/api/puntodeventa/soft-delete/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

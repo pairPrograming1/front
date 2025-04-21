@@ -15,7 +15,7 @@ export default function Header({ title, showBack = false }) {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-gray-400">
           <User className="h-5 w-5" />
-          <span>Hola, Uriel</span>
+         
         </div>
       </div>
     </div>

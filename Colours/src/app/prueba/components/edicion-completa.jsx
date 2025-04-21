@@ -7,6 +7,9 @@ import { X } from "lucide-react";
 import ImageUploaderModal from "./image-uploader-modal";
 import ImageGallery from "./ImageGallery";
 import useImageFetcher from "./ImageFetcher";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [activeTab, setActiveTab] = useState("informacion");
@@ -80,8 +83,8 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const fetchSalones = async () => {
     try {
       setLoadingSalones(true);
-      const response = await fetch("http://localhost:4000/api/salon");
-
+      const response = await fetch(`${API_URL}/api/salon`);
+      console.log("esto es la response",response)
       if (!response.ok) {
         throw new Error(`Error al obtener salones: ${response.status}`);
       }
@@ -118,7 +121,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     try {
       setLoadingImages(true);
       const response = await fetch(
-        `http://localhost:4000/api/puntodeventa/${punto.id}`
+        `${API_URL}/api/puntodeventa/${punto.id}`
       );
 
       if (!response.ok) {
@@ -185,8 +188,8 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       };
 
       const endpoint = punto?.id
-        ? `http://localhost:4000/api/puntodeventa/${punto.id}`
-        : "http://localhost:4000/api/puntodeventa";
+        ? `${API_URL}/api/puntodeventa/${punto.id}`
+        : `${API_URL}/api/puntodeventa`;
 
       const method = punto?.id ? "PUT" : "POST";
 

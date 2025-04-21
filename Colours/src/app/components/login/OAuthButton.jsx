@@ -6,6 +6,9 @@ import { useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../context/AuthContext"; // Ajusta la ruta según tu estructura
+import apiUrls from "../utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
@@ -23,7 +26,7 @@ export default function OAuthButton() {
         try {
           // Verificar si el usuario existe en la base de datos
           const verifyResponse = await fetch(
-            "http://localhost:4000/api/users/verificar",
+           `${API_URL}/api/users/verificar`,
             {
               method: "POST",
               headers: {
@@ -43,7 +46,7 @@ export default function OAuthButton() {
             const registerUser = async () => {
               try {
                 const response = await fetch(
-                  "http://localhost:4000/api/users/register",
+                  `${API_URL}/api/users/register`,
                   {
                     method: "POST",
                     headers: {
@@ -67,7 +70,7 @@ export default function OAuthButton() {
                   console.log("Usuario registrado exitosamente");
                   // Verificar de nuevo para obtener el usuario recién creado
                   const newVerifyResponse = await fetch(
-                    "http://localhost:4000/api/users/verificar",
+                    `${API_URL}/api/users/verificar`,
                     {
                       method: "POST",
                       headers: {

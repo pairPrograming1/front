@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { X } from "lucide-react";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function EditarModal({ punto, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
@@ -41,7 +44,7 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
     e.preventDefault();
     try {
       const response = await fetch(
-        `http://localhost:4000/api/puntodeventa/${punto.id}`,
+        `${API_URL}/api/puntodeventa/${punto.id}`,
         {
           method: "PUT",
           headers: {
