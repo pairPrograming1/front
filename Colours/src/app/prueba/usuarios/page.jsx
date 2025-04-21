@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
 import {
   Search,
   Plus,
@@ -13,88 +13,87 @@ import {
   Edit,
   UserPlus,
   UserMinus,
-} from "lucide-react";
-import UsuarioModal from "../components/usuario-modal";
-import UsuarioEditarModal from "../components/usuario-editar-modal";
-import Header from "../components/header";
-import Swal from "sweetalert2";
+} from "lucide-react"
+import UsuarioModal from "../components/usuario-modal"
+import UsuarioEditarModal from "../components/usuario-editar-modal"
+import Header from "../components/header"
+import Swal from "sweetalert2"
+import apiUrls from "@/app/components/utils/apiConfig"
+
+const API_URL = apiUrls.production
 
 export default function Usuarios() {
-  const [isClient, setIsClient] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [usuarioEditar, setUsuarioEditar] = useState(null);
-  const [usuarios, setUsuarios] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [filterInactive, setFilterInactive] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [error, setError] = useState(null);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [isClient, setIsClient] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [usuarioEditar, setUsuarioEditar] = useState(null)
+  const [usuarios, setUsuarios] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [filterInactive, setFilterInactive] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [error, setError] = useState(null)
+  const [selectedUsers, setSelectedUsers] = useState([])
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 10
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   const fetchUsuarios = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const statusQuery = filterInactive ? "false" : "true";
-      const response = await fetch(
-        `http://localhost:4000/api/users/usuarios?status=${statusQuery}`
-      );
-      if (!response.ok) throw new Error("Error al cargar usuarios");
-      const data = await response.json();
-      setUsuarios(data);
+      const statusQuery = filterInactive ? "false" : "true"
+      const response = await fetch(`${API_URL}/api/users/usuarios?status=${statusQuery}`)
+      if (!response.ok) throw new Error("Error al cargar usuarios")
+      const data = await response.json()
+      setUsuarios(data)
     } catch (err) {
-      setError(err.message);
+      setError(err.message)
       Swal.fire({
         icon: "error",
         title: "Error al cargar usuarios",
         text: err.message || "Hubo un problema al cargar los usuarios",
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (isClient) {
-      fetchUsuarios();
+      fetchUsuarios()
     }
-  }, [filterInactive, isClient]);
+  }, [filterInactive, isClient])
 
   const removeAccents = (str) => {
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  };
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  }
 
   const usuariosFiltrados = usuarios.filter((usuario) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
+    const searchText = removeAccents(searchTerm.toLowerCase())
     return (
-      removeAccents(usuario.usuario.toLowerCase()).includes(searchText) ||
-      removeAccents(usuario.email.toLowerCase()).includes(searchText) ||
-      removeAccents(usuario.nombre.toLowerCase()).includes(searchText) ||
-      removeAccents(usuario.apellido.toLowerCase()).includes(searchText) ||
-      removeAccents(
-        `${usuario.nombre} ${usuario.apellido}`.toLowerCase()
-      ).includes(searchText)
-    );
-  });
+      (usuario.usuario && removeAccents(usuario.usuario.toLowerCase()).includes(searchText)) ||
+      (usuario.email && removeAccents(usuario.email.toLowerCase()).includes(searchText)) ||
+      (usuario.nombre && removeAccents(usuario.nombre.toLowerCase()).includes(searchText)) ||
+      (usuario.apellido && removeAccents(usuario.apellido.toLowerCase()).includes(searchText)) ||
+      (usuario.nombre &&
+        usuario.apellido &&
+        removeAccents(`${usuario.nombre} ${usuario.apellido}`.toLowerCase()).includes(searchText))
+    )
+  })
 
   const toggleUserSelection = (id) => {
-    setSelectedUsers((prev) =>
-      prev.includes(id) ? prev.filter((userId) => userId !== id) : [...prev, id]
-    );
-  };
+    setSelectedUsers((prev) => (prev.includes(id) ? prev.filter((userId) => userId !== id) : [...prev, id]))
+  }
 
   const toggleSelectAll = () => {
     if (selectedUsers.length === currentItems.length) {
-      setSelectedUsers([]);
+      setSelectedUsers([])
     } else {
-      setSelectedUsers(currentItems.map((user) => user.id));
+      setSelectedUsers(currentItems.map((user) => user.id))
     }
-  };
+  }
 
   const handleAsignarRoles = () => {
     if (selectedUsers.length === 0) {
@@ -102,8 +101,8 @@ export default function Usuarios() {
         icon: "warning",
         title: "Ningún usuario seleccionado",
         text: "Por favor selecciona al menos un usuario para asignar roles",
-      });
-      return;
+      })
+      return
     }
 
     Swal.fire({
@@ -136,10 +135,10 @@ export default function Usuarios() {
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
-        asignarRolMultiple("admin");
+        asignarRolMultiple("admin")
       }
-    });
-  };
+    })
+  }
 
   const handleQuitarRoles = () => {
     if (selectedUsers.length === 0) {
@@ -147,8 +146,8 @@ export default function Usuarios() {
         icon: "warning",
         title: "Ningún usuario seleccionado",
         text: "Por favor selecciona al menos un usuario para quitar roles",
-      });
-      return;
+      })
+      return
     }
 
     Swal.fire({
@@ -162,52 +161,48 @@ export default function Usuarios() {
       cancelButtonText: "Cancelar",
     }).then((result) => {
       if (result.isConfirmed) {
-        asignarRolMultiple("vendor");
+        asignarRolMultiple("vendor")
       }
-    });
-  };
+    })
+  }
 
   const asignarRolMultiple = async (rol) => {
     try {
       const promises = selectedUsers.map((userId) =>
-        fetch(`http://localhost:4000/api/users/change-role/${userId}`, {
+        fetch(`${API_URL}/api/users/change-role/${userId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ rol }),
-        })
-      );
+        }),
+      )
 
-      const results = await Promise.allSettled(promises);
+      const results = await Promise.allSettled(promises)
 
-      const exitosos = results.filter(
-        (result) => result.status === "fulfilled"
-      ).length;
-      const fallidos = results.length - exitosos;
+      const exitosos = results.filter((result) => result.status === "fulfilled").length
+      const fallidos = results.length - exitosos
 
-      await fetchUsuarios();
-      setSelectedUsers([]);
+      await fetchUsuarios()
+      setSelectedUsers([])
 
       Swal.fire({
         icon: exitosos > 0 ? "success" : "error",
         title: exitosos > 0 ? "Roles asignados" : "Error",
         text: `${exitosos} usuario(s) actualizados con éxito. ${
-          fallidos > 0
-            ? `${fallidos} usuario(s) no pudieron ser actualizados.`
-            : ""
+          fallidos > 0 ? `${fallidos} usuario(s) no pudieron ser actualizados.` : ""
         }`,
-      });
+      })
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error al asignar roles",
         text: error.message || "Ocurrió un error al asignar los roles",
-      });
+      })
     }
-  };
+  }
 
   const changeUserStatus = async (id, currentStatus) => {
-    const newStatus = !currentStatus;
-    const actionText = newStatus ? "activar" : "desactivar";
+    const newStatus = !currentStatus
+    const actionText = newStatus ? "activar" : "desactivar"
 
     const confirmResult = await Swal.fire({
       title: `¿${newStatus ? "Activar" : "Desactivar"} usuario?`,
@@ -218,96 +213,87 @@ export default function Usuarios() {
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${actionText}`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
-    if (!confirmResult.isConfirmed) return;
+    if (!confirmResult.isConfirmed) return
 
     try {
-      const response = await fetch(
-        `http://localhost:4000/api/users/soft-delete/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isActive: newStatus }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/users/soft-delete/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: newStatus }),
+      })
 
-      if (!response.ok) throw new Error(`Error al ${actionText} el usuario`);
+      if (!response.ok) throw new Error(`Error al ${actionText} el usuario`)
 
-      await fetchUsuarios();
+      await fetchUsuarios()
 
       await Swal.fire({
         title: `Usuario ${newStatus ? "activado" : "desactivado"}`,
         icon: "success",
         timer: 2000,
         showConfirmButton: false,
-      });
+      })
     } catch (error) {
       Swal.fire({
         title: "Error",
         text: error.message,
         icon: "error",
-      });
+      })
     }
-  };
+  }
 
   const agregarUsuario = async (nuevoUsuario) => {
     try {
-      const response = await fetch(
-        "http://localhost:4000/api/users/create-user",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(nuevoUsuario),
-        }
-      );
+      const response = await fetch("${API_URL}/api/users/create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoUsuario),
+      })
 
-      if (!response.ok) throw new Error("Error al crear el usuario");
+      if (!response.ok) throw new Error("Error al crear el usuario")
 
-      await fetchUsuarios();
-      setShowModal(false);
+      await fetchUsuarios()
+      setShowModal(false)
       Swal.fire({
         icon: "success",
         title: "Usuario creado",
         text: "El usuario fue creado correctamente",
-      });
+      })
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error al crear usuario",
         text: error.message || "Hubo un error al crear el usuario",
-      });
+      })
     }
-  };
+  }
 
   const modificarUsuario = async (id, datosActualizados) => {
     try {
-      const response = await fetch(
-        `http://localhost:4000/api/users/perfil/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(datosActualizados),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/users/perfil/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datosActualizados),
+      })
 
-      if (!response.ok) throw new Error("Error al modificar el usuario");
+      if (!response.ok) throw new Error("Error al modificar el usuario")
 
-      await fetchUsuarios();
-      setUsuarioEditar(null);
+      await fetchUsuarios()
+      setUsuarioEditar(null)
       Swal.fire({
         icon: "success",
         title: "Usuario modificado",
         text: "Los datos del usuario han sido modificados correctamente",
-      });
+      })
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error al modificar usuario",
         text: error.message || "Hubo un error al modificar el usuario",
-      });
+      })
     }
-  };
+  }
 
   const borrarUsuario = async (id) => {
     const confirmResult = await Swal.fire({
@@ -319,66 +305,53 @@ export default function Usuarios() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (confirmResult.isConfirmed) {
       try {
-        const response = await fetch(
-          `http://localhost:4000/api/users/delete/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
+        const response = await fetch(`${API_URL}/api/users/delete/${id}`, {
+          method: "DELETE",
+        })
 
-        if (!response.ok) throw new Error("Error al eliminar el usuario");
+        if (!response.ok) throw new Error("Error al eliminar el usuario")
 
-        await fetchUsuarios();
-        Swal.fire(
-          "Eliminado",
-          "El usuario ha sido eliminado correctamente",
-          "success"
-        );
+        await fetchUsuarios()
+        Swal.fire("Eliminado", "El usuario ha sido eliminado correctamente", "success")
       } catch (error) {
-        Swal.fire("Error", error.message, "error");
+        Swal.fire("Error", error.message, "error")
       }
     }
-  };
+  }
 
   const cambiarRolUsuario = async (id, rol) => {
     try {
-      const response = await fetch(
-        `http://localhost:4000/api/users/change-role/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rol }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/users/change-role/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rol }),
+      })
 
-      if (!response.ok) throw new Error("Error al cambiar el rol del usuario");
+      if (!response.ok) throw new Error("Error al cambiar el rol del usuario")
 
-      await fetchUsuarios();
+      await fetchUsuarios()
       Swal.fire({
         icon: "success",
         title: "Rol actualizado",
         text: `El rol ha sido actualizado a ${rol}`,
-      });
+      })
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error al cambiar rol",
         text: error.message || "Ocurrió un error al cambiar el rol",
-      });
+      })
     }
-  };
+  }
 
-  const totalPages = Math.ceil(usuariosFiltrados.length / itemsPerPage);
-  const currentItems = usuariosFiltrados.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(usuariosFiltrados.length / itemsPerPage)
+  const currentItems = usuariosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  if (!isClient) return null;
+  if (!isClient) return null
 
   if (loading) {
     return (
@@ -388,7 +361,7 @@ export default function Usuarios() {
           <p>Cargando usuarios...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -399,7 +372,7 @@ export default function Usuarios() {
           <p>Error: {error}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -420,16 +393,10 @@ export default function Usuarios() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <button
-            className={`btn ${
-              filterInactive ? "btn-warning" : "btn-outline"
-            } flex items-center gap-2 w-full sm:w-auto`}
+            className={`btn ${filterInactive ? "btn-warning" : "btn-outline"} flex items-center gap-2 w-full sm:w-auto`}
             onClick={() => setFilterInactive((prev) => !prev)}
           >
-            {filterInactive ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
+            {filterInactive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {filterInactive ? "Ver activos" : "Ver inactivos"}
           </button>
 
@@ -468,10 +435,7 @@ export default function Usuarios() {
               <th className="w-10">
                 <input
                   type="checkbox"
-                  checked={
-                    selectedUsers.length === currentItems.length &&
-                    currentItems.length > 0
-                  }
+                  checked={selectedUsers.length === currentItems.length && currentItems.length > 0}
                   onChange={toggleSelectAll}
                 />
               </th>
@@ -485,10 +449,7 @@ export default function Usuarios() {
           </thead>
           <tbody>
             {currentItems.map((usuario) => (
-              <tr
-                key={usuario.id}
-                className={!usuario.isActive ? "opacity-70 bg-gray-50" : ""}
-              >
+              <tr key={usuario.id} className={!usuario.isActive ? "opacity-70 bg-gray-50" : ""}>
                 <td>
                   <input
                     type="checkbox"
@@ -502,22 +463,12 @@ export default function Usuarios() {
                 </td>
                 <td>{usuario.email}</td>
                 <td>
-                  <span
-                    className={`badge ${
-                      usuario.rol === "admin"
-                        ? "badge-primary"
-                        : "badge-secondary"
-                    }`}
-                  >
+                  <span className={`badge ${usuario.rol === "admin" ? "badge-primary" : "badge-secondary"}`}>
                     {usuario.rol || "vendor"}
                   </span>
                 </td>
                 <td>
-                  <span
-                    className={`badge ${
-                      usuario.isActive ? "badge-success" : "badge-error"
-                    }`}
-                  >
+                  <span className={`badge ${usuario.isActive ? "badge-success" : "badge-error"}`}>
                     {usuario.isActive ? "Activo" : "Inactivo"}
                   </span>
                 </td>
@@ -532,19 +483,11 @@ export default function Usuarios() {
                     </button>
 
                     <button
-                      className={`btn btn-sm btn-outline ${
-                        usuario.isActive ? "btn-warning" : "btn-success"
-                      } p-1`}
-                      onClick={() =>
-                        changeUserStatus(usuario.id, usuario.isActive)
-                      }
+                      className={`btn btn-sm btn-outline ${usuario.isActive ? "btn-warning" : "btn-success"} p-1`}
+                      onClick={() => changeUserStatus(usuario.id, usuario.isActive)}
                       title={usuario.isActive ? "Desactivar" : "Activar"}
                     >
-                      {usuario.isActive ? (
-                        <Archive className="h-4 w-4" />
-                      ) : (
-                        <Power className="h-4 w-4" />
-                      )}
+                      {usuario.isActive ? <Archive className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                     </button>
 
                     <button
@@ -567,39 +510,26 @@ export default function Usuarios() {
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index}
-              className={`pagination-item ${
-                currentPage === index + 1 ? "active" : ""
-              }`}
+              className={`pagination-item ${currentPage === index + 1 ? "active" : ""}`}
               onClick={() => setCurrentPage(index + 1)}
             >
               {index + 1}
             </button>
           ))}
           {currentPage < totalPages && (
-            <button
-              className="pagination-item"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
+            <button className="pagination-item" onClick={() => setCurrentPage((prev) => prev + 1)}>
               <ChevronRight className="h-4 w-4" />
             </button>
           )}
         </div>
       )}
 
-      {showModal && (
-        <UsuarioModal
-          onClose={() => setShowModal(false)}
-          onSave={agregarUsuario}
-        />
-      )}
+      {showModal && <UsuarioModal onClose={() => setShowModal(false)} onSave={agregarUsuario} />}
 
       {usuarioEditar && (
-        <UsuarioEditarModal
-          usuario={usuarioEditar}
-          onClose={() => setUsuarioEditar(null)}
-          onSave={modificarUsuario}
-        />
+        <UsuarioEditarModal usuario={usuarioEditar} onClose={() => setUsuarioEditar(null)} onSave={modificarUsuario} />
       )}
     </div>
-  );
+  )
 }
+

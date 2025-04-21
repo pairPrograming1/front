@@ -3,6 +3,9 @@
 
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 const useImageFetcher = () => {
   const [images, setImages] = useState([]);
@@ -13,7 +16,7 @@ const useImageFetcher = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:4000/api/upload/images", {
+      const res = await fetch(`${API_URL}/api/upload/images`, {
         cache: "no-store",
       });
 
