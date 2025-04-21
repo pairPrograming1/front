@@ -11,6 +11,9 @@ import {
   Power,
   Archive,
   Edit,
+  ChevronDown,
+  ChevronUp,
+  MoreHorizontal,
 } from "lucide-react";
 import Header from "../components/header";
 import EventoModal from "../components/evento-modal";
@@ -18,7 +21,7 @@ import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function Eventos() {
   const [isClient, setIsClient] = useState(false);
@@ -32,6 +35,8 @@ export default function Eventos() {
   const [showInactive, setShowInactive] = useState(false);
   const [selectedEventos, setSelectedEventos] = useState([]);
   const [eventoEditar, setEventoEditar] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedEvento, setExpandedEvento] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -497,43 +502,60 @@ export default function Eventos() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Header title="Eventos" />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p>Cargando eventos...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       <Header title="Eventos" />
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
-          <input
-            type="text"
-            placeholder="Buscar por nombre, salón, fecha, duración o capacidad..."
-            className="search-input pl-10 w-full"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+      {/* Filtros y búsqueda */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="    Buscar por nombre, salón, fecha, duración o capacidad..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="search-input pl-10 w-full"
+            />
+            <Search className="absolute left-3 top-1/3 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          </div>
+
+          <button
+            className={`btn ${
+              showInactive ? "btn-warning" : "btn-outline"
+            } flex items-center gap-2 w-full md:w-auto`}
+            onClick={() => setShowInactive(!showInactive)}
+          >
+            {showInactive ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            {showInactive ? "Ver activos" : "Ver inactivos"}
+          </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+        <div className="flex flex-col md:flex-row gap-4">
           {selectedEventos.length > 0 && (
             <>
               <button
-                className="btn btn-warning w-full sm:w-auto flex items-center gap-2"
+                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
                 onClick={bulkLogicalDelete}
               >
                 <Archive className="h-4 w-4" />
                 Desactivar {selectedEventos.length}
               </button>
               <button
-                className="btn btn-error w-full sm:w-auto flex items-center gap-2"
+                className="btn btn-error flex items-center gap-2 w-full md:w-auto"
                 onClick={bulkPhysicalDelete}
               >
                 <Trash2 className="h-4 w-4" />
@@ -543,25 +565,11 @@ export default function Eventos() {
           )}
 
           <button
-            className={`btn ${
-              showInactive ? "btn-warning" : "btn-outline"
-            } flex items-center gap-2 w-full sm:w-auto`}
-            onClick={() => setShowInactive(!showInactive)}
-          >
-            {showInactive ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-            {showInactive ? "Ver Activos" : "Ver Inactivos"}
-          </button>
-
-          <button
-            className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
+            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
             onClick={() => setShowModal(true)}
           >
             <Plus className="h-4 w-4" />
-            Agregar
+            Agregar evento
           </button>
         </div>
       </div>
@@ -572,114 +580,217 @@ export default function Eventos() {
         </div>
       )}
 
-      <div className="table-container overflow-x-auto">
-        <table className="table min-w-full">
-          <thead>
-            <tr>
-              <th className="w-10">
-                <input
-                  type="checkbox"
-                  checked={
-                    selectedEventos.length === currentItems.length &&
-                    currentItems.length > 0
-                  }
-                  onChange={toggleAllSelection}
-                />
-              </th>
-              <th>Nombre del Evento</th>
-              <th>Salón</th>
-              <th>Fecha y Hora</th>
-              <th>Duración</th>
-              <th>Capacidad</th>
-              <th>Estado</th>
-              <th className="w-40">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length > 0 ? (
-              currentItems.map((evento) => (
-                <tr
-                  key={evento.id}
-                  className={!evento.activo ? "opacity-70 bg-gray-50" : ""}
-                >
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedEventos.includes(evento.id)}
-                      onChange={() => toggleEventoSelection(evento.id)}
-                    />
+      {/* Tabla de eventos */}
+      <div className="overflow-x-auto">
+        {/* Vista de escritorio */}
+        <div className="hidden md:block">
+          <table className="table min-w-full">
+            <thead>
+              <tr>
+                <th className="w-10">
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedEventos.length === currentItems.length &&
+                      currentItems.length > 0
+                    }
+                    onChange={toggleAllSelection}
+                  />
+                </th>
+                <th>Nombre del Evento</th>
+                <th>Salón</th>
+                <th>Fecha y Hora</th>
+                <th>Duración</th>
+                <th>Capacidad</th>
+                <th>Estado</th>
+                <th className="w-40">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.length > 0 ? (
+                currentItems.map((evento) => (
+                  <tr
+                    key={evento.id}
+                    className={!evento.activo ? "opacity-70 bg-gray-50" : ""}
+                  >
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedEventos.includes(evento.id)}
+                        onChange={() => toggleEventoSelection(evento.id)}
+                      />
+                    </td>
+                    <td>{evento.nombre}</td>
+                    <td>{evento.salonNombre}</td>
+                    <td>{formatDateTime(evento.fecha)}</td>
+                    <td>{evento.duracion || "N/A"} minutos</td>
+                    <td>{evento.capacidad || "Sin límite"}</td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          evento.activo ? "badge-success" : "badge-error"
+                        }`}
+                      >
+                        {evento.activo ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="flex gap-2">
+                        <button
+                          className="btn btn-sm btn-outline btn-primary p-1"
+                          onClick={() => handleEditEvento(evento)}
+                          title="Editar"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        {evento.activo ? (
+                          <button
+                            className="btn btn-sm btn-outline btn-warning p-1"
+                            onClick={() => handleLogicalDelete(evento.id)}
+                            title="Desactivar"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-sm btn-outline btn-success p-1"
+                            onClick={() =>
+                              handleEventoToggleActive(evento.id, evento.activo)
+                            }
+                            title="Activar"
+                          >
+                            <Power className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-sm btn-outline btn-error p-1"
+                          onClick={() => handlePhysicalDelete(evento.id)}
+                          title="Eliminar permanentemente"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-4">
+                    No se encontraron eventos
                   </td>
-                  <td>{evento.nombre}</td>
-                  <td>{evento.salonNombre}</td>
-                  <td>{formatDateTime(evento.fecha)}</td>
-                  <td>{evento.duracion || "N/A"} minutos</td>
-                  <td>{evento.capacidad || "Sin límite"}</td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        evento.activo ? "badge-success" : "badge-error"
-                      }`}
-                    >
-                      {evento.activo ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="flex gap-2">
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Vista móvil */}
+        <div className="md:hidden space-y-4">
+          {currentItems.length > 0 ? (
+            currentItems.map((evento) => (
+              <div
+                key={evento.id}
+                className={`border rounded-lg p-4 ${
+                  !evento.activo ? "opacity-70 bg-gray-50" : ""
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium">{evento.nombre}</div>
+                    <div className="text-sm text-gray-500">
+                      {evento.salonNombre}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() =>
+                      setExpandedEvento(
+                        expandedEvento === evento.id ? null : evento.id
+                      )
+                    }
+                    className="text-gray-500"
+                  >
+                    {expandedEvento === evento.id ? (
+                      <ChevronUp />
+                    ) : (
+                      <ChevronDown />
+                    )}
+                  </button>
+                </div>
+
+                {expandedEvento === evento.id && (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-24">Fecha:</span>
+                      <span>{formatDateTime(evento.fecha)}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-24">Duración:</span>
+                      <span>{evento.duracion || "N/A"} minutos</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-24">Capacidad:</span>
+                      <span>{evento.capacidad || "Sin límite"}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-24">Estado:</span>
+                      <span
+                        className={`badge ${
+                          evento.activo ? "badge-success" : "badge-error"
+                        }`}
+                      >
+                        {evento.activo ? "Activo" : "Inactivo"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between pt-2">
                       <button
-                        className="btn btn-sm btn-outline btn-primary p-1"
+                        className="btn btn-sm btn-outline btn-primary"
                         onClick={() => handleEditEvento(evento)}
-                        title="Editar"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       {evento.activo ? (
                         <button
-                          className="btn btn-sm btn-outline btn-warning p-1"
+                          className="btn btn-sm btn-outline btn-warning"
                           onClick={() => handleLogicalDelete(evento.id)}
-                          title="Desactivar"
                         >
                           <Archive className="h-4 w-4" />
                         </button>
                       ) : (
                         <button
-                          className="btn btn-sm btn-outline btn-success p-1"
+                          className="btn btn-sm btn-outline btn-success"
                           onClick={() =>
                             handleEventoToggleActive(evento.id, evento.activo)
                           }
-                          title="Activar"
                         >
                           <Power className="h-4 w-4" />
                         </button>
                       )}
                       <button
-                        className="btn btn-sm btn-outline btn-error p-1"
+                        className="btn btn-sm btn-outline btn-error"
                         onClick={() => handlePhysicalDelete(evento.id)}
-                        title="Eliminar permanentemente"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="text-center py-4">
-                  No se encontraron eventos
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-4">No se encontraron eventos</div>
+          )}
+        </div>
       </div>
 
+      {/* Paginación */}
       {totalPages > 1 && (
-        <div className="pagination mt-4 flex justify-center gap-2">
+        <div className="pagination mt-6 flex justify-center gap-2">
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index}
-              className={`pagination-item ${
-                currentPage === index + 1 ? "active" : ""
+              className={`btn btn-sm ${
+                currentPage === index + 1 ? "btn-primary" : "btn-outline"
               }`}
               onClick={() => setCurrentPage(index + 1)}
             >
@@ -688,7 +799,7 @@ export default function Eventos() {
           ))}
           {currentPage < totalPages && (
             <button
-              className="pagination-item"
+              className="btn btn-sm btn-outline"
               onClick={() => setCurrentPage((prev) => prev + 1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -697,6 +808,7 @@ export default function Eventos() {
         </div>
       )}
 
+      {/* Modales */}
       {showModal && (
         <EventoModal
           onClose={() => setShowModal(false)}
