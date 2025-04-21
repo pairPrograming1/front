@@ -18,7 +18,7 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
@@ -26,21 +26,40 @@ export default function Salones() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [verInactivos, setVerInactivos] = useState(false);
   const [salonAEditar, setSalonAEditar] = useState(null);
 
   const itemsPerPage = 10;
-  // const API_URL = "${API_URL}/api/salon";
 
   const removeAccents = (str) => {
     return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
   };
 
-  const fetchSalones = async () => {
+  const fetchSalones = async (
+    pageNum = 1,
+    limitNum = 10,
+    search = "",
+    includeInactive = false
+  ) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/salon`);
+
+      // Construir URL con parámetros de consulta
+      let url = `${API_URL}/api/salon?page=${pageNum}&limit=${limitNum}`;
+
+      // Añadir término de búsqueda si existe
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+      }
+
+      // Añadir parámetro para incluir eliminados según el estado de verInactivos
+      if (includeInactive) {
+        url += "&includeDeleted=true";
+      }
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
@@ -48,16 +67,29 @@ export default function Salones() {
 
       const data = await response.json();
 
-      // Asegurar que siempre trabajamos con un array
-      const salonesData = Array.isArray(data)
-        ? data
-        : data.data
-        ? data.data
-        : data.salones
-        ? data.salones
-        : [data];
+      // Verificar si la respuesta incluye información de paginación
+      if (data.pagination) {
+        // Actualizar el estado con la información de paginación
+        setTotalPages(data.pagination.totalPages);
+        setCurrentPage(data.pagination.page);
 
-      setSalones(salonesData);
+        // Guardar los salones desde data.data
+        setSalones(Array.isArray(data.data) ? data.data : []);
+      } else {
+        // Manejar respuestas antiguas o sin paginación
+        const salonesData = Array.isArray(data)
+          ? data
+          : data.data
+          ? data.data
+          : data.salones
+          ? data.salones
+          : [data];
+
+        setSalones(salonesData);
+
+        // Calcular paginación manual si la API no la proporciona
+        setTotalPages(Math.ceil(salonesData.length / limitNum));
+      }
     } catch (err) {
       setError(err.message);
       setSalones([]);
@@ -67,29 +99,17 @@ export default function Salones() {
   };
 
   useEffect(() => {
-    fetchSalones();
-  }, []);
+    fetchSalones(currentPage, itemsPerPage, searchTerm, verInactivos);
+  }, [verInactivos]);
 
   const refreshSalones = async () => {
-    await fetchSalones();
+    await fetchSalones(currentPage, itemsPerPage, searchTerm, verInactivos);
   };
 
-  const filteredSalones = salones.filter((s) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
-    const isActive = s.isActive ?? s.estatus ?? true;
-
-    const matchSearch =
-      removeAccents(s.salon?.toLowerCase() || "").includes(searchText) ||
-      removeAccents(s.nombre?.toLowerCase() || "").includes(searchText) ||
-      removeAccents(s.contacto?.toLowerCase() || "").includes(searchText) ||
-      removeAccents(s.email?.toLowerCase() || "").includes(searchText) ||
-      (s.cuit || "").toString().includes(searchTerm) ||
-      (s.whatsapp || "").toString().includes(searchTerm);
-
-    const matchActivo = verInactivos ? !isActive : isActive;
-
-    return matchSearch && matchActivo;
-  });
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchSalones(newPage, itemsPerPage, searchTerm, verInactivos);
+  };
 
   const handleAddSalon = async (newSalon) => {
     try {
@@ -211,13 +231,8 @@ export default function Salones() {
         throw new Error(data.message || `Error al ${actionText} el salón`);
       }
 
-      setSalones((prevSalones) =>
-        prevSalones.map((salon) =>
-          salon.id === id || salon._id === id || salon.Id === id
-            ? { ...salon, isActive: newStatus, estatus: newStatus }
-            : salon
-        )
-      );
+      // Actualizar la lista en lugar de solo actualizar el estado local
+      await refreshSalones();
 
       await Swal.fire({
         title: `Salón ${newStatus ? "activado" : "desactivado"}`,
@@ -239,13 +254,18 @@ export default function Salones() {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
+    // Debounce para buscar después de que el usuario deje de escribir
+    const searchValue = e.target.value;
+    const handler = setTimeout(() => {
+      fetchSalones(1, itemsPerPage, searchValue, verInactivos);
+    }, 300);
+    return () => clearTimeout(handler);
   };
 
-  const totalPages = Math.ceil(filteredSalones.length / itemsPerPage);
-  const currentItems = filteredSalones.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const toggleVerInactivos = () => {
+    setVerInactivos((prev) => !prev);
+    setCurrentPage(1); // Resetear a la primera página al cambiar el filtro
+  };
 
   if (loading) {
     return (
@@ -290,7 +310,7 @@ export default function Salones() {
             className={`btn ${
               verInactivos ? "btn-warning" : "btn-outline"
             } flex items-center gap-2 w-full sm:w-auto`}
-            onClick={() => setVerInactivos((prev) => !prev)}
+            onClick={toggleVerInactivos}
           >
             {verInactivos ? (
               <EyeOff className="h-4 w-4" />
@@ -319,13 +339,14 @@ export default function Salones() {
               <th>Nombre del Contacto</th>
               <th>Email</th>
               <th>WhatsApp</th>
+              <th>Capacidad</th>
               <th>Estado</th>
               <th className="w-48">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {currentItems.length > 0 ? (
-              currentItems.map((salon) => {
+            {salones.length > 0 ? (
+              salones.map((salon) => {
                 const isActive = salon.isActive ?? salon.estatus ?? true;
 
                 return (
@@ -340,6 +361,7 @@ export default function Salones() {
                     <td>{salon.contacto || salon.nombre}</td>
                     <td>{salon.email}</td>
                     <td>{salon.whatsapp}</td>
+                    <td>{salon.capacidad || "N/A"}</td>
                     <td>
                       <span
                         className={`badge ${
@@ -401,7 +423,7 @@ export default function Salones() {
               })
             ) : (
               <tr>
-                <td colSpan="7" className="text-center py-4">
+                <td colSpan="8" className="text-center py-4">
                   No se encontraron salones
                 </td>
               </tr>
@@ -418,7 +440,7 @@ export default function Salones() {
               className={`pagination-item ${
                 currentPage === index + 1 ? "active" : ""
               }`}
-              onClick={() => setCurrentPage(index + 1)}
+              onClick={() => handlePageChange(index + 1)}
             >
               {index + 1}
             </button>
@@ -426,7 +448,7 @@ export default function Salones() {
           {currentPage < totalPages && (
             <button
               className="pagination-item"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
+              onClick={() => handlePageChange(currentPage + 1)}
             >
               <ChevronRight className="h-4 w-4" />
             </button>
