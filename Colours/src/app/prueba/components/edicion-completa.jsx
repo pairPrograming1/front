@@ -83,8 +83,8 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const fetchSalones = async () => {
     try {
       setLoadingSalones(true);
-      const response = await fetch("${API_URL}/api/salon");
-
+      const response = await fetch(`${API_URL}/api/salon`);
+      console.log("esto es la response",response)
       if (!response.ok) {
         throw new Error(`Error al obtener salones: ${response.status}`);
       }

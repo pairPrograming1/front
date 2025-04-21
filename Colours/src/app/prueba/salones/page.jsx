@@ -40,7 +40,7 @@ export default function Salones() {
   const fetchSalones = async () => {
     try {
       setLoading(true);
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_URL}/api/salon`);
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
@@ -93,7 +93,7 @@ export default function Salones() {
 
   const handleAddSalon = async (newSalon) => {
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/api/salon`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -152,7 +152,7 @@ export default function Salones() {
 
     if (confirmResult.isConfirmed) {
       try {
-        const response = await fetch(`${API_URL}/physical/${id}`, {
+        const response = await fetch(`${API_URL}/api/salon/physical/${id}`, {
           method: "DELETE",
         });
 
@@ -194,7 +194,7 @@ export default function Salones() {
     if (!confirmResult.isConfirmed) return;
 
     try {
-      const response = await fetch(`${API_URL}/toggle-status/${id}`, {
+      const response = await fetch(`${API_URL}/api/salon/toggle-status/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: newStatus }),
@@ -438,7 +438,7 @@ export default function Salones() {
         <SalonModal
           onClose={() => setShowModal(false)}
           onAddSalon={handleAddSalon}
-          API_URL={API_URL}
+          API_URL={`${API_URL}/api/salon`}
         />
       )}
 
@@ -446,7 +446,7 @@ export default function Salones() {
         <SalonEditarModal
           salon={salonAEditar}
           onClose={handleUpdateSalon}
-          API_URL={API_URL}
+          API_URL={`${API_URL}/api/salon`}
         />
       )}
     </div>

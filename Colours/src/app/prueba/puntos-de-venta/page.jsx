@@ -78,32 +78,41 @@ export default function PuntosDeVenta() {
   });
 
   const handleAddPunto = async (newPunto) => {
-    try {
-      const response = await fetch(`${API_URL}/api/puntodeventa`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPunto),
-      });
-
-      if (!response.ok) throw new Error("Error al crear el punto de venta");
-
-      await refreshPuntos();
-      setShowModal(false);
-
-      Swal.fire({
-        icon: "success",
-        title: "Punto creado",
-        text: "El punto de venta fue creado correctamente",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error al crear punto",
-        text: error.message || "Hubo un error al crear el punto de venta",
-      });
+  try {
+    // First check if a punto with this name already exists
+    const checkResponse = await fetch(`${API_URL}/api/puntodeventa`);
+    const existingPuntos = await checkResponse.json();
+    
+    if (existingPuntos.success && existingPuntos.data.some(p => p.nombre === newPunto.nombre)) {
+      throw new Error("Ya existe un punto de venta con este nombre");
     }
-  };
+    
+    // Continue with creation if name is unique
+    const response = await fetch(`${API_URL}/api/puntodeventa`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newPunto),
+    });
+    
+    if (!response.ok) throw new Error("Error al crear el punto de venta");
+
+    await refreshPuntos();
+    setShowModal(false);
+
+    Swal.fire({
+      icon: "success",
+      title: "Punto creado",
+      text: "El punto de venta fue creado correctamente",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error al crear punto",
+      text: error.message || "Hubo un error al crear el punto de venta",
+    });
+  }
+};
 
   const refreshPuntos = async () => {
     try {
