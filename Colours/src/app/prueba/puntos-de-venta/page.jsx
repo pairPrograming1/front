@@ -17,6 +17,9 @@ import EditarModal from "../components/editar-modal";
 import EdicionCompleta from "../components/edicion-completa";
 import Header from "../components/header";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
@@ -35,7 +38,7 @@ export default function PuntosDeVenta() {
   useEffect(() => {
     const fetchPuntos = async () => {
       try {
-        const response = await fetch("http://localhost:4000/api/puntodeventa");
+        const response = await fetch(`${API_URL}/api/puntodeventa`);
         if (!response.ok)
           throw new Error("Error al obtener los puntos de venta");
         const data = await response.json();
@@ -76,7 +79,7 @@ export default function PuntosDeVenta() {
 
   const handleAddPunto = async (newPunto) => {
     try {
-      const response = await fetch("http://localhost:4000/api/puntodeventa", {
+      const response = await fetch(`${API_URL}/api/puntodeventa`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newPunto),
@@ -104,7 +107,7 @@ export default function PuntosDeVenta() {
 
   const refreshPuntos = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/puntodeventa");
+      const res = await fetch(`${API_URL}/api/puntodeventa`);
       const data = await res.json();
       if (data.success) {
         setPuntos(data.data);
@@ -133,7 +136,7 @@ export default function PuntosDeVenta() {
     if (confirmResult.isConfirmed) {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/puntodeventa/delete/${id}`,
+          `${API_URL}/api/puntodeventa/delete/${id}`,
           { method: "DELETE" }
         );
 
@@ -172,7 +175,7 @@ export default function PuntosDeVenta() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/puntodeventa/soft-delete/${id}`,
+        `${API_URL}/api/puntodeventa/soft-delete/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

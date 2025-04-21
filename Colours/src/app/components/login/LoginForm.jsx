@@ -7,6 +7,9 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import OAuthButton from "./OAuthButton";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../context/AuthContext";
+import apiUrls from "../utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,7 @@ export default function LoginForm() {
       setLoading(true);
       // Primer paso: autenticación del usuario
       const respuesta = await axios.post(
-        "http://localhost:4000/api/auth",
+        `${API_URL}/api/auth`,
         datosLogin
       );
 
@@ -41,7 +44,7 @@ export default function LoginForm() {
 
       // Segundo paso: verificar el usuario para obtener su información completa incluyendo el rol
       const verificarResponse = await axios.post(
-        "http://localhost:4000/api/users/verificar",
+        `${API_URL}/api/users/verificar`,
         { usuario: username }
       );
 

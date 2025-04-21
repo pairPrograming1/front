@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function EventoModal({ onClose, onEventoAdded }) {
   const [formData, setFormData] = useState({
@@ -23,7 +26,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     const fetchSalones = async () => {
       try {
         setFetchingSalones(true);
-        const response = await fetch("http://localhost:4000/api/salon/");
+        const response = await fetch(`${API_URL}/api/salon/`);
         if (!response.ok) {
           throw new Error("Error al cargar los salones");
         }
@@ -109,7 +112,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
 
       console.log("Sending data to API:", formattedData);
 
-      const response = await fetch("http://localhost:4000/api/evento/", {
+      const response = await fetch(`${API_URL}/api/evento/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

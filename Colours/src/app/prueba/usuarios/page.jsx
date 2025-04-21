@@ -18,6 +18,9 @@ import UsuarioModal from "../components/usuario-modal";
 import UsuarioEditarModal from "../components/usuario-editar-modal";
 import Header from "../components/header";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function Usuarios() {
   const [isClient, setIsClient] = useState(false);
@@ -42,7 +45,7 @@ export default function Usuarios() {
     try {
       const statusQuery = filterInactive ? "false" : "true";
       const response = await fetch(
-        `http://localhost:4000/api/users/usuarios?status=${statusQuery}`
+        `${API_URL}/api/users/usuarios?status=${statusQuery}`
       );
       if (!response.ok) throw new Error("Error al cargar usuarios");
       const data = await response.json();
@@ -170,7 +173,7 @@ export default function Usuarios() {
   const asignarRolMultiple = async (rol) => {
     try {
       const promises = selectedUsers.map((userId) =>
-        fetch(`http://localhost:4000/api/users/change-role/${userId}`, {
+        fetch(`${API_URL}/api/users/change-role/${userId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ rol }),
@@ -224,7 +227,7 @@ export default function Usuarios() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/soft-delete/${id}`,
+        `${API_URL}/api/users/soft-delete/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -254,7 +257,7 @@ export default function Usuarios() {
   const agregarUsuario = async (nuevoUsuario) => {
     try {
       const response = await fetch(
-        "http://localhost:4000/api/users/create-user",
+        "${API_URL}/api/users/create-user",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -283,7 +286,7 @@ export default function Usuarios() {
   const modificarUsuario = async (id, datosActualizados) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/perfil/${id}`,
+        `${API_URL}/api/users/perfil/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -324,7 +327,7 @@ export default function Usuarios() {
     if (confirmResult.isConfirmed) {
       try {
         const response = await fetch(
-          `http://localhost:4000/api/users/delete/${id}`,
+          `${API_URL}/api/users/delete/${id}`,
           {
             method: "DELETE",
           }
@@ -347,7 +350,7 @@ export default function Usuarios() {
   const cambiarRolUsuario = async (id, rol) => {
     try {
       const response = await fetch(
-        `http://localhost:4000/api/users/change-role/${id}`,
+        `${API_URL}/api/users/change-role/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

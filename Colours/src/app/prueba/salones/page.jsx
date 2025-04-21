@@ -16,6 +16,9 @@ import SalonModal from "../components/salon-modal";
 import SalonEditarModal from "../components/salon-editar-modal";
 import Header from "../components/header";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
@@ -28,7 +31,7 @@ export default function Salones() {
   const [salonAEditar, setSalonAEditar] = useState(null);
 
   const itemsPerPage = 10;
-  const API_URL = "http://localhost:4000/api/salon";
+  // const API_URL = "${API_URL}/api/salon";
 
   const removeAccents = (str) => {
     return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
