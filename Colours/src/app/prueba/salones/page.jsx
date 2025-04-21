@@ -1,117 +1,302 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Trash2,
+  Power,
+  Archive,
+  Edit,
+} from "lucide-react";
 import SalonModal from "../components/salon-modal";
+import SalonEditarModal from "../components/salon-editar-modal";
 import Header from "../components/header";
+import Swal from "sweetalert2";
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
+  const [salones, setSalones] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [verInactivos, setVerInactivos] = useState(false);
+  const [salonAEditar, setSalonAEditar] = useState(null);
 
-  // Datos de ejemplo
-  const salones = [
-    {
-      id: 1,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 2,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 3,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 4,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 5,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 6,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 7,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 8,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 9,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-    {
-      id: 10,
-      nombre: "Aires",
-      cuit: "20-32125731-4",
-      contacto: "Mariano Boggino",
-      email: "boggino@nakama.ar",
-      whatsapp: "3413184639",
-    },
-  ];
+  const itemsPerPage = 10;
+  const API_URL = "http://localhost:4000/api/salon";
+
+  const removeAccents = (str) => {
+    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+  };
+
+  const fetchSalones = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(API_URL);
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Asegurar que siempre trabajamos con un array
+      const salonesData = Array.isArray(data)
+        ? data
+        : data.data
+        ? data.data
+        : data.salones
+        ? data.salones
+        : [data];
+
+      setSalones(salonesData);
+    } catch (err) {
+      setError(err.message);
+      setSalones([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalones();
+  }, []);
+
+  const refreshSalones = async () => {
+    await fetchSalones();
+  };
+
+  const filteredSalones = salones.filter((s) => {
+    const searchText = removeAccents(searchTerm.toLowerCase());
+    const isActive = s.isActive ?? s.estatus ?? true;
+
+    const matchSearch =
+      removeAccents(s.salon?.toLowerCase() || "").includes(searchText) ||
+      removeAccents(s.nombre?.toLowerCase() || "").includes(searchText) ||
+      removeAccents(s.contacto?.toLowerCase() || "").includes(searchText) ||
+      removeAccents(s.email?.toLowerCase() || "").includes(searchText) ||
+      (s.cuit || "").toString().includes(searchTerm) ||
+      (s.whatsapp || "").toString().includes(searchTerm);
+
+    const matchActivo = verInactivos ? !isActive : isActive;
+
+    return matchSearch && matchActivo;
+  });
+
+  const handleAddSalon = async (newSalon) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newSalon),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error: ${response.status}`);
+      }
+
+      await refreshSalones();
+      setShowModal(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "Salón creado",
+        text: "El salón fue creado correctamente",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al crear salón",
+        text: error.message || "Hubo un error al crear el salón",
+      });
+    }
+  };
+
+  const handleUpdateSalon = async (updated) => {
+    if (updated) {
+      await refreshSalones();
+      Swal.fire({
+        icon: "success",
+        title: "Salón actualizado",
+        text: "El salón fue actualizado correctamente",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+    setSalonAEditar(null);
+  };
+
+  const handleDeleteSalon = async (id) => {
+    const confirmResult = await Swal.fire({
+      title: "¿Eliminar permanentemente?",
+      text: "Esta acción no se puede deshacer. ¿Deseas continuar?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (confirmResult.isConfirmed) {
+      try {
+        const response = await fetch(`${API_URL}/physical/${id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Error ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.message || "Error al eliminar el salón");
+        }
+
+        Swal.fire("Eliminado", data.message, "success");
+        await refreshSalones();
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        Swal.fire("Error", error.message, "error");
+      }
+    }
+  };
+
+  const handleToggleSalonStatus = async (id, isCurrentlyActive) => {
+    const newStatus = !isCurrentlyActive;
+    const actionText = newStatus ? "activar" : "desactivar";
+
+    const confirmResult = await Swal.fire({
+      title: `¿${newStatus ? "Activar" : "Desactivar"} salón?`,
+      text: `Estás a punto de ${actionText} este salón.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, ${actionText}`,
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const response = await fetch(`${API_URL}/toggle-status/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: newStatus }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || `Error al ${actionText} el salón`);
+      }
+
+      setSalones((prevSalones) =>
+        prevSalones.map((salon) =>
+          salon.id === id || salon._id === id || salon.Id === id
+            ? { ...salon, isActive: newStatus, estatus: newStatus }
+            : salon
+        )
+      );
+
+      await Swal.fire({
+        title: `Salón ${newStatus ? "activado" : "desactivado"}`,
+        text: data.message,
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error al cambiar estado:", error);
+      Swal.fire({
+        title: "Error",
+        text: error.message,
+        icon: "error",
+      });
+    }
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(filteredSalones.length / itemsPerPage);
+  const currentItems = filteredSalones.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <Header title="Salones" />
+        <div className="flex justify-center items-center h-64">
+          <p>Cargando salones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Header title="Salones" />
+        <div className="alert alert-error">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <Header title="Salones" />
 
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative w-full sm:w-1/3 mb-4 sm:mb-0">
+        <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
           <input
             type="text"
-            placeholder="Buscar Salones"
+            placeholder="Buscar por nombre, contacto, email, CUIT o WhatsApp..."
             className="search-input pl-10 w-full"
+            value={searchTerm}
+            onChange={handleSearch}
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-          <button className="btn btn-outline w-full sm:w-auto">
-            Ver Salones Inactivos
+          <button
+            className={`btn ${
+              verInactivos ? "btn-warning" : "btn-outline"
+            } flex items-center gap-2 w-full sm:w-auto`}
+            onClick={() => setVerInactivos((prev) => !prev)}
+          >
+            {verInactivos ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            {verInactivos ? "Ver activos" : "Ver inactivos"}
           </button>
-          <button className="btn btn-outline w-full sm:w-auto">Borrar</button>
+
           <button
             className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
             onClick={() => setShowModal(true)}
@@ -126,57 +311,141 @@ export default function Salones() {
         <table className="table min-w-full">
           <thead>
             <tr>
-              <th className="w-10">
-                <input type="checkbox" />
-              </th>
               <th>Salón</th>
               <th>CUIT</th>
               <th>Nombre del Contacto</th>
               <th>Email</th>
               <th>WhatsApp</th>
-              <th className="w-32">Acciones</th>
+              <th>Estado</th>
+              <th className="w-48">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {salones.map((salon) => (
-              <tr key={salon.id}>
-                <td>
-                  <input type="checkbox" />
-                </td>
-                <td>{salon.nombre}</td>
-                <td>{salon.cuit}</td>
-                <td>{salon.contacto}</td>
-                <td>{salon.email}</td>
-                <td>{salon.whatsapp}</td>
-                <td>
-                  <div className="flex gap-2">
-                    <button className="btn btn-outline py-1 px-2">
-                      Editar
-                    </button>
-                    <button className="btn btn-outline py-1 px-2">
-                      Borrar
-                    </button>
-                  </div>
+            {currentItems.length > 0 ? (
+              currentItems.map((salon) => {
+                const isActive = salon.isActive ?? salon.estatus ?? true;
+
+                return (
+                  <tr
+                    key={salon.id || salon._id || salon.Id}
+                    className={`cursor-pointer ${
+                      !isActive ? "opacity-70 bg-gray-50" : ""
+                    }`}
+                  >
+                    <td>{salon.salon || salon.nombre}</td>
+                    <td>{salon.cuit}</td>
+                    <td>{salon.contacto || salon.nombre}</td>
+                    <td>{salon.email}</td>
+                    <td>{salon.whatsapp}</td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          isActive ? "badge-success" : "badge-error"
+                        }`}
+                      >
+                        {isActive ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="flex gap-2">
+                        <button
+                          className="btn btn-sm btn-outline btn-primary p-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSalonAEditar(salon);
+                          }}
+                          title="Editar"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+
+                        <button
+                          className={`btn btn-sm btn-outline ${
+                            isActive ? "btn-warning" : "btn-success"
+                          } p-1`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleSalonStatus(
+                              salon.id || salon._id || salon.Id,
+                              isActive
+                            );
+                          }}
+                          title={isActive ? "Desactivar" : "Activar"}
+                        >
+                          {isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button>
+
+                        <button
+                          className="btn btn-sm btn-outline btn-error p-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteSalon(
+                              salon.id || salon._id || salon.Id
+                            );
+                          }}
+                          title="Eliminar permanentemente"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan="7" className="text-center py-4">
+                  No se encontraron salones
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
-      <div className="pagination mt-4 flex justify-center gap-2">
-        <button className="pagination-item active">1</button>
-        <button className="pagination-item">2</button>
-        <button className="pagination-item">3</button>
-        <button className="pagination-item">4</button>
-        <button className="pagination-item">5</button>
-        <button className="pagination-item">30</button>
-        <button className="pagination-item">
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <div className="pagination mt-4 flex justify-center gap-2">
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index}
+              className={`pagination-item ${
+                currentPage === index + 1 ? "active" : ""
+              }`}
+              onClick={() => setCurrentPage(index + 1)}
+            >
+              {index + 1}
+            </button>
+          ))}
+          {currentPage < totalPages && (
+            <button
+              className="pagination-item"
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
 
-      {showModal && <SalonModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <SalonModal
+          onClose={() => setShowModal(false)}
+          onAddSalon={handleAddSalon}
+          API_URL={API_URL}
+        />
+      )}
+
+      {salonAEditar && (
+        <SalonEditarModal
+          salon={salonAEditar}
+          onClose={handleUpdateSalon}
+          API_URL={API_URL}
+        />
+      )}
     </div>
   );
 }

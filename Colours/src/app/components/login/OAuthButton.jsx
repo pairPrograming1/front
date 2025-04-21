@@ -110,7 +110,7 @@ export default function OAuthButton() {
               router.push("/vendor");
             } else {
               // Usuario común u otro rol
-              router.push("/users");
+              router.push("/wellcome");
             }
           } else {
             // Si no se pudo obtener el rol, redirigir a la ruta predeterminada

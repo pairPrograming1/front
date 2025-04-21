@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function EventoModal({ onClose, onEventoAdded }) {
+export default function EventoEditarModal({
+  evento,
+  onClose,
+  onEventoUpdated,
+}) {
   const [formData, setFormData] = useState({
     nombre: "",
     fecha: "",
@@ -17,6 +21,24 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const [loading, setLoading] = useState(false);
   const [fetchingSalones, setFetchingSalones] = useState(true);
   const [error, setError] = useState(null);
+
+  // Initialize form with existing event data
+  useEffect(() => {
+    if (evento) {
+      // Format the date for the datetime-local input
+      const eventDate = new Date(evento.fecha);
+      const formattedDate = eventDate.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:MM
+
+      setFormData({
+        nombre: evento.nombre || "",
+        fecha: formattedDate,
+        duracion: evento.duracion || 60,
+        capacidad: evento.capacidad || 1,
+        activo: evento.activo !== undefined ? evento.activo : true,
+        salonId: evento.salonId || "",
+      });
+    }
+  }, [evento]);
 
   // Fetch salones for dropdown
   useEffect(() => {
@@ -107,15 +129,18 @@ export default function EventoModal({ onClose, onEventoAdded }) {
         fecha: new Date(formData.fecha).toISOString(),
       };
 
-      console.log("Sending data to API:", formattedData);
+      console.log("Sending updated data to API:", formattedData);
 
-      const response = await fetch("http://localhost:4000/api/evento/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedData),
-      });
+      const response = await fetch(
+        `http://localhost:4000/api/evento/${evento.Id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formattedData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -128,18 +153,18 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       const result = await response.json();
 
       if (result.success) {
-        if (onEventoAdded) onEventoAdded();
+        if (onEventoUpdated) onEventoUpdated();
         onClose();
       } else {
         throw new Error(
-          result.message || "Error desconocido al crear el evento"
+          result.message || "Error desconocido al actualizar el evento"
         );
       }
     } catch (err) {
-      console.error("Error creating evento:", err);
+      console.error("Error updating evento:", err);
       setError(
         err.message ||
-          "No se pudo crear el evento. Por favor intente nuevamente."
+          "No se pudo actualizar el evento. Por favor intente nuevamente."
       );
     } finally {
       setLoading(false);
@@ -162,7 +187,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="modal bg-[#181f2a] rounded-lg p-6 w-full max-w-md mx-4">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Agregar Evento</h2>
+          <h2 className="text-xl font-semibold">Editar Evento</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X className="h-5 w-5" />
           </button>
@@ -297,7 +322,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             className="btn btn-primary w-full mt-4 p-2 rounded"
             disabled={loading || fetchingSalones || salones.length === 0}
           >
-            {loading ? "Creando..." : "Crear Evento"}
+            {loading ? "Actualizando..." : "Actualizar Evento"}
           </button>
         </form>
       </div>

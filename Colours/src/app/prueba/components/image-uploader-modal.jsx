@@ -6,7 +6,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import useImageFetcher from "./ImageFetcher";
 
-const ImageUploaderModal = ({ onClose }) => {
+const ImageUploaderModal = ({ onClose, onImageSelected }) => {
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [subiendoImagen, setSubiendoImagen] = useState(false);
@@ -153,7 +153,11 @@ const ImageUploaderModal = ({ onClose }) => {
                 {images.map((image) => (
                   <div
                     key={image._id || image.id}
-                    className="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600"
+                    className="group relative bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 cursor-pointer"
+                    onClick={() => {
+                      // Pass the selected image URL back to the parent component
+                      onImageSelected?.(image.url);
+                    }}
                   >
                     <img
                       src={image.url}
@@ -161,22 +165,35 @@ const ImageUploaderModal = ({ onClose }) => {
                       className="w-full h-32 object-cover"
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button
-                        onClick={() => {
-                          console.log("URL de la imagen:", image.url);
-                          navigator.clipboard.writeText(image.url);
-                          Swal.fire({
-                            icon: "success",
-                            title: "URL copiada",
-                            text: "La URL de la imagen ha sido copiada al portapapeles",
-                            timer: 1500,
-                            showConfirmButton: false,
-                          });
-                        }}
-                        className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
-                      >
-                        Copiar URL
-                      </button>
+                      <div className="flex flex-col space-y-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering the parent onClick
+                            onImageSelected?.(image.url);
+                            onClose();
+                          }}
+                          className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm"
+                        >
+                          Seleccionar
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering the parent onClick
+                            console.log("URL de la imagen:", image.url);
+                            navigator.clipboard.writeText(image.url);
+                            Swal.fire({
+                              icon: "success",
+                              title: "URL copiada",
+                              text: "La URL de la imagen ha sido copiada al portapapeles",
+                              timer: 1500,
+                              showConfirmButton: false,
+                            });
+                          }}
+                          className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm"
+                        >
+                          Copiar URL
+                        </button>
+                      </div>
                     </div>
                     <div className="p-2">
                       <p className="text-xs text-gray-600 dark:text-gray-300 truncate">

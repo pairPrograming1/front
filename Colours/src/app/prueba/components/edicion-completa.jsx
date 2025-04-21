@@ -3,9 +3,20 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Swal from "sweetalert2";
+import { X } from "lucide-react";
+import ImageUploaderModal from "./image-uploader-modal";
+import ImageGallery from "./ImageGallery";
+import useImageFetcher from "./ImageFetcher";
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [activeTab, setActiveTab] = useState("informacion");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [loadingImages, setLoadingImages] = useState(false);
+  const [errorImages, setErrorImages] = useState(null);
+  const [salones, setSalones] = useState([]);
+  const [loadingSalones, setLoadingSalones] = useState(false);
+  const [errorSalones, setErrorSalones] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -50,12 +61,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         es_online: punto.es_online || false,
         salonesHabilitados: punto.salonesHabilitados || [],
         vendedoresAsignados: punto.vendedoresAsignados || [],
-        imagenes: punto.imagenes || [
-          "/placeholder.svg",
-          "/placeholder.svg",
-          "/placeholder.svg",
-          "/placeholder.svg",
-        ],
+        imagenes: punto.image || ["/placeholder.svg"],
         tiposCobro: {
           mercadoPago: {
             apiKey: punto.tiposCobro?.mercadoPago?.apiKey || "",
@@ -70,8 +76,114 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   }, [punto]);
 
+  // Función para obtener los salones activos
+  const fetchSalones = async () => {
+    try {
+      setLoadingSalones(true);
+      const response = await fetch("http://localhost:4000/api/salon");
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener salones: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        // Filtrar solo los salones activos
+        const salonesActivos = result.data.filter(
+          (salon) => salon.estatus === true
+        );
+        setSalones(salonesActivos);
+      } else {
+        throw new Error(result.message || "Error al obtener los salones");
+      }
+    } catch (err) {
+      console.error("Error fetching salones:", err);
+      setErrorSalones(err.message);
+    } finally {
+      setLoadingSalones(false);
+    }
+  };
+
+  // Cargar salones cuando el componente se monte
+  useEffect(() => {
+    fetchSalones();
+  }, []);
+
+  // Función para cargar las imágenes del punto de venta
+  const fetchPuntoImages = async () => {
+    // Solo realizar la solicitud si hay un ID de punto de venta
+    if (!punto?.id) return;
+
+    try {
+      setLoadingImages(true);
+      const response = await fetch(
+        `http://localhost:4000/api/puntodeventa/${punto.id}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error al obtener imágenes: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      // Actualiza el estado con las imágenes obtenidas
+      if (result.success && result.data && result.data.imagenes) {
+        setData({
+          ...data,
+          imagenes: result.data.imagenes,
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching images:", err);
+      setErrorImages(err.message);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  // Cargar imágenes cuando cambia el ID del punto
+  useEffect(() => {
+    if (punto?.id) {
+      fetchPuntoImages();
+    }
+  }, [punto?.id]);
+
+  // Function to handle adding new images to the data state
+  const handleImageSelected = (imageUrl) => {
+    // Find the first placeholder image and replace it
+    const newImages = [...data.imagenes];
+    const placeholderIndex = newImages.findIndex(
+      (img) => img === "/placeholder.svg"
+    );
+
+    if (placeholderIndex !== -1) {
+      newImages[placeholderIndex] = imageUrl;
+      setData({
+        ...data,
+        imagenes: newImages,
+      });
+    } else {
+      // If no placeholders remain, replace the first image
+      newImages[0] = imageUrl;
+      setData({
+        ...data,
+        imagenes: newImages,
+      });
+    }
+  };
+
   const handleSubmit = async () => {
     try {
+      // Create a copy of the data with the correct image field
+      const submitData = {
+        ...data,
+        // Use the first non-placeholder image as the main image
+        image:
+          data.imagenes.find((img) => img !== "/placeholder.svg") ||
+          data.imagenes[0],
+      };
+
       const endpoint = punto?.id
         ? `http://localhost:4000/api/puntodeventa/${punto.id}`
         : "http://localhost:4000/api/puntodeventa";
@@ -83,7 +195,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       });
 
       const result = await response.json();
@@ -258,18 +370,38 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           Salones Habilitados
                         </h3>
                         <div className="grid grid-cols-4 gap-4">
-                          {data.salonesHabilitados.map((salon, index) => (
-                            <div
-                              key={index}
-                              className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
-                            >
-                              <div className="p-0 h-32 flex items-center justify-center">
-                                <span className="text-2xl font-light italic">
-                                  {salon}
-                                </span>
-                              </div>
+                          {loadingSalones ? (
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                              <p className="text-amber-600">
+                                Cargando salones...
+                              </p>
                             </div>
-                          ))}
+                          ) : errorSalones ? (
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                              <p className="text-red-500">
+                                Error: {errorSalones}
+                              </p>
+                            </div>
+                          ) : salones.length > 0 ? (
+                            salones.map((salon, index) => (
+                              <div
+                                key={index}
+                                className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
+                              >
+                                <div className="p-0 h-32 flex items-center justify-center">
+                                  <span className="text-2xl font-light italic">
+                                    {salon.nombre}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                              <p className="text-gray-400">
+                                No hay salones activos disponibles
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -279,29 +411,30 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           Vendedores asignados
                         </h3>
                         <div className="grid grid-cols-4 gap-4">
-                          {data.vendedoresAsignados.map((vendedor, index) => (
-                            <div
-                              key={index}
-                              className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
-                            >
-                              <div className="p-4 h-32">
-                                <div className="space-y-1">
-                                  <p className="font-medium">
-                                    {vendedor.nombre}
-                                  </p>
-                                  <p className="text-xs text-gray-400">
-                                    Teléfono: {vendedor.telefono}
-                                  </p>
-                                  <p className="text-xs text-gray-400">
-                                    Email: {vendedor.email}
-                                  </p>
-                                  <p className="text-xs text-gray-400">
-                                    WhatsApp: {vendedor.whatsapp}
-                                  </p>
+                          {data.vendedoresAsignados &&
+                            data.vendedoresAsignados.map((vendedor, index) => (
+                              <div
+                                key={index}
+                                className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
+                              >
+                                <div className="p-4 h-32">
+                                  <div className="space-y-1">
+                                    <p className="font-medium">
+                                      {vendedor.nombre}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      Teléfono: {vendedor.telefono}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      Email: {vendedor.email}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      WhatsApp: {vendedor.whatsapp}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </div>
                     </div>
@@ -417,42 +550,62 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
               </div>
 
               <div className="w-72 ml-6">
-                <div className="border border-dashed border-amber-600/50 rounded-lg p-4 mb-4 flex items-center justify-center h-40">
-                  <div className="text-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                      <svg
-                        className="w-5 h-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-xs text-gray-400">Agregar Imagen</p>
-                  </div>
+                {/* Opciones de imagen */}
+                <div className="flex space-x-2 mb-4">
+                  <button
+                    className="bg-amber-600 text-white px-3 py-1 rounded-md text-sm flex-1"
+                    onClick={() => setShowImageUploader(true)}
+                  >
+                    Subir Imagen
+                  </button>
+                  <button
+                    className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm flex-1"
+                    onClick={() => setShowImageGallery(true)}
+                  >
+                    Galería
+                  </button>
+                  <button
+                    className="bg-green-600 text-white px-3 py-1 rounded-md text-sm flex-1"
+                    onClick={fetchPuntoImages}
+                    disabled={loadingImages || !punto?.id}
+                  >
+                    {loadingImages ? "Cargando..." : "Actualizar"}
+                  </button>
                 </div>
+
+                {errorImages && (
+                  <div className="text-red-500 text-sm mb-2">
+                    Error: {errorImages}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-2">
-                  {data.imagenes.map((imagen, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square bg-amber-700/30 rounded-lg overflow-hidden"
-                    >
-                      <Image
-                        src={imagen}
-                        alt="Imagen de galería"
-                        width={100}
-                        height={100}
-                        className="w-full h-full object-cover"
-                      />
+                  {loadingImages ? (
+                    <div className="col-span-2 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                      <p className="text-amber-600">Cargando imágenes...</p>
                     </div>
-                  ))}
+                  ) : data.imagenes && data.imagenes.length > 0 ? (
+                    data.imagenes.map((imagen, index) => (
+                      <div
+                        key={index}
+                        className="aspect-square bg-amber-700/30 rounded-lg overflow-hidden"
+                      >
+                        <Image
+                          src={imagen}
+                          alt="Imagen de galería"
+                          width={100}
+                          height={100}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                      <p className="text-gray-400">
+                        No hay imágenes disponibles
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -477,6 +630,29 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           </div>
         </div>
       </div>
+
+      {/* Image Uploader Modal */}
+      {showImageUploader && (
+        <ImageUploaderModal
+          onClose={() => setShowImageUploader(false)}
+          onImageSelected={(imageUrl) => {
+            handleImageSelected(imageUrl);
+            setShowImageUploader(false);
+          }}
+        />
+      )}
+
+      {/* Image Gallery Modal */}
+      {showImageGallery && (
+        <ImageGallery
+          onClose={() => setShowImageGallery(false)}
+          onImageSelected={(imageUrl) => {
+            handleImageSelected(imageUrl);
+            setShowImageGallery(false);
+          }}
+          puntoId={punto?.id}
+        />
+      )}
     </div>
   );
 }
