@@ -15,7 +15,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     whatsapp: "",
     password: "",
     dni: "",
-    roleId: null, // solo si aplica para admin
+    roleId: null,
   });
 
   useEffect(() => {
@@ -29,9 +29,9 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         email: userData.email || "",
         direccion: userData.direccion || "",
         whatsapp: userData.whatsapp || "",
-        password: "", // seguridad
+        password: "",
         dni: userData.dni || "",
-        roleId: userData.roleId || "", // por si el admin lo edita
+        roleId: userData.roleId || "",
       });
     }
   }, [userData]);
@@ -48,23 +48,26 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="fixed inset-0  flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold text-white">
             {userData ? "Editar Usuario" : "Agregar Usuario"}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button
+            onClick={onClose}
+            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
             name="usuario"
             placeholder="Usuario"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.usuario}
             onChange={handleChange}
           />
@@ -72,7 +75,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="text"
             name="nombre"
             placeholder="Nombre"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.nombre}
             onChange={handleChange}
           />
@@ -80,7 +83,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="text"
             name="apellido"
             placeholder="Apellido"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.apellido}
             onChange={handleChange}
           />
@@ -88,7 +91,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="text"
             name="dni"
             placeholder="DNI"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.dni}
             onChange={handleChange}
           />
@@ -96,7 +99,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="email"
             name="email"
             placeholder="E-mail"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.email}
             onChange={handleChange}
           />
@@ -104,7 +107,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="text"
             name="direccion"
             placeholder="Dirección"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.direccion}
             onChange={handleChange}
           />
@@ -112,7 +115,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="text"
             name="whatsapp"
             placeholder="WhatsApp"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.whatsapp}
             onChange={handleChange}
           />
@@ -120,20 +123,22 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             type="password"
             name="password"
             placeholder="Contraseña"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.password}
             onChange={handleChange}
           />
-          {/* Campo opcional para admins */}
           <input
             type="text"
             name="roleId"
             placeholder="Rol ID (opcional)"
-            className="input"
+            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
             value={formData.roleId}
             onChange={handleChange}
           />
-          <button type="submit" className="btn btn-primary w-full mt-4">
+          <button
+            type="submit"
+            className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300"
+          >
             {userData ? "Guardar Cambios" : "Crear"}
           </button>
         </form>

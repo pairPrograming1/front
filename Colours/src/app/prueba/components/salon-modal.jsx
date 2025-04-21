@@ -56,18 +56,13 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   };
 
   const formatCUIT = (cuit) => {
-    // Remove non-digits
     const digits = cuit.replace(/\D/g, "");
-
-    // If we have exactly 11 digits, format as XX-XXXXXXXX-X
     if (digits.length === 11) {
       return `${digits.substring(0, 2)}-${digits.substring(
         2,
         10
       )}-${digits.substring(10)}`;
     }
-
-    // Otherwise return as is
     return cuit;
   };
 
@@ -77,7 +72,6 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     setError(null);
 
     try {
-      // Validate required fields
       const requiredFields = ["salon", "nombre", "cuit", "email", "whatsapp"];
       const missingFields = requiredFields.filter((field) => !formData[field]);
 
@@ -85,25 +79,21 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
         throw new Error("Todos los campos marcados con * son obligatorios");
       }
 
-      // Format and validate CUIT
       const formattedCUIT = formatCUIT(formData.cuit);
       const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
       if (!cuitPattern.test(formattedCUIT)) {
         throw new Error("El formato del CUIT debe ser XX-XXXXXXXX-X");
       }
 
-      // Validate email format
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(formData.email)) {
         throw new Error("El formato del correo electrónico es inválido");
       }
 
-      // Check if salon already exists
       if (await checkSalonExists(formData.salon)) {
         throw new Error("Ya existe un salón con este nombre");
       }
 
-      // Submit with formatted data
       const submissionData = {
         ...formData,
         cuit: formattedCUIT,
@@ -119,13 +109,13 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="fixed inset-0  flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Agregar Salón</h2>
+          <h2 className="text-xl font-semibold text-white">Agregar Salón</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-yellow-500 hover:text-yellow-300 transition-colors"
             disabled={isSubmitting}
           >
             <X className="h-5 w-5" />
@@ -133,20 +123,19 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 text-sm rounded">
+          <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 mb-4">
-            {/* Información Básica */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div className="relative">
               <input
                 type="text"
                 name="salon"
                 placeholder="Nombre del Salón *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.salon}
                 onChange={handleChange}
                 required
@@ -158,7 +147,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="text"
                 name="nombre"
                 placeholder="Nombre del Contacto *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.nombre}
                 onChange={handleChange}
                 required
@@ -170,7 +159,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="number"
                 name="capacidad"
                 placeholder="Capacidad"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.capacidad}
                 onChange={handleChange}
               />
@@ -181,7 +170,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="text"
                 name="cuit"
                 placeholder="CUIT (XX-XXXXXXXX-X) *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.cuit}
                 onChange={handleChange}
                 required
@@ -193,7 +182,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="email"
                 name="email"
                 placeholder="Email *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -205,7 +194,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="tel"
                 name="whatsapp"
                 placeholder="WhatsApp *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.whatsapp}
                 onChange={handleChange}
                 required
@@ -217,20 +206,19 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 name="estatus"
                 value={formData.estatus}
                 onChange={handleChange}
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
               >
                 <option value="activo">Activo</option>
                 <option value="inactivo">Inactivo</option>
               </select>
             </div>
 
-            {/* Datos de MercadoPago */}
             <div className="relative">
               <input
                 type="text"
                 name="MercadopagoKeyP"
                 placeholder="Clave Pública de MercadoPago"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.MercadopagoKeyP}
                 onChange={handleChange}
               />
@@ -241,7 +229,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="text"
                 name="Mercadopago"
                 placeholder="Token de MercadoPago"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.Mercadopago}
                 onChange={handleChange}
               />
@@ -252,7 +240,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="text"
                 name="cbu"
                 placeholder="CBU"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.cbu}
                 onChange={handleChange}
               />
@@ -263,7 +251,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 type="text"
                 name="alias"
                 placeholder="Alias CBU"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.alias}
                 onChange={handleChange}
               />
@@ -272,7 +260,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
 
           <button
             type="submit"
-            className="btn btn-primary w-full mt-4 flex items-center justify-center gap-2"
+            className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

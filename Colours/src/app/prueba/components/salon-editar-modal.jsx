@@ -51,7 +51,6 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
   };
 
   const checkSalonExists = async (name) => {
-    // Solo verificar si el nombre del salón cambió
     if (name.toLowerCase() === initialSalonName.toLowerCase()) {
       return false;
     }
@@ -74,18 +73,13 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
   };
 
   const formatCUIT = (cuit) => {
-    // Remover caracteres no numéricos
     const digits = cuit.replace(/\D/g, "");
-
-    // Si tenemos exactamente 11 dígitos, formatear como XX-XXXXXXXX-X
     if (digits.length === 11) {
       return `${digits.substring(0, 2)}-${digits.substring(
         2,
         10
       )}-${digits.substring(10)}`;
     }
-
-    // De lo contrario devolver como está
     return cuit;
   };
 
@@ -96,7 +90,6 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
     setSuccessMessage(null);
 
     try {
-      // Validar campos requeridos
       const requiredFields = ["salon", "nombre", "cuit", "email", "whatsapp"];
       const missingFields = requiredFields.filter((field) => !formData[field]);
 
@@ -104,20 +97,17 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
         throw new Error("Todos los campos marcados con * son obligatorios");
       }
 
-      // Formatear y validar CUIT
       const formattedCUIT = formatCUIT(formData.cuit);
       const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
       if (!cuitPattern.test(formattedCUIT)) {
         throw new Error("El formato del CUIT debe ser XX-XXXXXXXX-X");
       }
 
-      // Validar formato de email
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(formData.email)) {
         throw new Error("El formato del correo electrónico es inválido");
       }
 
-      // Verificar si el nombre del salón ya existe (si fue cambiado)
       if (formData.salon !== initialSalonName) {
         const exists = await checkSalonExists(formData.salon);
         if (exists) {
@@ -125,14 +115,12 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
         }
       }
 
-      // Preparar datos para envío
       const submissionData = {
         ...formData,
         cuit: formattedCUIT,
         capacidad: formData.capacidad ? parseInt(formData.capacidad) : null,
       };
 
-      // Realizar la petición PUT a la API
       const response = await fetch(`${API_URL}/${salon.Id}`, {
         method: "PUT",
         headers: {
@@ -151,9 +139,8 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
       const result = await response.json();
       setSuccessMessage(result.message || "Salón actualizado correctamente");
 
-      // Cerrar modal después de 1.5 segundos para mostrar mensaje de éxito
       setTimeout(() => {
-        onClose(true); // Pasar true para indicar que hubo una actualización exitosa
+        onClose(true);
       }, 1500);
     } catch (error) {
       setError(error.message);
@@ -163,13 +150,13 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="fixed inset-0  flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Editar Salón</h2>
+          <h2 className="text-xl font-semibold text-white">Editar Salón</h2>
           <button
             onClick={() => onClose(false)}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-yellow-500 hover:text-yellow-300 transition-colors"
             disabled={isSubmitting}
           >
             <X className="h-5 w-5" />
@@ -177,26 +164,25 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 text-sm rounded border border-red-200">
+          <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
             {error}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 text-sm rounded border border-green-200">
+          <div className="mb-4 p-3 bg-green-900/50 text-green-300 text-sm rounded-lg border border-green-700">
             {successMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4 mb-4">
-            {/* Información Básica */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-4">
             <div className="relative">
               <input
                 type="text"
                 name="salon"
                 placeholder="Nombre del Salón *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.salon}
                 onChange={handleChange}
                 required
@@ -208,7 +194,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="text"
                 name="nombre"
                 placeholder="Nombre del Contacto *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.nombre}
                 onChange={handleChange}
                 required
@@ -220,7 +206,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="number"
                 name="capacidad"
                 placeholder="Capacidad"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.capacidad}
                 onChange={handleChange}
               />
@@ -231,7 +217,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="text"
                 name="cuit"
                 placeholder="CUIT (XX-XXXXXXXX-X) *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.cuit}
                 onChange={handleChange}
                 required
@@ -243,7 +229,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="email"
                 name="email"
                 placeholder="Email *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -255,7 +241,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="tel"
                 name="whatsapp"
                 placeholder="WhatsApp *"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.whatsapp}
                 onChange={handleChange}
                 required
@@ -263,21 +249,22 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
             </div>
 
             <div className="relative flex items-center gap-2">
-              <label className="flex items-center">
+              <label className="flex items-center text-white">
                 <input
                   type="checkbox"
                   name="estatus"
                   checked={formData.estatus}
                   onChange={handleChange}
-                  className="mr-2 h-4 w-4"
+                  className="mr-2 h-4 w-4 text-yellow-600 bg-gray-700 border-yellow-600 rounded focus:ring-yellow-500"
                 />
                 <span>Salón Activo</span>
               </label>
             </div>
 
-            {/* Datos de MercadoPago */}
             <div className="mt-6 mb-2">
-              <h3 className="text-md font-medium">Datos de Pago</h3>
+              <h3 className="text-md font-medium text-yellow-500">
+                Datos de Pago
+              </h3>
             </div>
 
             <div className="relative">
@@ -285,7 +272,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="text"
                 name="MercadopagoKeyP"
                 placeholder="Clave Pública de MercadoPago"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.MercadopagoKeyP}
                 onChange={handleChange}
               />
@@ -296,7 +283,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="text"
                 name="Mercadopago"
                 placeholder="Token de MercadoPago"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.Mercadopago}
                 onChange={handleChange}
               />
@@ -307,7 +294,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="text"
                 name="cbu"
                 placeholder="CBU"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.cbu}
                 onChange={handleChange}
               />
@@ -318,7 +305,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="text"
                 name="alias"
                 placeholder="Alias CBU"
-                className="search-input pl-3 w-full"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.alias}
                 onChange={handleChange}
               />
@@ -327,7 +314,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
 
           <button
             type="submit"
-            className="btn btn-primary w-full mt-4 flex items-center justify-center gap-2"
+            className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
