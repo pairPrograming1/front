@@ -11,6 +11,9 @@ import {
   Power,
   Archive,
   Edit,
+  ChevronDown,
+  ChevronUp,
+  MoreHorizontal,
 } from "lucide-react";
 import SalonModal from "../components/salon-modal";
 import SalonEditarModal from "../components/salon-editar-modal";
@@ -30,6 +33,8 @@ export default function Salones() {
   const [searchTerm, setSearchTerm] = useState("");
   const [verInactivos, setVerInactivos] = useState(false);
   const [salonAEditar, setSalonAEditar] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedSalon, setExpandedSalon] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -269,7 +274,7 @@ export default function Salones() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Header title="Salones" />
         <div className="flex justify-center items-center h-64">
           <p>Cargando salones...</p>
@@ -280,7 +285,7 @@ export default function Salones() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Header title="Salones" />
         <div className="alert alert-error">
           <p>Error: {error}</p>
@@ -290,26 +295,27 @@ export default function Salones() {
   }
 
   return (
-    <div className="p-2">
+    <div className="p-4 md:p-6">
       <Header title="Salones" />
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
-          <input
-            type="text"
-            placeholder="Buscar por nombre, contacto, email, CUIT o WhatsApp..."
-            className="search-input pl-10 w-full"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        </div>
+      {/* Filtros y búsqueda */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="   Buscar por nombre, contacto, email, CUIT o WhatsApp..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="search-input pl-10 w-full"
+            />
+            <Search className="absolute left-3 top-1/3 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <button
             className={`btn ${
               verInactivos ? "btn-warning" : "btn-outline"
-            } flex items-center gap-2 w-full sm:w-auto`}
+            } flex items-center gap-2 w-full md:w-auto`}
             onClick={toggleVerInactivos}
           >
             {verInactivos ? (
@@ -319,75 +325,207 @@ export default function Salones() {
             )}
             {verInactivos ? "Ver activos" : "Ver inactivos"}
           </button>
+        </div>
 
+        <div className="flex flex-col md:flex-row gap-4">
           <button
-            className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
+            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
             onClick={() => setShowModal(true)}
           >
             <Plus className="h-4 w-4" />
-            Agregar
+            Agregar salón
           </button>
         </div>
       </div>
 
-      <div className="table-container overflow-x-auto">
-        <table className="table min-w-full">
-          <thead>
-            <tr>
-              <th>Salón</th>
-              <th>CUIT</th>
-              <th>Nombre del Contacto</th>
-              <th>Email</th>
-              <th>WhatsApp</th>
-              <th>Capacidad</th>
-              <th>Estado</th>
-              <th className="w-48">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {salones.length > 0 ? (
-              salones.map((salon) => {
-                const isActive = salon.isActive ?? salon.estatus ?? true;
+      {/* Tabla de salones */}
+      <div className="overflow-x-auto">
+        {/* Vista de escritorio */}
+        <div className="hidden md:block">
+          <table className="table min-w-full">
+            <thead>
+              <tr>
+                <th>Salón</th>
+                <th>CUIT</th>
+                <th>Nombre del Contacto</th>
+                <th>Email</th>
+                <th>WhatsApp</th>
+                <th>Capacidad</th>
+                <th>Estado</th>
+                <th className="w-48">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {salones.length > 0 ? (
+                salones.map((salon) => {
+                  const isActive = salon.isActive ?? salon.estatus ?? true;
 
-                return (
-                  <tr
-                    key={salon.id || salon._id || salon.Id}
-                    className={`cursor-pointer ${
-                      !isActive ? "opacity-70 bg-gray-50" : ""
-                    }`}
-                  >
-                    <td>{salon.salon || salon.nombre}</td>
-                    <td>{salon.cuit}</td>
-                    <td>{salon.contacto || salon.nombre}</td>
-                    <td>{salon.email}</td>
-                    <td>{salon.whatsapp}</td>
-                    <td>{salon.capacidad || "N/A"}</td>
-                    <td>
-                      <span
-                        className={`badge ${
-                          isActive ? "badge-success" : "badge-error"
-                        }`}
-                      >
-                        {isActive ? "Activo" : "Inactivo"}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex gap-2">
+                  return (
+                    <tr
+                      key={salon.id || salon._id || salon.Id}
+                      className={`cursor-pointer ${
+                        !isActive ? "opacity-70 bg-gray-50" : ""
+                      }`}
+                    >
+                      <td>{salon.salon || salon.nombre}</td>
+                      <td>{salon.cuit}</td>
+                      <td>{salon.contacto || salon.nombre}</td>
+                      <td>{salon.email}</td>
+                      <td>{salon.whatsapp}</td>
+                      <td>{salon.capacidad || "N/A"}</td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            isActive ? "badge-success" : "badge-error"
+                          }`}
+                        >
+                          {isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex gap-2">
+                          <button
+                            className="btn btn-sm btn-outline btn-primary p-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSalonAEditar(salon);
+                            }}
+                            title="Editar"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            className={`btn btn-sm btn-outline ${
+                              isActive ? "btn-warning" : "btn-success"
+                            } p-1`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSalonStatus(
+                                salon.id || salon._id || salon.Id,
+                                isActive
+                              );
+                            }}
+                            title={isActive ? "Desactivar" : "Activar"}
+                          >
+                            {isActive ? (
+                              <Archive className="h-4 w-4" />
+                            ) : (
+                              <Power className="h-4 w-4" />
+                            )}
+                          </button>
+
+                          <button
+                            className="btn btn-sm btn-outline btn-error p-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSalon(
+                                salon.id || salon._id || salon.Id
+                              );
+                            }}
+                            title="Eliminar permanentemente"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-4">
+                    No se encontraron salones
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Vista móvil */}
+        <div className="md:hidden space-y-4">
+          {salones.length > 0 ? (
+            salones.map((salon) => {
+              const isActive = salon.isActive ?? salon.estatus ?? true;
+
+              return (
+                <div
+                  key={salon.id || salon._id || salon.Id}
+                  className={`border rounded-lg p-4 ${
+                    !isActive ? "opacity-70 bg-gray-50" : ""
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="font-medium">
+                        {salon.salon || salon.nombre}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {salon.contacto || salon.nombre}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        setExpandedSalon(
+                          expandedSalon === (salon.id || salon._id || salon.Id)
+                            ? null
+                            : salon.id || salon._id || salon.Id
+                        )
+                      }
+                      className="text-gray-500"
+                    >
+                      {expandedSalon === (salon.id || salon._id || salon.Id) ? (
+                        <ChevronUp />
+                      ) : (
+                        <ChevronDown />
+                      )}
+                    </button>
+                  </div>
+
+                  {expandedSalon === (salon.id || salon._id || salon.Id) && (
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-24">CUIT:</span>
+                        <span>{salon.cuit}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-24">Email:</span>
+                        <span>{salon.email}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-24">WhatsApp:</span>
+                        <span>{salon.whatsapp}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-24">Capacidad:</span>
+                        <span>{salon.capacidad || "N/A"}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="text-gray-500 w-24">Estado:</span>
+                        <span
+                          className={`badge ${
+                            isActive ? "badge-success" : "badge-error"
+                          }`}
+                        >
+                          {isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between pt-2">
                         <button
-                          className="btn btn-sm btn-outline btn-primary p-1"
+                          className="btn btn-sm btn-outline btn-primary"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSalonAEditar(salon);
                           }}
-                          title="Editar"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
-
                         <button
                           className={`btn btn-sm btn-outline ${
                             isActive ? "btn-warning" : "btn-success"
-                          } p-1`}
+                          }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleToggleSalonStatus(
@@ -395,7 +533,6 @@ export default function Salones() {
                               isActive
                             );
                           }}
-                          title={isActive ? "Desactivar" : "Activar"}
                         >
                           {isActive ? (
                             <Archive className="h-4 w-4" />
@@ -403,42 +540,39 @@ export default function Salones() {
                             <Power className="h-4 w-4" />
                           )}
                         </button>
-
                         <button
-                          className="btn btn-sm btn-outline btn-error p-1"
+                          className="btn btn-sm btn-outline btn-error"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteSalon(
                               salon.id || salon._id || salon.Id
                             );
                           }}
-                          title="Eliminar permanentemente"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                );
-              })
-            ) : (
-              <tr>
-                <td colSpan="8" className="text-center py-4">
-                  No se encontraron salones
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-4 border rounded-lg">
+              No se encontraron salones
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Paginación */}
       {totalPages > 1 && (
-        <div className="pagination mt-4 flex justify-center gap-2">
+        <div className="pagination mt-6 flex justify-center gap-2">
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index}
-              className={`pagination-item ${
-                currentPage === index + 1 ? "active" : ""
+              className={`btn btn-sm ${
+                currentPage === index + 1 ? "btn-primary" : "btn-outline"
               }`}
               onClick={() => handlePageChange(index + 1)}
             >
@@ -447,7 +581,7 @@ export default function Salones() {
           ))}
           {currentPage < totalPages && (
             <button
-              className="pagination-item"
+              className="btn btn-sm btn-outline"
               onClick={() => handlePageChange(currentPage + 1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -456,6 +590,7 @@ export default function Salones() {
         </div>
       )}
 
+      {/* Modales */}
       {showModal && (
         <SalonModal
           onClose={() => setShowModal(false)}
