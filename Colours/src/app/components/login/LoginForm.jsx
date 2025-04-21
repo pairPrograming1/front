@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { AuthContext } from "../../context/AuthContext";
 import apiUrls from "../utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -19,33 +19,33 @@ export default function LoginForm() {
   const { setAuthData } = useContext(AuthContext);
 
   const handleLogin = async () => {
-    const username = document.getElementById("username").value;
+    const userIdentifier = document.getElementById("userIdentifier").value;
     const password = document.getElementById("password").value;
 
-    if (!username || !password) {
+    if (!userIdentifier || !password) {
       setError("Por favor, complete todos los campos");
       return;
     }
 
     const datosLogin = {
-      usuario: username,
+      userIdentifier: userIdentifier,
       password: password,
     };
 
     try {
       setLoading(true);
       // Primer paso: autenticación del usuario
-      const respuesta = await axios.post(
-        `${API_URL}/api/auth`,
-        datosLogin
-      );
+      const respuesta = await axios.post(`${API_URL}/api/auth`, datosLogin);
 
       console.log("Inicio de sesión exitoso:", respuesta.data);
 
       // Segundo paso: verificar el usuario para obtener su información completa incluyendo el rol
       const verificarResponse = await axios.post(
         `${API_URL}/api/users/verificar`,
-        { usuario: username }
+        {
+          usuario: userIdentifier.includes("@") ? undefined : userIdentifier,
+          email: userIdentifier.includes("@") ? userIdentifier : undefined,
+        }
       );
 
       if (!verificarResponse.data.registrado) {
@@ -119,9 +119,9 @@ export default function LoginForm() {
     >
       <div className="mb-2">
         <input
-          id="username"
+          id="userIdentifier"
           type="text"
-          placeholder="Usuario"
+          placeholder="Usuario o Email"
           className="w-full bg-transparent text-[#FFFFFF] border border-[#BF8D6B] rounded-md py-3 px-4 focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] placeholder-[#EDEEF0]/70"
         />
       </div>
