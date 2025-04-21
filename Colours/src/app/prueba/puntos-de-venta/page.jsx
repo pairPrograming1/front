@@ -11,6 +11,9 @@ import {
   Power,
   Archive,
   Edit,
+  ChevronDown,
+  ChevronUp,
+  MoreHorizontal,
 } from "lucide-react";
 import PuntoModal from "../components/punto-modal";
 import EditarModal from "../components/editar-modal";
@@ -19,7 +22,7 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
@@ -32,6 +35,8 @@ export default function PuntosDeVenta() {
   const [puntoAEditar, setPuntoAEditar] = useState(null);
   const [showEdicionCompleta, setShowEdicionCompleta] = useState(false);
   const [selectedPunto, setSelectedPunto] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedPunto, setExpandedPunto] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -78,41 +83,44 @@ export default function PuntosDeVenta() {
   });
 
   const handleAddPunto = async (newPunto) => {
-  try {
-    // First check if a punto with this name already exists
-    const checkResponse = await fetch(`${API_URL}/api/puntodeventa`);
-    const existingPuntos = await checkResponse.json();
-    
-    if (existingPuntos.success && existingPuntos.data.some(p => p.nombre === newPunto.nombre)) {
-      throw new Error("Ya existe un punto de venta con este nombre");
+    try {
+      // First check if a punto with this name already exists
+      const checkResponse = await fetch(`${API_URL}/api/puntodeventa`);
+      const existingPuntos = await checkResponse.json();
+
+      if (
+        existingPuntos.success &&
+        existingPuntos.data.some((p) => p.nombre === newPunto.nombre)
+      ) {
+        throw new Error("Ya existe un punto de venta con este nombre");
+      }
+
+      // Continue with creation if name is unique
+      const response = await fetch(`${API_URL}/api/puntodeventa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPunto),
+      });
+
+      if (!response.ok) throw new Error("Error al crear el punto de venta");
+
+      await refreshPuntos();
+      setShowModal(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "Punto creado",
+        text: "El punto de venta fue creado correctamente",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al crear punto",
+        text: error.message || "Hubo un error al crear el punto de venta",
+      });
     }
-    
-    // Continue with creation if name is unique
-    const response = await fetch(`${API_URL}/api/puntodeventa`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newPunto),
-    });
-    
-    if (!response.ok) throw new Error("Error al crear el punto de venta");
-
-    await refreshPuntos();
-    setShowModal(false);
-
-    Swal.fire({
-      icon: "success",
-      title: "Punto creado",
-      text: "El punto de venta fue creado correctamente",
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    Swal.fire({
-      icon: "error",
-      title: "Error al crear punto",
-      text: error.message || "Hubo un error al crear el punto de venta",
-    });
-  }
-};
+  };
 
   const refreshPuntos = async () => {
     try {
@@ -229,7 +237,7 @@ export default function PuntosDeVenta() {
 
   if (loading) {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Header title="Puntos de Venta" />
         <div className="flex justify-center items-center h-64">
           <p>Cargando puntos de venta...</p>
@@ -240,7 +248,7 @@ export default function PuntosDeVenta() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Header title="Puntos de Venta" />
         <div className="alert alert-error">
           <p>Error: {error}</p>
@@ -250,26 +258,27 @@ export default function PuntosDeVenta() {
   }
 
   return (
-    <div className="p-2">
+    <div className="p-4 md:p-6">
       <Header title="Puntos de Venta" />
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="relative w-full sm:w-2/3 mb-4 sm:mb-0">
-          <input
-            type="text"
-            placeholder="Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input pl-10 w-full"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        </div>
+      {/* Filtros y búsqueda */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="relative w-full">
+            <input
+              type="text"
+              placeholder="    Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input pl-10 w-full"
+            />
+            <Search className="absolute left-3 top-1/3 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
           <button
             className={`btn ${
               verInactivos ? "btn-warning" : "btn-outline"
-            } flex items-center gap-2 w-full sm:w-auto`}
+            } flex items-center gap-2 w-full md:w-auto`}
             onClick={() => setVerInactivos((prev) => !prev)}
           >
             {verInactivos ? (
@@ -279,82 +288,190 @@ export default function PuntosDeVenta() {
             )}
             {verInactivos ? "Ver activos" : "Ver inactivos"}
           </button>
+        </div>
 
+        <div className="flex flex-col md:flex-row gap-4">
           <button
-            className="btn btn-primary flex items-center gap-2 w-full sm:w-auto"
+            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
             onClick={() => setShowModal(true)}
           >
             <Plus className="h-4 w-4" />
-            Agregar
+            Agregar punto
           </button>
         </div>
       </div>
 
-      <div className="table-container overflow-x-auto">
-        <table className="table min-w-full">
-          <thead>
-            <tr>
-              <th>Razón Social</th>
-              <th>Nombre</th>
-              <th>Dirección</th>
-              <th>CUIT</th>
-              <th>Email</th>
-              <th>Teléfono</th>
-              <th>Tipo</th>
-              <th>Estado</th>
-              <th className="w-48">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.map((punto) => (
-              <tr
-                key={punto.id}
-                className={`cursor-pointer ${
-                  !punto.isActive ? "opacity-70 bg-gray-50" : ""
-                }`}
-                onClick={() => {
-                  setSelectedPunto(punto);
-                  setShowEdicionCompleta(true);
-                }}
-              >
-                <td>{punto.razon}</td>
-                <td>{punto.nombre}</td>
-                <td>{punto.direccion}</td>
-                <td>{punto.cuit}</td>
-                <td>{punto.email}</td>
-                <td>{punto.telefono}</td>
-                <td>{punto.es_online ? "Online" : "Físico"}</td>
-                <td>
-                  <span
-                    className={`badge ${
-                      punto.isActive ? "badge-success" : "badge-error"
-                    }`}
-                  >
-                    {punto.isActive ? "Activo" : "Inactivo"}
-                  </span>
-                </td>
-                <td>
-                  <div className="flex gap-2">
+      {/* Tabla de puntos de venta */}
+      <div className="overflow-x-auto">
+        {/* Vista de escritorio */}
+        <div className="hidden md:block">
+          <table className="table min-w-full">
+            <thead>
+              <tr>
+                <th>Razón Social</th>
+                <th>Nombre</th>
+                <th>Dirección</th>
+                <th>CUIT</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th className="w-48">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((punto) => (
+                <tr
+                  key={punto.id}
+                  className={`cursor-pointer ${
+                    !punto.isActive ? "opacity-70 bg-gray-50" : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedPunto(punto);
+                    setShowEdicionCompleta(true);
+                  }}
+                >
+                  <td>{punto.razon}</td>
+                  <td>{punto.nombre}</td>
+                  <td>{punto.direccion}</td>
+                  <td>{punto.cuit}</td>
+                  <td>{punto.email}</td>
+                  <td>{punto.telefono}</td>
+                  <td>{punto.es_online ? "Online" : "Físico"}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        punto.isActive ? "badge-success" : "badge-error"
+                      }`}
+                    >
+                      {punto.isActive ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="flex gap-2">
+                      <button
+                        className="btn btn-sm btn-outline btn-primary p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPuntoAEditar(punto);
+                        }}
+                        title="Editar"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        className={`btn btn-sm btn-outline ${
+                          punto.isActive ? "btn-warning" : "btn-success"
+                        } p-1`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePuntoStatus(punto.id, punto.isActive);
+                        }}
+                        title={punto.isActive ? "Desactivar" : "Activar"}
+                      >
+                        {punto.isActive ? (
+                          <Archive className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
+                      </button>
+
+                      <button
+                        className="btn btn-sm btn-outline btn-error p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePunto(punto.id);
+                        }}
+                        title="Eliminar permanentemente"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Vista móvil */}
+        <div className="md:hidden space-y-4">
+          {currentItems.map((punto) => (
+            <div
+              key={punto.id}
+              className={`border rounded-lg p-4 ${
+                !punto.isActive ? "opacity-70 bg-gray-50" : ""
+              }`}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-medium">{punto.nombre}</div>
+                  <div className="text-sm text-gray-500">{punto.razon}</div>
+                </div>
+                <button
+                  onClick={() =>
+                    setExpandedPunto(
+                      expandedPunto === punto.id ? null : punto.id
+                    )
+                  }
+                  className="text-gray-500"
+                >
+                  {expandedPunto === punto.id ? <ChevronUp /> : <ChevronDown />}
+                </button>
+              </div>
+
+              {expandedPunto === punto.id && (
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-24">Dirección:</span>
+                    <span>{punto.direccion}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-24">CUIT:</span>
+                    <span>{punto.cuit}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-24">Email:</span>
+                    <span>{punto.email}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-24">Teléfono:</span>
+                    <span>{punto.telefono}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-24">Tipo:</span>
+                    <span>{punto.es_online ? "Online" : "Físico"}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-gray-500 w-24">Estado:</span>
+                    <span
+                      className={`badge ${
+                        punto.isActive ? "badge-success" : "badge-error"
+                      }`}
+                    >
+                      {punto.isActive ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between pt-2">
                     <button
-                      className="btn btn-sm btn-outline btn-primary p-1"
+                      className="btn btn-sm btn-outline btn-primary"
                       onClick={(e) => {
                         e.stopPropagation();
                         setPuntoAEditar(punto);
                       }}
-                      title="Editar"
                     >
                       <Edit className="h-4 w-4" />
                     </button>
-
                     <button
                       className={`btn btn-sm btn-outline ${
                         punto.isActive ? "btn-warning" : "btn-success"
-                      } p-1`}
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleTogglePuntoStatus(punto.id, punto.isActive);
                       }}
-                      title={punto.isActive ? "Desactivar" : "Activar"}
                     >
                       {punto.isActive ? (
                         <Archive className="h-4 w-4" />
@@ -362,32 +479,31 @@ export default function PuntosDeVenta() {
                         <Power className="h-4 w-4" />
                       )}
                     </button>
-
                     <button
-                      className="btn btn-sm btn-outline btn-error p-1"
+                      className="btn btn-sm btn-outline btn-error"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeletePunto(punto.id);
                       }}
-                      title="Eliminar permanentemente"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Paginación */}
       {totalPages > 1 && (
-        <div className="pagination mt-4 flex justify-center gap-2">
+        <div className="pagination mt-6 flex justify-center gap-2">
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index}
-              className={`pagination-item ${
-                currentPage === index + 1 ? "active" : ""
+              className={`btn btn-sm ${
+                currentPage === index + 1 ? "btn-primary" : "btn-outline"
               }`}
               onClick={() => setCurrentPage(index + 1)}
             >
@@ -396,7 +512,7 @@ export default function PuntosDeVenta() {
           ))}
           {currentPage < totalPages && (
             <button
-              className="pagination-item"
+              className="btn btn-sm btn-outline"
               onClick={() => setCurrentPage((prev) => prev + 1)}
             >
               <ChevronRight className="h-4 w-4" />
@@ -405,6 +521,7 @@ export default function PuntosDeVenta() {
         </div>
       )}
 
+      {/* Modales */}
       {showModal && (
         <PuntoModal
           onClose={() => setShowModal(false)}
