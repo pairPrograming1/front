@@ -6,7 +6,6 @@ import Swal from "sweetalert2";
 import { X } from "lucide-react";
 import ImageUploaderModal from "./image-uploader-modal";
 import ImageGallery from "./ImageGallery";
-import useImageFetcher from "./ImageFetcher";
 import apiUrls from "@/app/components/utils/apiConfig";
 
 const API_URL = apiUrls.production;
@@ -20,6 +19,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [salones, setSalones] = useState([]);
   const [loadingSalones, setLoadingSalones] = useState(false);
   const [errorSalones, setErrorSalones] = useState(null);
+  const [validationError, setValidationError] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -79,10 +79,64 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   }, [punto]);
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    // Validación especial para teléfono
+    if (name === "telefono") {
+      const validatedValue = value.replace(/[^0-9+]/g, "");
+      if (validatedValue.includes("+")) {
+        const parts = validatedValue.split("+");
+        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
+          return;
+        }
+      }
+      setData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
+    }
+
+    // Validación especial para whatsapp
+    if (name === "whatsapp") {
+      const validatedValue = value.replace(/[^0-9+]/g, "");
+      if (validatedValue.includes("+")) {
+        const parts = validatedValue.split("+");
+        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
+          return;
+        }
+      }
+      setData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
+    }
+
+    // Validación especial para CUIT
+    if (name === "cuit") {
+      const digits = value.replace(/\D/g, "");
+      setData((prev) => ({ ...prev, [name]: digits }));
+      return;
+    }
+
+    // Para los demás campos
+    setData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const formatCUIT = (cuit) => {
+    const digits = cuit.replace(/\D/g, "");
+    if (digits.length === 11) {
+      return `${digits.substring(0, 2)}-${digits.substring(
+        2,
+        10
+      )}-${digits.substring(10)}`;
+    }
+    return digits;
+  };
+
   const fetchSalones = async () => {
     try {
       setLoadingSalones(true);
-      const response = await fetch(`${API_URL}/api/salon`);
+      const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentamos el límite a 100
       if (!response.ok) {
         throw new Error(`Error al obtener salones: ${response.status}`);
       }
@@ -121,10 +175,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
       const result = await response.json();
       if (result.success && result.data && result.data.imagenes) {
-        setData({
-          ...data,
+        setData((prev) => ({
+          ...prev,
           imagenes: result.data.imagenes,
-        });
+        }));
       }
     } catch (err) {
       console.error("Error fetching images:", err);
@@ -148,23 +202,69 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
     if (placeholderIndex !== -1) {
       newImages[placeholderIndex] = imageUrl;
-      setData({
-        ...data,
-        imagenes: newImages,
-      });
     } else {
       newImages[0] = imageUrl;
-      setData({
-        ...data,
-        imagenes: newImages,
-      });
     }
+
+    setData((prev) => ({
+      ...prev,
+      imagenes: newImages,
+    }));
+  };
+
+  const validateForm = () => {
+    // Validar campos requeridos
+    const requiredFields = ["razon", "nombre", "direccion", "cuit", "email"];
+
+    for (const field of requiredFields) {
+      if (!data[field] || data[field].trim() === "") {
+        return `El campo ${field} es requerido`;
+      }
+    }
+
+    // Validar teléfono
+    if (data.telefono && !/^\+?\d+$/.test(data.telefono)) {
+      return "El teléfono solo puede contener números y un + al inicio";
+    }
+
+    // Validar whatsapp
+    if (data.whatsapp && !/^\+?\d+$/.test(data.whatsapp)) {
+      return "El WhatsApp solo puede contener números y un + al inicio";
+    }
+
+    // Validar CUIT
+    const formattedCUIT = formatCUIT(data.cuit);
+    const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
+    if (!cuitPattern.test(formattedCUIT)) {
+      return "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X";
+    }
+
+    // Validar email
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(data.email)) {
+      return "El formato del correo electrónico es inválido";
+    }
+
+    return null;
   };
 
   const handleSubmit = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setValidationError(validationError);
+      Swal.fire({
+        icon: "error",
+        title: "Error de validación",
+        text: validationError,
+      });
+      return;
+    }
+
     try {
+      const formattedCUIT = formatCUIT(data.cuit);
       const submitData = {
         ...data,
+        cuit: formattedCUIT,
         image:
           data.imagenes.find((img) => img !== "/placeholder.svg") ||
           data.imagenes[0],
@@ -190,6 +290,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         throw new Error(result.message || "Error al guardar los datos");
       }
 
+      setValidationError(null);
       onUpdate?.();
       onClose();
 
@@ -201,6 +302,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           : "Punto de venta creado correctamente",
       });
     } catch (error) {
+      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -231,62 +333,86 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
           {/* Main Content */}
           <div className="p-6">
+            {validationError && (
+              <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                {validationError}
+              </div>
+            )}
+
             {/* Form Fields */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <input
                 type="text"
-                placeholder="Razón Social"
+                name="razon"
+                placeholder="Razón Social *"
                 value={data.razon}
-                onChange={(e) => setData({ ...data, razon: e.target.value })}
+                onChange={handleChange}
                 className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
               <input
                 type="text"
-                placeholder="Nombre"
+                name="nombre"
+                placeholder="Nombre *"
                 value={data.nombre}
-                onChange={(e) => setData({ ...data, nombre: e.target.value })}
+                onChange={handleChange}
                 className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
               <input
                 type="text"
-                placeholder="Dirección"
+                name="direccion"
+                placeholder="Dirección *"
                 value={data.direccion}
-                onChange={(e) =>
-                  setData({ ...data, direccion: e.target.value })
-                }
+                onChange={handleChange}
                 className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="cuit"
+                  placeholder="CUIT (11 dígitos) *"
+                  value={data.cuit}
+                  onChange={handleChange}
+                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  maxLength="11"
+                  required
+                />
+                {data.cuit.length === 11 && (
+                  <span className="absolute right-3 top-3 text-green-400 text-sm">
+                    {formatCUIT(data.cuit)}
+                  </span>
+                )}
+              </div>
               <input
-                type="text"
-                placeholder="CUIT"
-                value={data.cuit}
-                onChange={(e) => setData({ ...data, cuit: e.target.value })}
+                type="email"
+                name="email"
+                placeholder="E-mail *"
+                value={data.email}
+                onChange={handleChange}
                 className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
 
-              <input
-                type="text"
-                placeholder="Email"
-                value={data.email}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-              />
-              <input
-                type="text"
-                placeholder="Teléfono"
-                value={data.telefono}
-                onChange={(e) => setData({ ...data, telefono: e.target.value })}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="telefono"
+                  placeholder="Teléfono (solo números, + opcional)"
+                  value={data.telefono}
+                  onChange={handleChange}
+                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                />
+              </div>
 
               <div className="flex items-center">
                 <label className="flex items-center space-x-2 text-white">
                   <input
                     type="checkbox"
+                    name="es_online"
                     checked={data.es_online}
-                    onChange={(e) =>
-                      setData({ ...data, es_online: e.target.checked })
-                    }
+                    onChange={handleChange}
                     className="h-5 w-5 text-yellow-600 rounded focus:ring-yellow-500 border-yellow-600 bg-gray-700"
                   />
                   <span>Es Online</span>
@@ -326,10 +452,20 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                     <div>
                       {/* Salones Habilitados */}
                       <div className="mb-8">
-                        <h3 className="text-lg font-semibold text-yellow-500 mb-4">
-                          Salones Habilitados
-                        </h3>
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-lg font-semibold text-yellow-500">
+                            Salones Habilitados ({salones.length})
+                          </h3>
+                          <div className="text-sm text-gray-400">
+                            Mostrando todos los salones activos
+                          </div>
+                        </div>
+
+                        {/* Contenedor con scroll para todos los salones */}
+                        <div
+                          className="grid grid-cols-4 gap-4 max-h-96 overflow-y-auto p-2"
+                          style={{ scrollbarWidth: "thin" }}
+                        >
                           {loadingSalones ? (
                             <div className="col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
                               <p className="text-yellow-500">
@@ -343,15 +479,42 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                               </p>
                             </div>
                           ) : salones.length > 0 ? (
-                            salones.map((salon, index) => (
+                            salones.map((salon) => (
                               <div
-                                key={index}
-                                className="bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden"
+                                key={salon.id}
+                                className={`bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors cursor-pointer ${
+                                  data.salonesHabilitados.some(
+                                    (s) => s.id === salon.id
+                                  )
+                                    ? "bg-yellow-700/20 border-yellow-500"
+                                    : ""
+                                }`}
+                                onClick={() => {
+                                  const isSelected =
+                                    data.salonesHabilitados.some(
+                                      (s) => s.id === salon.id
+                                    );
+                                  setData((prev) => ({
+                                    ...prev,
+                                    salonesHabilitados: isSelected
+                                      ? prev.salonesHabilitados.filter(
+                                          (s) => s.id !== salon.id
+                                        )
+                                      : [...prev.salonesHabilitados, salon],
+                                  }));
+                                }}
                               >
-                                <div className="p-0 h-32 flex items-center justify-center">
-                                  <span className="text-2xl font-light italic text-white">
+                                <div className="p-0 h-32 flex flex-col items-center justify-center">
+                                  <span className="text-xl font-light italic text-white text-center">
                                     {salon.nombre}
                                   </span>
+                                  {data.salonesHabilitados.some(
+                                    (s) => s.id === salon.id
+                                  ) && (
+                                    <span className="text-green-400 text-xs mt-1">
+                                      Seleccionado
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             ))

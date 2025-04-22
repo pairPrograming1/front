@@ -44,6 +44,31 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
+    // Validación especial para WhatsApp
+    if (name === "whatsapp") {
+      // Permite solo números y el símbolo + al inicio
+      const validatedValue = value.replace(/[^0-9+]/g, "");
+      // Si contiene +, debe estar al inicio y solo una vez
+      if (validatedValue.includes("+")) {
+        const parts = validatedValue.split("+");
+        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
+          // Si hay más de un + o no está al inicio, no actualizamos
+          return;
+        }
+      }
+      setFormData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
+    }
+
+    // Validación especial para CUIT (solo números, se formatea después)
+    if (name === "cuit") {
+      const digits = value.replace(/\D/g, "");
+      setFormData((prev) => ({ ...prev, [name]: digits }));
+      return;
+    }
+
+    // Para los demás campos, actualizamos normalmente
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -80,7 +105,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
         10
       )}-${digits.substring(10)}`;
     }
-    return cuit;
+    return digits; // Devuelve solo dígitos si no está completo
   };
 
   const handleSubmit = async (e) => {
@@ -97,10 +122,19 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
         throw new Error("Todos los campos marcados con * son obligatorios");
       }
 
+      // Validación de WhatsApp
+      if (formData.whatsapp && !/^\+?\d+$/.test(formData.whatsapp)) {
+        throw new Error(
+          "El WhatsApp solo puede contener números y un + al inicio"
+        );
+      }
+
       const formattedCUIT = formatCUIT(formData.cuit);
       const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
       if (!cuitPattern.test(formattedCUIT)) {
-        throw new Error("El formato del CUIT debe ser XX-XXXXXXXX-X");
+        throw new Error(
+          "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X"
+        );
       }
 
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -150,7 +184,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
   };
 
   return (
-    <div className="fixed inset-0  flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-white">Editar Salón</h2>
@@ -206,6 +240,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
                 type="number"
                 name="capacidad"
                 placeholder="Capacidad"
+                min="1"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.capacidad}
                 onChange={handleChange}
@@ -216,12 +251,18 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
               <input
                 type="text"
                 name="cuit"
-                placeholder="CUIT (XX-XXXXXXXX-X) *"
+                placeholder="CUIT (11 dígitos) *"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.cuit}
                 onChange={handleChange}
+                maxLength="11"
                 required
               />
+              {formData.cuit.length === 11 && (
+                <span className="absolute right-3 top-3 text-green-400 text-sm">
+                  {formatCUIT(formData.cuit)}
+                </span>
+              )}
             </div>
 
             <div className="relative">
@@ -240,7 +281,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
               <input
                 type="tel"
                 name="whatsapp"
-                placeholder="WhatsApp *"
+                placeholder="WhatsApp (solo números, + opcional) *"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.whatsapp}
                 onChange={handleChange}
