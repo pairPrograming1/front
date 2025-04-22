@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import { AuthContext } from "../../context/AuthContext"; // Ajusta la ruta según tu estructura
 import apiUrls from "../utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
@@ -25,18 +25,15 @@ export default function OAuthButton() {
       }).then(async () => {
         try {
           // Verificar si el usuario existe en la base de datos
-          const verifyResponse = await fetch(
-           `${API_URL}/api/users/verificar`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: user.email,
-              }),
-            }
-          );
+          const verifyResponse = await fetch(`${API_URL}/api/users/verificar`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: user.email,
+            }),
+          });
 
           const verifyData = await verifyResponse.json();
           console.log("Respuesta de verificación:", verifyData);
@@ -45,21 +42,18 @@ export default function OAuthButton() {
             // Si el usuario no existe, registrarlo
             const registerUser = async () => {
               try {
-                const response = await fetch(
-                  `${API_URL}/api/users/register`,
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                      auth0Id: user.sub,
-                      email: user.email,
-                      apellido: user.family_name || "",
-                      nombre: user.given_name || user.name,
-                    }),
-                  }
-                );
+                const response = await fetch(`${API_URL}/api/users/register`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    auth0Id: user.sub,
+                    email: user.email,
+                    apellido: user.family_name || "",
+                    nombre: user.given_name || user.name,
+                  }),
+                });
 
                 if (!response.ok) {
                   console.error(
@@ -136,7 +130,7 @@ export default function OAuthButton() {
     <div className="text-center mt-4">
       <p className="text-[#EDEEF0] text-sm mb-2">o continuar con Google</p>
       <button
-        className="transparent flex items-center justify-center mx-auto border-0"
+        className="transparent flex items-center justify-center mx-auto border-0 hover:opacity-80 transition-opacity cursor-pointer"
         type="button"
         onClick={() => {
           loginWithRedirect({ connection: "google-oauth2" });
@@ -147,6 +141,7 @@ export default function OAuthButton() {
           alt="Google Icon"
           width={40}
           height={40}
+          className="hover:scale-110 transition-transform duration-200"
         />
       </button>
     </div>
