@@ -7,7 +7,7 @@ import InputField from "./InputField";
 import Swal from "sweetalert2";
 import apiUrls from "../utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -28,7 +28,21 @@ export default function RegisterForm() {
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [id]: value }));
+
+    // Special validation for DNI field
+    if (id === "dni") {
+      // Only allow numbers and the letters M and F
+      const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
+      setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
+    }
+    // Special validation for whatsapp field
+    else if (id === "whatsapp") {
+      // Only allow numbers and + character
+      const sanitizedValue = value.replace(/[^0-9+]/g, "");
+      setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
+    } else {
+      setFormData((prevData) => ({ ...prevData, [id]: value }));
+    }
   };
 
   const handleRegister = async () => {
@@ -61,6 +75,17 @@ export default function RegisterForm() {
         icon: "warning",
         title: "Campos incompletos",
         text: "Todos los campos son obligatorios.",
+      });
+      return;
+    }
+
+    // Validación específica del DNI
+    const dniRegex = /^[0-9]+[MF]?$/;
+    if (!dniRegex.test(dni)) {
+      Swal.fire({
+        icon: "warning",
+        title: "DNI inválido",
+        text: "El DNI debe contener solo números, opcionalmente seguido por la letra M o F.",
       });
       return;
     }
@@ -204,6 +229,7 @@ export default function RegisterForm() {
           id="dni"
           value={formData.dni}
           onChange={handleChange}
+          placeholder="Solo números y opcionalmente M o F"
         />
         <InputField
           label="Correo Electrónico"
@@ -232,6 +258,7 @@ export default function RegisterForm() {
           id="whatsapp"
           value={formData.whatsapp}
           onChange={handleChange}
+          placeholder="Formato: +549XXXXXXXXXX"
         />
         <InputField
           label="Contraseña"
