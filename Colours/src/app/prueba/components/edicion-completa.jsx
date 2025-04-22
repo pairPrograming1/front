@@ -263,15 +263,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 onChange={(e) => setData({ ...data, cuit: e.target.value })}
                 className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
               />
-              <input
-                type="text"
-                placeholder="Persona de Contacto"
-                value={data.personaContacto}
-                onChange={(e) =>
-                  setData({ ...data, personaContacto: e.target.value })
-                }
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-              />
+
               <input
                 type="text"
                 placeholder="Email"
@@ -286,13 +278,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 onChange={(e) => setData({ ...data, telefono: e.target.value })}
                 className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
               />
-              <input
-                type="text"
-                placeholder="WhatsApp"
-                value={data.whatsapp}
-                onChange={(e) => setData({ ...data, whatsapp: e.target.value })}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-              />
+
               <div className="flex items-center">
                 <label className="flex items-center space-x-2 text-white">
                   <input
