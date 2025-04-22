@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function EventoEditarModal({
   evento,
@@ -25,12 +25,10 @@ export default function EventoEditarModal({
   const [fetchingSalones, setFetchingSalones] = useState(true);
   const [error, setError] = useState(null);
 
-  // Initialize form with existing event data
   useEffect(() => {
     if (evento) {
-      // Format the date for the datetime-local input
       const eventDate = new Date(evento.fecha);
-      const formattedDate = eventDate.toISOString().slice(0, 16); // Format as YYYY-MM-DDTHH:MM
+      const formattedDate = eventDate.toISOString().slice(0, 16);
 
       setFormData({
         nombre: evento.nombre || "",
@@ -43,7 +41,6 @@ export default function EventoEditarModal({
     }
   }, [evento]);
 
-  // Fetch salones for dropdown
   useEffect(() => {
     const fetchSalones = async () => {
       try {
@@ -54,9 +51,6 @@ export default function EventoEditarModal({
         }
 
         const data = await response.json();
-        console.log("Salones data:", data);
-
-        // Handle different response formats
         let salonesData = [];
         if (data.success && Array.isArray(data.data)) {
           salonesData = data.data;
@@ -64,14 +58,12 @@ export default function EventoEditarModal({
           salonesData = data;
         }
 
-        // Validate that each salon has a valid UUID using the correct property name 'Id'
         const validSalones = salonesData.filter((salon) => {
           const uuidPattern =
             /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           return salon.Id && uuidPattern.test(salon.Id.toString());
         });
 
-        console.log("Valid salones with UUIDs:", validSalones);
         setSalones(validSalones);
 
         if (validSalones.length === 0) {
@@ -117,7 +109,6 @@ export default function EventoEditarModal({
     setError(null);
 
     try {
-      // Validate salonId is a valid UUID
       const uuidPattern =
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!formData.salonId || !uuidPattern.test(formData.salonId)) {
@@ -126,24 +117,18 @@ export default function EventoEditarModal({
         );
       }
 
-      // Format date for API
       const formattedData = {
         ...formData,
         fecha: new Date(formData.fecha).toISOString(),
       };
 
-      console.log("Sending updated data to API:", formattedData);
-
-      const response = await fetch(
-        `${API_URL}/api/evento/${evento.Id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formattedData),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/evento/${evento.Id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedData),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -174,7 +159,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Get min date (today) for date picker
   const getTodayString = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -187,47 +171,54 @@ export default function EventoEditarModal({
   };
 
   return (
-    <div className="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="modal bg-[#181f2a] rounded-lg p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0  flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md mx-4 shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Editar Evento</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <h2 className="text-xl font-semibold text-white">Editar Evento</h2>
+          <button
+            onClick={onClose}
+            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
               Nombre del Evento
             </label>
             <input
               type="text"
               name="nombre"
               placeholder="Nombre del Evento"
-              className="input w-full bg-[#232b38] border border-[#2a3545] rounded p-2"
+              className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
               value={formData.nombre}
               onChange={handleChange}
               required
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Salón</label>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
+              Salón
+            </label>
             {fetchingSalones ? (
-              <div className="p-2 text-center">Cargando salones...</div>
+              <div className="p-3 text-center bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500">
+                Cargando salones...
+              </div>
             ) : (
               <>
                 {salones.length > 0 ? (
                   <select
                     name="salonId"
-                    className="input w-full bg-[#232b38] border border-[#2a3545] rounded p-2"
+                    className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
                     value={formData.salonId}
                     onChange={handleChange}
                     required
@@ -243,7 +234,7 @@ export default function EventoEditarModal({
                     ))}
                   </select>
                 ) : (
-                  <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+                  <div className="bg-yellow-900/50 border border-yellow-600 text-yellow-300 px-4 py-3 rounded">
                     No hay salones disponibles. Por favor, agregue un salón
                     primero.
                   </div>
@@ -257,15 +248,15 @@ export default function EventoEditarModal({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-white">
                 Fecha y Hora
               </label>
               <input
                 type="datetime-local"
                 name="fecha"
-                className="input w-full bg-[#232b38] border border-[#2a3545] rounded p-2"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
                 value={formData.fecha}
                 onChange={handleChange}
                 min={getTodayString()}
@@ -273,14 +264,14 @@ export default function EventoEditarModal({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-white">
                 Duración (min)
               </label>
               <input
                 type="number"
                 name="duracion"
                 placeholder="Duración en minutos"
-                className="input w-full bg-[#232b38] border border-[#2a3545] rounded p-2"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
                 value={formData.duracion}
                 onChange={handleChange}
                 min="1"
@@ -289,32 +280,35 @@ export default function EventoEditarModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium mb-1 text-white">
                 Capacidad
               </label>
               <input
                 type="number"
                 name="capacidad"
                 placeholder="Capacidad"
-                className="input w-full bg-[#232b38] border border-[#2a3545] rounded p-2"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
                 value={formData.capacidad}
                 onChange={handleChange}
                 min="1"
                 required
               />
             </div>
-            <div className="flex items-center mt-6">
+            <div className="flex items-center">
               <input
                 type="checkbox"
                 name="activo"
                 id="activo"
-                className="mr-2"
+                className="mr-2 h-5 w-5 text-yellow-600 bg-gray-700 border-yellow-600 rounded focus:ring-yellow-500"
                 checked={formData.activo}
                 onChange={handleChange}
               />
-              <label htmlFor="activo" className="text-sm font-medium">
+              <label
+                htmlFor="activo"
+                className="text-sm font-medium text-white"
+              >
                 Evento Activo
               </label>
             </div>
@@ -322,7 +316,7 @@ export default function EventoEditarModal({
 
           <button
             type="submit"
-            className="btn btn-primary w-full mt-4 p-2 rounded"
+            className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300"
             disabled={loading || fetchingSalones || salones.length === 0}
           >
             {loading ? "Actualizando..." : "Actualizar Evento"}

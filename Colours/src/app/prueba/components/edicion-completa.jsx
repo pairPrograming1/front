@@ -6,10 +6,9 @@ import Swal from "sweetalert2";
 import { X } from "lucide-react";
 import ImageUploaderModal from "./image-uploader-modal";
 import ImageGallery from "./ImageGallery";
-import useImageFetcher from "./ImageFetcher";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [activeTab, setActiveTab] = useState("informacion");
@@ -20,6 +19,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [salones, setSalones] = useState([]);
   const [loadingSalones, setLoadingSalones] = useState(false);
   const [errorSalones, setErrorSalones] = useState(null);
+  const [validationError, setValidationError] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -79,20 +79,70 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   }, [punto]);
 
-  // Función para obtener los salones activos
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    // Validación especial para teléfono
+    if (name === "telefono") {
+      const validatedValue = value.replace(/[^0-9+]/g, "");
+      if (validatedValue.includes("+")) {
+        const parts = validatedValue.split("+");
+        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
+          return;
+        }
+      }
+      setData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
+    }
+
+    // Validación especial para whatsapp
+    if (name === "whatsapp") {
+      const validatedValue = value.replace(/[^0-9+]/g, "");
+      if (validatedValue.includes("+")) {
+        const parts = validatedValue.split("+");
+        if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
+          return;
+        }
+      }
+      setData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
+    }
+
+    // Validación especial para CUIT
+    if (name === "cuit") {
+      const digits = value.replace(/\D/g, "");
+      setData((prev) => ({ ...prev, [name]: digits }));
+      return;
+    }
+
+    // Para los demás campos
+    setData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const formatCUIT = (cuit) => {
+    const digits = cuit.replace(/\D/g, "");
+    if (digits.length === 11) {
+      return `${digits.substring(0, 2)}-${digits.substring(
+        2,
+        10
+      )}-${digits.substring(10)}`;
+    }
+    return digits;
+  };
+
   const fetchSalones = async () => {
     try {
       setLoadingSalones(true);
-      const response = await fetch(`${API_URL}/api/salon`);
-      console.log("esto es la response",response)
+      const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentamos el límite a 100
       if (!response.ok) {
         throw new Error(`Error al obtener salones: ${response.status}`);
       }
 
       const result = await response.json();
-
       if (result.success && result.data) {
-        // Filtrar solo los salones activos
         const salonesActivos = result.data.filter(
           (salon) => salon.estatus === true
         );
@@ -108,34 +158,27 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   };
 
-  // Cargar salones cuando el componente se monte
   useEffect(() => {
     fetchSalones();
   }, []);
 
-  // Función para cargar las imágenes del punto de venta
   const fetchPuntoImages = async () => {
-    // Solo realizar la solicitud si hay un ID de punto de venta
     if (!punto?.id) return;
 
     try {
       setLoadingImages(true);
-      const response = await fetch(
-        `${API_URL}/api/puntodeventa/${punto.id}`
-      );
+      const response = await fetch(`${API_URL}/api/puntodeventa/${punto.id}`);
 
       if (!response.ok) {
         throw new Error(`Error al obtener imágenes: ${response.status}`);
       }
 
       const result = await response.json();
-
-      // Actualiza el estado con las imágenes obtenidas
       if (result.success && result.data && result.data.imagenes) {
-        setData({
-          ...data,
+        setData((prev) => ({
+          ...prev,
           imagenes: result.data.imagenes,
-        });
+        }));
       }
     } catch (err) {
       console.error("Error fetching images:", err);
@@ -145,16 +188,13 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   };
 
-  // Cargar imágenes cuando cambia el ID del punto
   useEffect(() => {
     if (punto?.id) {
       fetchPuntoImages();
     }
   }, [punto?.id]);
 
-  // Function to handle adding new images to the data state
   const handleImageSelected = (imageUrl) => {
-    // Find the first placeholder image and replace it
     const newImages = [...data.imagenes];
     const placeholderIndex = newImages.findIndex(
       (img) => img === "/placeholder.svg"
@@ -162,26 +202,69 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
     if (placeholderIndex !== -1) {
       newImages[placeholderIndex] = imageUrl;
-      setData({
-        ...data,
-        imagenes: newImages,
-      });
     } else {
-      // If no placeholders remain, replace the first image
       newImages[0] = imageUrl;
-      setData({
-        ...data,
-        imagenes: newImages,
-      });
     }
+
+    setData((prev) => ({
+      ...prev,
+      imagenes: newImages,
+    }));
+  };
+
+  const validateForm = () => {
+    // Validar campos requeridos
+    const requiredFields = ["razon", "nombre", "direccion", "cuit", "email"];
+
+    for (const field of requiredFields) {
+      if (!data[field] || data[field].trim() === "") {
+        return `El campo ${field} es requerido`;
+      }
+    }
+
+    // Validar teléfono
+    if (data.telefono && !/^\+?\d+$/.test(data.telefono)) {
+      return "El teléfono solo puede contener números y un + al inicio";
+    }
+
+    // Validar whatsapp
+    if (data.whatsapp && !/^\+?\d+$/.test(data.whatsapp)) {
+      return "El WhatsApp solo puede contener números y un + al inicio";
+    }
+
+    // Validar CUIT
+    const formattedCUIT = formatCUIT(data.cuit);
+    const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
+    if (!cuitPattern.test(formattedCUIT)) {
+      return "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X";
+    }
+
+    // Validar email
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(data.email)) {
+      return "El formato del correo electrónico es inválido";
+    }
+
+    return null;
   };
 
   const handleSubmit = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setValidationError(validationError);
+      Swal.fire({
+        icon: "error",
+        title: "Error de validación",
+        text: validationError,
+      });
+      return;
+    }
+
     try {
-      // Create a copy of the data with the correct image field
+      const formattedCUIT = formatCUIT(data.cuit);
       const submitData = {
         ...data,
-        // Use the first non-placeholder image as the main image
+        cuit: formattedCUIT,
         image:
           data.imagenes.find((img) => img !== "/placeholder.svg") ||
           data.imagenes[0],
@@ -207,6 +290,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         throw new Error(result.message || "Error al guardar los datos");
       }
 
+      setValidationError(null);
       onUpdate?.();
       onClose();
 
@@ -218,6 +302,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           : "Punto de venta creado correctamente",
       });
     } catch (error) {
+      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -230,107 +315,105 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-slate-900/40 transition-opacity"
+        className="fixed inset-0 bg-black/80 transition-opacity"
         onClick={onClose}
       ></div>
 
       {/* Modal container */}
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         {/* Modal content */}
-        <div className="inline-block align-bottom bg-slate-900 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full">
+        <div className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full border-2 border-yellow-600">
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white focus:outline-none"
+            className="absolute top-4 right-4 text-yellow-500 hover:text-yellow-300 focus:outline-none transition-colors"
           >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-6 w-6" />
           </button>
 
           {/* Main Content */}
           <div className="p-6">
+            {validationError && (
+              <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                {validationError}
+              </div>
+            )}
+
             {/* Form Fields */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <input
                 type="text"
-                placeholder="Razón Social"
+                name="razon"
+                placeholder="Razón Social *"
                 value={data.razon}
-                onChange={(e) => setData({ ...data, razon: e.target.value })}
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                onChange={handleChange}
+                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
               <input
                 type="text"
-                placeholder="Nombre"
+                name="nombre"
+                placeholder="Nombre *"
                 value={data.nombre}
-                onChange={(e) => setData({ ...data, nombre: e.target.value })}
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                onChange={handleChange}
+                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
               <input
                 type="text"
-                placeholder="Dirección"
+                name="direccion"
+                placeholder="Dirección *"
                 value={data.direccion}
-                onChange={(e) =>
-                  setData({ ...data, direccion: e.target.value })
-                }
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                onChange={handleChange}
+                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
+              <div className="relative">
+                <input
+                  type="text"
+                  name="cuit"
+                  placeholder="CUIT (11 dígitos) *"
+                  value={data.cuit}
+                  onChange={handleChange}
+                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  maxLength="11"
+                  required
+                />
+                {data.cuit.length === 11 && (
+                  <span className="absolute right-3 top-3 text-green-400 text-sm">
+                    {formatCUIT(data.cuit)}
+                  </span>
+                )}
+              </div>
               <input
-                type="text"
-                placeholder="CUIT"
-                value={data.cuit}
-                onChange={(e) => setData({ ...data, cuit: e.target.value })}
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
-              />
-              <input
-                type="text"
-                placeholder="Persona de Contacto"
-                value={data.personaContacto}
-                onChange={(e) =>
-                  setData({ ...data, personaContacto: e.target.value })
-                }
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
-              />
-              <input
-                type="text"
-                placeholder="Email"
+                type="email"
+                name="email"
+                placeholder="E-mail *"
                 value={data.email}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                onChange={handleChange}
+                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                required
               />
-              <input
-                type="text"
-                placeholder="Teléfono"
-                value={data.telefono}
-                onChange={(e) => setData({ ...data, telefono: e.target.value })}
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
-              />
-              <input
-                type="text"
-                placeholder="WhatsApp"
-                value={data.whatsapp}
-                onChange={(e) => setData({ ...data, whatsapp: e.target.value })}
-                className="bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
-              />
+
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="telefono"
+                  placeholder="Teléfono (solo números, + opcional)"
+                  value={data.telefono}
+                  onChange={handleChange}
+                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                />
+              </div>
+
               <div className="flex items-center">
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 text-white">
                   <input
                     type="checkbox"
+                    name="es_online"
                     checked={data.es_online}
-                    onChange={(e) =>
-                      setData({ ...data, es_online: e.target.checked })
-                    }
-                    className="form-checkbox h-5 w-5 text-amber-600 rounded focus:ring-amber-600 border-slate-700 bg-slate-800"
+                    onChange={handleChange}
+                    className="h-5 w-5 text-yellow-600 rounded focus:ring-yellow-500 border-yellow-600 bg-gray-700"
                   />
                   <span>Es Online</span>
                 </label>
@@ -344,21 +427,21 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 <div className="mb-6">
                   <div className="flex space-x-2 mb-4">
                     <button
-                      className={`rounded-full px-6 py-1 ${
+                      className={`rounded-lg px-6 py-2 ${
                         activeTab === "informacion"
-                          ? "bg-amber-600 text-white"
-                          : "bg-transparent text-white"
-                      }`}
+                          ? "bg-yellow-700 text-white"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      } transition-colors`}
                       onClick={() => setActiveTab("informacion")}
                     >
                       Información
                     </button>
                     <button
-                      className={`rounded-full px-6 py-1 ${
+                      className={`rounded-lg px-6 py-2 ${
                         activeTab === "cobros"
-                          ? "bg-amber-600 text-white"
-                          : "bg-transparent text-white"
-                      }`}
+                          ? "bg-yellow-700 text-white"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
+                      } transition-colors`}
                       onClick={() => setActiveTab("cobros")}
                     >
                       Cobros
@@ -369,37 +452,74 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                     <div>
                       {/* Salones Habilitados */}
                       <div className="mb-8">
-                        <h3 className="text-lg font-light text-amber-600 mb-4">
-                          Salones Habilitados
-                        </h3>
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-lg font-semibold text-yellow-500">
+                            Salones Habilitados ({salones.length})
+                          </h3>
+                          <div className="text-sm text-gray-400">
+                            Mostrando todos los salones activos
+                          </div>
+                        </div>
+
+                        {/* Contenedor con scroll para todos los salones */}
+                        <div
+                          className="grid grid-cols-4 gap-4 max-h-96 overflow-y-auto p-2"
+                          style={{ scrollbarWidth: "thin" }}
+                        >
                           {loadingSalones ? (
-                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
-                              <p className="text-amber-600">
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
+                              <p className="text-yellow-500">
                                 Cargando salones...
                               </p>
                             </div>
                           ) : errorSalones ? (
-                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
-                              <p className="text-red-500">
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
+                              <p className="text-red-400">
                                 Error: {errorSalones}
                               </p>
                             </div>
                           ) : salones.length > 0 ? (
-                            salones.map((salon, index) => (
+                            salones.map((salon) => (
                               <div
-                                key={index}
-                                className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
+                                key={salon.id}
+                                className={`bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors cursor-pointer ${
+                                  data.salonesHabilitados.some(
+                                    (s) => s.id === salon.id
+                                  )
+                                    ? "bg-yellow-700/20 border-yellow-500"
+                                    : ""
+                                }`}
+                                onClick={() => {
+                                  const isSelected =
+                                    data.salonesHabilitados.some(
+                                      (s) => s.id === salon.id
+                                    );
+                                  setData((prev) => ({
+                                    ...prev,
+                                    salonesHabilitados: isSelected
+                                      ? prev.salonesHabilitados.filter(
+                                          (s) => s.id !== salon.id
+                                        )
+                                      : [...prev.salonesHabilitados, salon],
+                                  }));
+                                }}
                               >
-                                <div className="p-0 h-32 flex items-center justify-center">
-                                  <span className="text-2xl font-light italic">
+                                <div className="p-0 h-32 flex flex-col items-center justify-center">
+                                  <span className="text-xl font-light italic text-white text-center">
                                     {salon.nombre}
                                   </span>
+                                  {data.salonesHabilitados.some(
+                                    (s) => s.id === salon.id
+                                  ) && (
+                                    <span className="text-green-400 text-xs mt-1">
+                                      Seleccionado
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             ))
                           ) : (
-                            <div className="col-span-4 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                            <div className="col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
                               <p className="text-gray-400">
                                 No hay salones activos disponibles
                               </p>
@@ -410,7 +530,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
                       {/* Vendedores asignados */}
                       <div>
-                        <h3 className="text-lg font-light text-amber-600 mb-4">
+                        <h3 className="text-lg font-semibold text-yellow-500 mb-4">
                           Vendedores asignados
                         </h3>
                         <div className="grid grid-cols-4 gap-4">
@@ -418,20 +538,20 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                             data.vendedoresAsignados.map((vendedor, index) => (
                               <div
                                 key={index}
-                                className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
+                                className="bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden"
                               >
                                 <div className="p-4 h-32">
-                                  <div className="space-y-1">
+                                  <div className="space-y-1 text-white">
                                     <p className="font-medium">
                                       {vendedor.nombre}
                                     </p>
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-gray-300">
                                       Teléfono: {vendedor.telefono}
                                     </p>
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-gray-300">
                                       Email: {vendedor.email}
                                     </p>
-                                    <p className="text-xs text-gray-400">
+                                    <p className="text-xs text-gray-300">
                                       WhatsApp: {vendedor.whatsapp}
                                     </p>
                                   </div>
@@ -445,14 +565,14 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
                   {activeTab === "cobros" && (
                     <div>
-                      <h3 className="text-lg font-light text-amber-600 mb-4">
+                      <h3 className="text-lg font-semibold text-yellow-500 mb-4">
                         Información de Cobros
                       </h3>
                       <div className="w-72 mt-4">
                         <div className="space-y-4">
-                          <div className="bg-slate-800 border border-slate-700 rounded-lg">
+                          <div className="bg-gray-700 border border-yellow-600 rounded-lg">
                             <div className="p-4">
-                              <h4 className="mb-2">Mercado Pago</h4>
+                              <h4 className="mb-2 text-white">Mercado Pago</h4>
                               <div className="space-y-2">
                                 <input
                                   type="text"
@@ -470,7 +590,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                       },
                                     })
                                   }
-                                  className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
                                 />
                                 <input
                                   type="text"
@@ -488,15 +608,15 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                       },
                                     })
                                   }
-                                  className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
                                 />
                               </div>
                             </div>
                           </div>
 
-                          <div className="bg-slate-800 border border-slate-700 rounded-lg">
+                          <div className="bg-gray-700 border border-yellow-600 rounded-lg">
                             <div className="p-4">
-                              <h4 className="mb-2">Transferencia</h4>
+                              <h4 className="mb-2 text-white">Transferencia</h4>
                               <div className="space-y-2">
                                 <input
                                   type="text"
@@ -514,7 +634,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                       },
                                     })
                                   }
-                                  className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
                                 />
                                 <input
                                   type="text"
@@ -534,15 +654,15 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                       },
                                     })
                                   }
-                                  className="w-full bg-slate-800 border border-slate-700 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-600"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
                                 />
                               </div>
                             </div>
                           </div>
 
-                          <div className="bg-slate-800 border border-slate-700 rounded-lg">
+                          <div className="bg-gray-700 border border-yellow-600 rounded-lg">
                             <div className="p-4">
-                              <h4 className="mb-2">Efectivo</h4>
+                              <h4 className="mb-2 text-white">Efectivo</h4>
                             </div>
                           </div>
                         </div>
@@ -556,19 +676,19 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 {/* Opciones de imagen */}
                 <div className="flex space-x-2 mb-4">
                   <button
-                    className="bg-amber-600 text-white px-3 py-1 rounded-md text-sm flex-1"
+                    className="bg-yellow-700 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
                     onClick={() => setShowImageUploader(true)}
                   >
                     Subir Imagen
                   </button>
                   <button
-                    className="bg-blue-600 text-white px-3 py-1 rounded-md text-sm flex-1"
+                    className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
                     onClick={() => setShowImageGallery(true)}
                   >
                     Galería
                   </button>
                   <button
-                    className="bg-green-600 text-white px-3 py-1 rounded-md text-sm flex-1"
+                    className="bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
                     onClick={fetchPuntoImages}
                     disabled={loadingImages || !punto?.id}
                   >
@@ -577,21 +697,21 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 </div>
 
                 {errorImages && (
-                  <div className="text-red-500 text-sm mb-2">
+                  <div className="text-red-400 text-sm mb-2">
                     Error: {errorImages}
                   </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-2">
                   {loadingImages ? (
-                    <div className="col-span-2 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
-                      <p className="text-amber-600">Cargando imágenes...</p>
+                    <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
+                      <p className="text-yellow-500">Cargando imágenes...</p>
                     </div>
                   ) : data.imagenes && data.imagenes.length > 0 ? (
                     data.imagenes.map((imagen, index) => (
                       <div
                         key={index}
-                        className="aspect-square bg-amber-700/30 rounded-lg overflow-hidden"
+                        className="aspect-square bg-yellow-700/30 rounded-lg overflow-hidden border border-yellow-600"
                       >
                         <Image
                           src={imagen}
@@ -603,7 +723,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-2 h-32 flex items-center justify-center bg-slate-800 rounded-lg">
+                    <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
                       <p className="text-gray-400">
                         No hay imágenes disponibles
                       </p>
@@ -615,18 +735,18 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           </div>
 
           {/* Footer with action buttons */}
-          <div className="bg-slate-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <div className="bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-yellow-600">
             <button
               type="button"
               onClick={handleSubmit}
-              className="w-full inline-flex justify-center rounded-full border border-transparent shadow-sm px-4 py-2 bg-amber-600 text-base font-medium text-white hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 sm:ml-3 sm:w-auto sm:text-sm"
+              className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-yellow-700 text-base font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
             >
               Guardar
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 w-full inline-flex justify-center rounded-full border border-slate-700 shadow-sm px-4 py-2 bg-slate-800 text-base font-medium text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              className="mt-3 w-full inline-flex justify-center rounded-lg border border-yellow-600 shadow-sm px-4 py-2 bg-gray-800 text-base font-medium text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
             >
               Cancelar
             </button>

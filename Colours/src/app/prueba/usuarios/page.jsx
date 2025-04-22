@@ -52,7 +52,15 @@ export default function Usuarios() {
       const response = await fetch(
         `${API_URL}/api/users/usuarios?status=${statusQuery}`
       );
-      if (!response.ok) throw new Error("Error al cargar usuarios");
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error del servidor (${response.status}): No se pudieron cargar los usuarios`
+        );
+      }
+
       const data = await response.json();
       setUsuarios(data);
     } catch (err) {
@@ -60,7 +68,9 @@ export default function Usuarios() {
       Swal.fire({
         icon: "error",
         title: "Error al cargar usuarios",
-        text: err.message || "Hubo un problema al cargar los usuarios",
+        text: err.message || "No se pudo establecer conexión con el servidor",
+        footer:
+          "Intente refrescar la página o contacte al administrador del sistema",
       });
     } finally {
       setLoading(false);
@@ -183,13 +193,26 @@ export default function Usuarios() {
 
   const asignarRolMultiple = async (rol) => {
     try {
-      const promises = selectedUsers.map((userId) =>
-        fetch(`${API_URL}/api/users/change-role/${userId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rol }),
-        })
-      );
+      const promises = selectedUsers.map(async (userId) => {
+        const response = await fetch(
+          `${API_URL}/api/users/change-role/${userId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rol }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.message ||
+              `Error al asignar rol al usuario ID: ${userId} (${response.status})`
+          );
+        }
+
+        return response;
+      });
 
       const results = await Promise.allSettled(promises);
 
@@ -197,6 +220,11 @@ export default function Usuarios() {
         (result) => result.status === "fulfilled"
       ).length;
       const fallidos = results.length - exitosos;
+
+      // Obtener mensajes de error específicos
+      const errores = results
+        .filter((result) => result.status === "rejected")
+        .map((result) => result.reason.message);
 
       await fetchUsuarios();
       setSelectedUsers([]);
@@ -209,12 +237,21 @@ export default function Usuarios() {
             ? `${fallidos} usuario(s) no pudieron ser actualizados.`
             : ""
         }`,
+        ...(errores.length > 0 && {
+          footer: `<ul class="text-left"><li>${errores
+            .slice(0, 3)
+            .join("</li><li>")}</li>${
+            errores.length > 3 ? "<li>...</li>" : ""
+          }</ul>`,
+        }),
       });
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error al asignar roles",
         text: error.message || "Ocurrió un error al asignar los roles",
+        footer:
+          "Verifica que los usuarios seleccionados existan y tengan los permisos adecuados",
       });
     }
   };
@@ -243,7 +280,13 @@ export default function Usuarios() {
         body: JSON.stringify({ isActive: newStatus }),
       });
 
-      if (!response.ok) throw new Error(`Error al ${actionText} el usuario`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al ${actionText} el usuario (${response.status}: ${response.statusText})`
+        );
+      }
 
       await fetchUsuarios();
 
@@ -258,19 +301,26 @@ export default function Usuarios() {
         title: "Error",
         text: error.message,
         icon: "error",
+        footer: `No se pudo ${actionText} el usuario. Intente nuevamente o contacte al administrador.`,
       });
     }
   };
 
   const agregarUsuario = async (nuevoUsuario) => {
     try {
-      const response = await fetch("${API_URL}/api/users/create-user", {
+      const response = await fetch(`${API_URL}/api/users/create-user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevoUsuario),
       });
 
-      if (!response.ok) throw new Error("Error al crear el usuario");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al crear usuario (${response.status}: ${response.statusText})`
+        );
+      }
 
       await fetchUsuarios();
       setShowModal(false);
@@ -283,7 +333,11 @@ export default function Usuarios() {
       Swal.fire({
         icon: "error",
         title: "Error al crear usuario",
-        text: error.message || "Hubo un error al crear el usuario",
+        text:
+          error.message ||
+          "Hubo un problema con el servidor al intentar crear el usuario",
+        footer:
+          "Comprueba que todos los campos sean válidos y que el correo no esté duplicado",
       });
     }
   };
@@ -296,7 +350,13 @@ export default function Usuarios() {
         body: JSON.stringify(datosActualizados),
       });
 
-      if (!response.ok) throw new Error("Error al modificar el usuario");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al modificar usuario (${response.status}: ${response.statusText})`
+        );
+      }
 
       await fetchUsuarios();
       setUsuarioEditar(null);
@@ -309,7 +369,10 @@ export default function Usuarios() {
       Swal.fire({
         icon: "error",
         title: "Error al modificar usuario",
-        text: error.message || "Hubo un error al modificar el usuario",
+        text:
+          error.message || "Hubo un error al modificar los datos del usuario",
+        footer:
+          "Verifica que todos los campos cumplan con los requisitos y que no existan duplicados de email o nombre de usuario",
       });
     }
   };
@@ -332,7 +395,13 @@ export default function Usuarios() {
           method: "DELETE",
         });
 
-        if (!response.ok) throw new Error("Error al eliminar el usuario");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.message ||
+              `Error al eliminar el usuario (${response.status}: ${response.statusText})`
+          );
+        }
 
         await fetchUsuarios();
         Swal.fire(
@@ -341,7 +410,13 @@ export default function Usuarios() {
           "success"
         );
       } catch (error) {
-        Swal.fire("Error", error.message, "error");
+        Swal.fire({
+          title: "Error al eliminar",
+          text: error.message,
+          icon: "error",
+          footer:
+            "El usuario podría estar vinculado a registros existentes o no tienes los permisos necesarios para eliminarlo",
+        });
       }
     }
   };
@@ -354,7 +429,13 @@ export default function Usuarios() {
         body: JSON.stringify({ rol }),
       });
 
-      if (!response.ok) throw new Error("Error al cambiar el rol del usuario");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al cambiar el rol del usuario (${response.status}: ${response.statusText})`
+        );
+      }
 
       await fetchUsuarios();
       Swal.fire({
@@ -367,6 +448,8 @@ export default function Usuarios() {
         icon: "error",
         title: "Error al cambiar rol",
         text: error.message || "Ocurrió un error al cambiar el rol",
+        footer:
+          "Verifica que tengas los permisos adecuados para realizar esta acción",
       });
     }
   };
@@ -396,6 +479,12 @@ export default function Usuarios() {
         <Header title="Usuarios" />
         <div className="alert alert-error">
           <p>Error: {error}</p>
+          <button
+            className="btn btn-sm btn-outline mt-2"
+            onClick={() => fetchUsuarios()}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -677,6 +766,16 @@ export default function Usuarios() {
           ))}
         </div>
       </div>
+
+      {/* Mensaje cuando no hay resultados */}
+      {usuariosFiltrados.length === 0 && (
+        <div className="text-center py-10">
+          <p className="text-gray-500">
+            No se encontraron usuarios que coincidan con los criterios de
+            búsqueda
+          </p>
+        </div>
+      )}
 
       {/* Paginación */}
       {totalPages > 1 && (

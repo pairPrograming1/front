@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LucideHome,
   Store,
@@ -13,9 +14,15 @@ import {
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  // Función para determinar si un enlace está activo
+  const isActive = (href) => {
+    return pathname === href;
   };
 
   return (
@@ -39,7 +46,11 @@ export default function Sidebar() {
           <li>
             <Link
               href="/prueba/usuarios"
-              className="flex flex-col items-center p-3 text-gray-400 hover:text-[#C88D6B]"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/usuarios")
+                  ? "text-[#C88D6B]"
+                  : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
             >
               <LucideHome className="h-5 w-5 mb-1" />
               {!isCollapsed && <span className="text-xs">Usuario</span>}
@@ -48,7 +59,11 @@ export default function Sidebar() {
           <li>
             <Link
               href="/prueba/puntos-de-venta"
-              className="flex flex-col items-center p-3 text-gray-400 hover:text-[#C88D6B]"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/puntos-de-venta")
+                  ? "text-[#C88D6B]"
+                  : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
             >
               <Store className="h-5 w-5 mb-1" />
               {!isCollapsed && <span className="text-xs">Puntos de Venta</span>}
@@ -57,7 +72,11 @@ export default function Sidebar() {
           <li>
             <Link
               href="/prueba/salones"
-              className="flex flex-col items-center p-3 text-gray-400 hover:text-[#C88D6B]"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/salones")
+                  ? "text-[#C88D6B]"
+                  : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
             >
               <Building2 className="h-5 w-5 mb-1" />
               {!isCollapsed && <span className="text-xs">Salones</span>}
@@ -66,7 +85,11 @@ export default function Sidebar() {
           <li>
             <Link
               href="/prueba/eventos"
-              className="flex flex-col items-center p-3 text-gray-400 hover:text-[#C88D6B]"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/eventos")
+                  ? "text-[#C88D6B]"
+                  : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
             >
               <CalendarDays className="h-5 w-5 mb-1" />
               {!isCollapsed && <span className="text-xs">Eventos</span>}
@@ -75,7 +98,11 @@ export default function Sidebar() {
           <li>
             <Link
               href="/prueba/cobros-y-pagos"
-              className="flex flex-col items-center p-3 text-gray-400 hover:text-[#C88D6B]"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/cobros-y-pagos")
+                  ? "text-[#C88D6B]"
+                  : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
             >
               <CreditCard className="h-5 w-5 mb-1" />
               {!isCollapsed && <span className="text-xs">Cobros y Pagos</span>}
