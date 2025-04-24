@@ -720,3 +720,4 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     </div>
   )
 }
+  
