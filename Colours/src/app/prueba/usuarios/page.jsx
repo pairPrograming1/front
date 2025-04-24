@@ -33,7 +33,7 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [filterMode, setFilterMode] = useState("active"); // Options: "active", "inactive", "all"
+  const [filterMode, setFilterMode] = useState("active");
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -51,13 +51,11 @@ export default function Usuarios() {
     try {
       let url = `${API_URL}/api/users/usuarios?`;
 
-      // Add status filter based on filterMode
       if (filterMode === "active") {
         url += "status=true";
       } else if (filterMode === "inactive") {
         url += "status=false";
       } else {
-        // For "all" mode, we might need to adjust the API or handle filtering client-side
         url += "includeAll=true";
       }
 
@@ -73,7 +71,6 @@ export default function Usuarios() {
 
       const data = await response.json();
 
-      // If the API doesn't support "all" mode, we can filter client-side
       if (filterMode === "all" && Array.isArray(data)) {
         setUsuarios(data);
       } else {
@@ -237,7 +234,6 @@ export default function Usuarios() {
       ).length;
       const fallidos = results.length - exitosos;
 
-      // Obtener mensajes de error específicos
       const errores = results
         .filter((result) => result.status === "rejected")
         .map((result) => result.reason.message);
@@ -360,9 +356,20 @@ export default function Usuarios() {
 
   const modificarUsuario = async (id, datosActualizados) => {
     try {
+      Swal.fire({
+        title: "Guardando cambios...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const response = await fetch(`${API_URL}/api/users/perfil/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
         body: JSON.stringify(datosActualizados),
       });
 
@@ -375,21 +382,25 @@ export default function Usuarios() {
       }
 
       await fetchUsuarios();
-      setUsuarioEditar(null);
+
       Swal.fire({
         icon: "success",
-        title: "Usuario modificado",
-        text: "Los datos del usuario han sido modificados correctamente",
+        title: "¡Éxito!",
+        text: "Los datos del usuario se actualizaron correctamente",
+        timer: 2000,
+        showConfirmButton: false,
       });
     } catch (error) {
+      console.error("Error al modificar usuario:", error);
+
       Swal.fire({
         icon: "error",
-        title: "Error al modificar usuario",
-        text:
-          error.message || "Hubo un error al modificar los datos del usuario",
-        footer:
-          "Verifica que todos los campos cumplan con los requisitos y que no existan duplicados de email o nombre de usuario",
+        title: "Error",
+        text: error.message || "Hubo un problema al actualizar el usuario",
+        footer: "Por favor verifique los datos e intente nuevamente",
       });
+
+      throw error;
     }
   };
 
@@ -510,7 +521,6 @@ export default function Usuarios() {
     <div className="p-4 md:p-6">
       <Header title="Usuarios" />
 
-      {/* Filtros y búsqueda */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
@@ -520,7 +530,7 @@ export default function Usuarios() {
                 placeholder="   Buscar por nombre, usuario o email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input pl-10 w-full py-2" // Añadí py-2 para mejor padding vertical
+                className="search-input pl-10 w-full py-2"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                 <Search className="text-gray-400 h-4 w-4" />
@@ -574,9 +584,8 @@ export default function Usuarios() {
           </button>
         </div>
 
-        {/* Menú de acciones para móvil */}
         {isMobileMenuOpen && (
-          <div className="mt-4 p-4  rounded-lg">
+          <div className="mt-4 p-4 rounded-lg">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 className="btn btn-secondary flex items-center gap-2"
@@ -600,9 +609,7 @@ export default function Usuarios() {
         )}
       </div>
 
-      {/* Tabla de usuarios */}
       <div className="overflow-x-auto">
-        {/* Vista de escritorio */}
         <div className="hidden md:block">
           <table className="table min-w-full">
             <thead>
@@ -638,7 +645,7 @@ export default function Usuarios() {
                       onChange={() => toggleUserSelection(usuario.id)}
                     />
                   </td>
-                  <td>{usuario.usuario}</td>
+                  <td>{usuario.usuario || "-"}</td>
                   <td>
                     {usuario.nombre} {usuario.apellido}
                   </td>
@@ -704,7 +711,6 @@ export default function Usuarios() {
           </table>
         </div>
 
-        {/* Vista móvil */}
         <div className="md:hidden space-y-4">
           {currentItems.map((usuario) => (
             <div
@@ -726,7 +732,7 @@ export default function Usuarios() {
                       {usuario.nombre} {usuario.apellido}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {usuario.usuario}
+                      {usuario.usuario || "-"}
                     </div>
                   </div>
                 </div>
@@ -828,7 +834,6 @@ export default function Usuarios() {
         </div>
       </div>
 
-      {/* Mensaje cuando no hay resultados */}
       {usuariosFiltrados.length === 0 && (
         <div className="text-center py-10">
           <p className="text-gray-500">
@@ -838,7 +843,6 @@ export default function Usuarios() {
         </div>
       )}
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="pagination mt-6 flex justify-center gap-2">
           {[...Array(totalPages)].map((_, index) => (
@@ -863,7 +867,6 @@ export default function Usuarios() {
         </div>
       )}
 
-      {/* Modales */}
       {showModal && (
         <UsuarioModal
           onClose={() => setShowModal(false)}

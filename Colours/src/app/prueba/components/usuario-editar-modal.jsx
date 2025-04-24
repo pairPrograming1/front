@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -14,32 +15,39 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
     dni: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (usuario) {
-      setFormData({
-        usuario: usuario.usuario || "",
-        nombre: usuario.nombre || "",
-        apellido: usuario.apellido || "",
-        direccion: usuario.direccion || "",
-        email: usuario.email || "",
-        whatsapp: usuario.whatsapp || "",
-        dni: usuario.dni || "",
-      });
+      setLoading(true);
+      try {
+        setFormData({
+          usuario: usuario.usuario || "",
+          nombre: usuario.nombre || "",
+          apellido: usuario.apellido || "",
+          direccion: usuario.direccion || "",
+          email: usuario.email || "",
+          whatsapp: usuario.whatsapp || "",
+          dni: usuario.dni || "",
+        });
+      } catch (err) {
+        setError(err.message || "Error al cargar datos del usuario");
+      } finally {
+        setLoading(false);
+      }
     }
   }, [usuario]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Validación especial para WhatsApp
     if (name === "whatsapp") {
-      // Permite solo números y el símbolo + al inicio
       const validatedValue = value.replace(/[^0-9+]/g, "");
-      // Si contiene +, debe estar al inicio y solo una vez
       if (validatedValue.includes("+")) {
         const parts = validatedValue.split("+");
         if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          // Si hay más de un + o no está al inicio, no actualizamos
           return;
         }
       }
@@ -47,9 +55,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
       return;
     }
 
-    // Validación especial para DNI
     if (name === "dni") {
-      // Permite solo números y las letras M o F (mayúsculas o minúsculas)
       const validatedValue = value.replace(/[^0-9MFmf]/g, "");
       setFormData((prev) => ({
         ...prev,
@@ -58,28 +64,97 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
       return;
     }
 
-    // Para los demás campos, actualizamos normalmente
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validación adicional antes de guardar
-    if (formData.whatsapp && !/^\+?\d+$/.test(formData.whatsapp)) {
-      alert(
-        "El número de WhatsApp solo puede contener números y un símbolo + al inicio"
-      );
-      return;
-    }
+    setIsSubmitting(true);
 
-    if (formData.dni && !/^[0-9]+[MF]?$/.test(formData.dni.toUpperCase())) {
-      alert("El DNI solo puede contener números y una letra M o F al final");
-      return;
-    }
+    try {
+      if (formData.whatsapp && !/^\+?\d+$/.test(formData.whatsapp)) {
+        throw new Error(
+          "WhatsApp solo puede contener números y un + al inicio"
+        );
+      }
 
-    onSave(usuario.id, formData);
-    onClose();
+      if (formData.dni && !/^[0-9]+[MF]?$/.test(formData.dni.toUpperCase())) {
+        throw new Error(
+          "DNI solo puede contener números y una letra M o F al final"
+        );
+      }
+
+      await onSave(usuario.id, formData);
+      onClose();
+
+      Swal.fire({
+        icon: "success",
+        title: "Usuario actualizado",
+        text: "Los cambios se guardaron correctamente",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error saving user:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error al guardar",
+        text: error.message,
+        footer: "Verifique los datos e intente nuevamente",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-white">Editar Usuario</h2>
+            <button
+              onClick={onClose}
+              className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="flex justify-center items-center h-40">
+            <p className="text-white">Cargando datos del usuario...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-white">Editar Usuario</h2>
+            <button
+              onClick={onClose}
+              className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="text-red-400 mb-4">
+            <p>Error: {error}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-full mt-4 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg border border-gray-600 transition-colors duration-300"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -95,68 +170,158 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="usuario"
-            placeholder="Usuario"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.usuario}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.nombre}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="apellido"
-            placeholder="Apellido"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.apellido}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="direccion"
-            placeholder="Dirección"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.direccion}
-            onChange={handleChange}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="E-mail"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="whatsapp"
-            placeholder="WhatsApp (solo números, + al inicio)"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.whatsapp}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="dni"
-            placeholder="DNI (números y M o F al final)"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.dni}
-            onChange={handleChange}
-          />
-          <button
-            type="submit"
-            className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300"
-          >
-            Guardar Cambios
-          </button>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm text-yellow-400 mb-1">
+                Usuario
+              </label>
+              <input
+                type="text"
+                name="usuario"
+                placeholder="Nombre de usuario"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.usuario}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  name="nombre"
+                  placeholder="Nombre"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Apellido
+                </label>
+                <input
+                  type="text"
+                  name="apellido"
+                  placeholder="Apellido"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-yellow-400 mb-1">
+                Dirección
+              </label>
+              <input
+                type="text"
+                name="direccion"
+                placeholder="Dirección completa"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.direccion}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-yellow-400 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Correo electrónico"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-yellow-400 mb-1">
+                WhatsApp
+              </label>
+              <input
+                type="text"
+                name="whatsapp"
+                placeholder="Ej: +5491123456789"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.whatsapp}
+                onChange={handleChange}
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Solo números, el + debe ir al inicio
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm text-yellow-400 mb-1">DNI</label>
+              <input
+                type="text"
+                name="dni"
+                placeholder="Ej: 12345678M"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.dni}
+                onChange={handleChange}
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Números y letra M o F al final
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors"
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg transition-colors flex items-center gap-2"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Guardando...
+                </>
+              ) : (
+                "Guardar Cambios"
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
