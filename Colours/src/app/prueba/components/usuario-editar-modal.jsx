@@ -15,52 +15,14 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
     dni: "",
   });
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (usuario) {
-      const loadUserDetails = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-
-          const response = await fetch(`/api/users/perfil/${usuario.id}`);
-          if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
-          }
-
-          const userData = await response.json();
-
-          setFormData({
-            usuario: userData.usuario || "",
-            nombre: userData.nombre || "",
-            apellido: userData.apellido || "",
-            direccion: userData.direccion || "",
-            email: userData.email || "",
-            whatsapp: userData.whatsapp || "",
-            dni: userData.dni || "",
-          });
-
-          setLoading(false);
-        } catch (err) {
-          console.error("Error loading user details:", err);
-          setError(err.message);
-          setLoading(false);
-
-          Swal.fire({
-            icon: "error",
-            title: "Error al cargar usuario",
-            text: err.message,
-            footer: "Por favor intente nuevamente",
-          });
-        }
-      };
-
-      if (!usuario.whatsapp || !usuario.dni || !usuario.direccion) {
-        loadUserDetails();
-      } else {
+      setLoading(true);
+      try {
         setFormData({
           usuario: usuario.usuario || "",
           nombre: usuario.nombre || "",
@@ -70,6 +32,9 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
           whatsapp: usuario.whatsapp || "",
           dni: usuario.dni || "",
         });
+      } catch (err) {
+        setError(err.message || "Error al cargar datos del usuario");
+      } finally {
         setLoading(false);
       }
     }
@@ -192,7 +157,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-white">Editar Usuario</h2>
