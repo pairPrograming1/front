@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
 import {
   Search,
   Plus,
@@ -13,62 +13,62 @@ import {
   Edit,
   ChevronDown,
   ChevronUp,
-  MoreHorizontal,
-} from "lucide-react";
-import Header from "../components/header";
-import EventoModal from "../components/evento-modal";
-import EventoEditarModal from "../components/evento-editar-modal";
-import Swal from "sweetalert2";
-import apiUrls from "@/app/components/utils/apiConfig";
+  Calendar,
+  Clock,
+  Users,
+} from "lucide-react"
+import Header from "../components/header"
+import EventoModal from "../components/evento-modal"
+import EventoEditarModal from "../components/evento-editar-modal"
+import Swal from "sweetalert2"
+import apiUrls from "@/app/components/utils/apiConfig"
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.production
 
 export default function Eventos() {
-  const [isClient, setIsClient] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [eventos, setEventos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showInactive, setShowInactive] = useState(false);
-  const [selectedEventos, setSelectedEventos] = useState([]);
-  const [eventoEditar, setEventoEditar] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedEvento, setExpandedEvento] = useState(null);
+  const [isClient, setIsClient] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [eventos, setEventos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showInactive, setShowInactive] = useState(false)
+  const [selectedEventos, setSelectedEventos] = useState([])
+  const [eventoEditar, setEventoEditar] = useState(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [expandedEvento, setExpandedEvento] = useState(null)
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 10
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (isClient) {
-      fetchEventos();
+      fetchEventos()
     }
-  }, [showInactive, isClient]);
+  }, [showInactive, isClient])
 
   const removeAccents = (str) => {
-    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
-  };
+    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
+  }
 
   const fetchEventos = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/api/evento/`);
+      setLoading(true)
+      const response = await fetch(`${API_URL}/api/evento/`)
 
       if (!response.ok) {
-        throw new Error("Error al cargar los eventos");
+        throw new Error("Error al cargar los eventos")
       }
 
-      const resultData = await response.json();
+      const resultData = await response.json()
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        const filteredData = showInactive
-          ? resultData.data
-          : resultData.data.filter((evento) => evento.activo);
+        const filteredData = showInactive ? resultData.data : resultData.data.filter((evento) => evento.activo)
 
         const mappedEventos = filteredData.map((evento) => ({
           id: evento.Id || evento.id,
@@ -80,103 +80,95 @@ export default function Eventos() {
           activo: evento.activo,
           salonId: evento.salonId,
           salonNombre: evento.salon?.nombre || "Sin salón asignado",
-        }));
+        }))
 
-        setEventos(mappedEventos);
+        setEventos(mappedEventos)
       } else {
-        setEventos([]);
-        throw new Error("Formato de respuesta incorrecto");
+        setEventos([])
+        throw new Error("Formato de respuesta incorrecto")
       }
 
-      setError(null);
+      setError(null)
     } catch (err) {
-      console.error("Error fetching eventos:", err);
-      setError(
-        "No se pudieron cargar los eventos. Por favor intente nuevamente."
-      );
+      console.error("Error fetching eventos:", err)
+      setError("No se pudieron cargar los eventos. Por favor intente nuevamente.")
       Swal.fire({
         icon: "error",
         title: "Error al cargar eventos",
         text: err.message || "Hubo un problema al cargar los eventos",
-      });
-      setEventos([]);
+      })
+      setEventos([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
 
   const formatDateTime = (dateString) => {
     try {
-      const date = new Date(dateString);
+      const date = new Date(dateString)
       return date.toLocaleString("es-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      });
+      })
     } catch (e) {
-      return dateString || "Fecha no disponible";
+      return dateString || "Fecha no disponible"
     }
-  };
+  }
 
   const eventosFiltrados = eventos.filter((evento) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
+    const searchText = removeAccents(searchTerm.toLowerCase())
     return (
       removeAccents(evento.nombre?.toLowerCase()).includes(searchText) ||
       removeAccents(evento.salonNombre?.toLowerCase()).includes(searchText) ||
-      formatDateTime(evento.fecha)
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+      formatDateTime(evento.fecha).toLowerCase().includes(searchTerm.toLowerCase()) ||
       (evento.duracion?.toString() || "").includes(searchTerm) ||
       (evento.capacidad?.toString() || "").includes(searchTerm)
-    );
-  });
+    )
+  })
 
   const toggleEventoSelection = (id) => {
-    setSelectedEventos((prev) =>
-      prev.includes(id)
-        ? prev.filter((eventoId) => eventoId !== id)
-        : [...prev, id]
-    );
-  };
+    setSelectedEventos((prev) => (prev.includes(id) ? prev.filter((eventoId) => eventoId !== id) : [...prev, id]))
+  }
 
   const toggleAllSelection = () => {
     if (selectedEventos.length === currentItems.length) {
-      setSelectedEventos([]);
+      setSelectedEventos([])
     } else {
-      setSelectedEventos(currentItems.map((evento) => evento.id));
+      setSelectedEventos(currentItems.map((evento) => evento.id))
     }
-  };
+  }
 
   const handleEventoAdded = () => {
-    setShowModal(false);
-    fetchEventos();
+    setShowModal(false)
+    fetchEventos()
     Swal.fire({
       title: "¡Éxito!",
       text: "El evento ha sido agregado correctamente",
       icon: "success",
       confirmButtonColor: "#3085d6",
       confirmButtonText: "OK",
-    });
-  };
+    })
+  }
 
   const handleEventoUpdated = () => {
-    setShowEditModal(false);
-    fetchEventos();
+    setShowEditModal(false)
+    fetchEventos()
     Swal.fire({
       title: "¡Éxito!",
       text: "El evento ha sido actualizado correctamente",
       icon: "success",
       confirmButtonColor: "#3085d6",
       confirmButtonText: "OK",
-    });
-  };
+    })
+  }
 
   const handleLogicalDelete = async (id) => {
     const result = await Swal.fire({
@@ -188,7 +180,7 @@ export default function Eventos() {
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, desactivar",
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       try {
@@ -197,13 +189,13 @@ export default function Eventos() {
           headers: {
             "Content-Type": "application/json",
           },
-        });
+        })
 
         if (!response.ok) {
-          throw new Error("Error al desactivar el evento");
+          throw new Error("Error al desactivar el evento")
         }
 
-        const data = await response.json();
+        const data = await response.json()
 
         Swal.fire({
           title: "¡Completado!",
@@ -212,20 +204,20 @@ export default function Eventos() {
           confirmButtonText: "OK",
           timer: 2000,
           showConfirmButton: false,
-        });
+        })
 
-        fetchEventos();
+        fetchEventos()
       } catch (err) {
-        console.error("Error al desactivar evento:", err);
+        console.error("Error al desactivar evento:", err)
         Swal.fire({
           title: "Error",
           text: "No se pudo desactivar el evento.",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        })
       }
     }
-  };
+  }
 
   const handlePhysicalDelete = async (id) => {
     const result = await Swal.fire({
@@ -237,7 +229,7 @@ export default function Eventos() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar permanentemente",
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       try {
@@ -255,19 +247,19 @@ export default function Eventos() {
           cancelButtonColor: "#3085d6",
           confirmButtonText: "Sí, eliminar definitivamente",
           cancelButtonText: "Cancelar",
-        });
+        })
 
-        if (!secondConfirm.isConfirmed) return;
+        if (!secondConfirm.isConfirmed) return
 
         const response = await fetch(`${API_URL}/api/evento/${id}`, {
           method: "DELETE",
-        });
+        })
 
         if (!response.ok) {
-          throw new Error("Error al eliminar el evento");
+          throw new Error("Error al eliminar el evento")
         }
 
-        const data = await response.json();
+        const data = await response.json()
 
         Swal.fire({
           title: "¡Eliminado!",
@@ -276,20 +268,20 @@ export default function Eventos() {
           confirmButtonText: "OK",
           timer: 2000,
           showConfirmButton: false,
-        });
+        })
 
-        fetchEventos();
+        fetchEventos()
       } catch (err) {
-        console.error("Error al eliminar evento:", err);
+        console.error("Error al eliminar evento:", err)
         Swal.fire({
           title: "Error",
           text: "No se pudo eliminar el evento.",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        })
       }
     }
-  };
+  }
 
   const bulkLogicalDelete = async () => {
     if (selectedEventos.length === 0) {
@@ -297,8 +289,8 @@ export default function Eventos() {
         icon: "warning",
         title: "Ningún evento seleccionado",
         text: "Por favor selecciona al menos un evento para desactivar",
-      });
-      return;
+      })
+      return
     }
 
     const result = await Swal.fire({
@@ -310,7 +302,7 @@ export default function Eventos() {
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, desactivar (${selectedEventos.length})`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       try {
@@ -320,9 +312,9 @@ export default function Eventos() {
           allowOutsideClick: false,
           allowEscapeKey: false,
           didOpen: () => {
-            Swal.showLoading();
+            Swal.showLoading()
           },
-        });
+        })
 
         const updatePromises = selectedEventos.map((id) =>
           fetch(`${API_URL}/api/evento/${id}`, {
@@ -330,31 +322,31 @@ export default function Eventos() {
             headers: {
               "Content-Type": "application/json",
             },
-          })
-        );
+          }),
+        )
 
-        await Promise.all(updatePromises);
+        await Promise.all(updatePromises)
 
         Swal.fire({
           title: "¡Completado!",
           text: "Los eventos seleccionados han sido desactivados",
           icon: "success",
           confirmButtonText: "OK",
-        });
+        })
 
-        fetchEventos();
-        setSelectedEventos([]);
+        fetchEventos()
+        setSelectedEventos([])
       } catch (err) {
-        console.error("Error al desactivar eventos:", err);
+        console.error("Error al desactivar eventos:", err)
         Swal.fire({
           title: "Error",
           text: "No se pudieron desactivar los eventos seleccionados.",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        })
       }
     }
-  };
+  }
 
   const bulkPhysicalDelete = async () => {
     if (selectedEventos.length === 0) {
@@ -362,8 +354,8 @@ export default function Eventos() {
         icon: "warning",
         title: "Ningún evento seleccionado",
         text: "Por favor selecciona al menos un evento para eliminar",
-      });
-      return;
+      })
+      return
     }
 
     const result = await Swal.fire({
@@ -375,7 +367,7 @@ export default function Eventos() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: `Sí, eliminar (${selectedEventos.length})`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       const secondConfirm = await Swal.fire({
@@ -392,9 +384,9 @@ export default function Eventos() {
         cancelButtonColor: "#3085d6",
         confirmButtonText: "Sí, eliminar definitivamente",
         cancelButtonText: "Cancelar",
-      });
+      })
 
-      if (!secondConfirm.isConfirmed) return;
+      if (!secondConfirm.isConfirmed) return
 
       try {
         Swal.fire({
@@ -403,41 +395,41 @@ export default function Eventos() {
           allowOutsideClick: false,
           allowEscapeKey: false,
           didOpen: () => {
-            Swal.showLoading();
+            Swal.showLoading()
           },
-        });
+        })
 
         const deletePromises = selectedEventos.map((id) =>
           fetch(`${API_URL}/api/evento/${id}`, {
             method: "DELETE",
-          })
-        );
+          }),
+        )
 
-        await Promise.all(deletePromises);
+        await Promise.all(deletePromises)
 
         Swal.fire({
           title: "¡Eliminados!",
           text: "Los eventos seleccionados han sido eliminados permanentemente",
           icon: "success",
           confirmButtonText: "OK",
-        });
+        })
 
-        fetchEventos();
-        setSelectedEventos([]);
+        fetchEventos()
+        setSelectedEventos([])
       } catch (err) {
-        console.error("Error al eliminar eventos:", err);
+        console.error("Error al eliminar eventos:", err)
         Swal.fire({
           title: "Error",
           text: "No se pudieron eliminar los eventos seleccionados.",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        })
       }
     }
-  };
+  }
 
   const handleEventoToggleActive = async (id, currentActiveState) => {
-    const action = currentActiveState ? "desactivar" : "activar";
+    const action = currentActiveState ? "desactivar" : "activar"
 
     const result = await Swal.fire({
       title: `¿${currentActiveState ? "Desactivar" : "Activar"} evento?`,
@@ -448,7 +440,7 @@ export default function Eventos() {
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${action}`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       try {
@@ -458,10 +450,10 @@ export default function Eventos() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ activo: !currentActiveState }),
-        });
+        })
 
         if (!response.ok) {
-          throw new Error(`Error al ${action} el evento`);
+          throw new Error(`Error al ${action} el evento`)
         }
 
         Swal.fire({
@@ -471,34 +463,31 @@ export default function Eventos() {
           confirmButtonText: "OK",
           timer: 2000,
           showConfirmButton: false,
-        });
+        })
 
-        fetchEventos();
+        fetchEventos()
       } catch (err) {
-        console.error(`Error al ${action} evento:`, err);
+        console.error(`Error al ${action} evento:`, err)
         Swal.fire({
           title: "Error",
           text: `No se pudo ${action} el evento.`,
           icon: "error",
           confirmButtonText: "OK",
-        });
-        setError(`No se pudo ${action} el evento.`);
+        })
+        setError(`No se pudo ${action} el evento.`)
       }
     }
-  };
+  }
 
   const handleEditEvento = (evento) => {
-    setEventoEditar(evento);
-    setShowEditModal(true);
-  };
+    setEventoEditar(evento)
+    setShowEditModal(true)
+  }
 
-  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
-  const currentItems = eventosFiltrados.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage)
+  const currentItems = eventosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-  if (!isClient) return null;
+  if (!isClient) return null
 
   if (loading) {
     return (
@@ -508,7 +497,7 @@ export default function Eventos() {
           <p>Cargando eventos...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -521,7 +510,7 @@ export default function Eventos() {
           <div className="relative w-full">
             <input
               type="text"
-              placeholder="    Buscar por nombre, salón, fecha, duración o capacidad..."
+              placeholder="Buscar eventos..."
               value={searchTerm}
               onChange={handleSearch}
               className="search-input pl-10 w-full"
@@ -530,16 +519,10 @@ export default function Eventos() {
           </div>
 
           <button
-            className={`btn ${
-              showInactive ? "btn-warning" : "btn-outline"
-            } flex items-center gap-2 w-full md:w-auto`}
+            className={`btn ${showInactive ? "btn-warning" : "btn-outline"} flex items-center gap-2 w-full md:w-auto`}
             onClick={() => setShowInactive(!showInactive)}
           >
-            {showInactive ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
+            {showInactive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             {showInactive ? "Ver activos" : "Ver inactivos"}
           </button>
         </div>
@@ -547,17 +530,11 @@ export default function Eventos() {
         <div className="flex flex-col md:flex-row gap-4">
           {selectedEventos.length > 0 && (
             <>
-              <button
-                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
-                onClick={bulkLogicalDelete}
-              >
+              <button className="btn btn-warning flex items-center gap-2 w-full md:w-auto" onClick={bulkLogicalDelete}>
                 <Archive className="h-4 w-4" />
                 Desactivar {selectedEventos.length}
               </button>
-              <button
-                className="btn btn-error flex items-center gap-2 w-full md:w-auto"
-                onClick={bulkPhysicalDelete}
-              >
+              <button className="btn btn-error flex items-center gap-2 w-full md:w-auto" onClick={bulkPhysicalDelete}>
                 <Trash2 className="h-4 w-4" />
                 Eliminar {selectedEventos.length}
               </button>
@@ -574,11 +551,7 @@ export default function Eventos() {
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
       {/* Tabla de eventos */}
       <div className="overflow-x-auto">
@@ -590,10 +563,7 @@ export default function Eventos() {
                 <th className="w-10">
                   <input
                     type="checkbox"
-                    checked={
-                      selectedEventos.length === currentItems.length &&
-                      currentItems.length > 0
-                    }
+                    checked={selectedEventos.length === currentItems.length && currentItems.length > 0}
                     onChange={toggleAllSelection}
                   />
                 </th>
@@ -609,10 +579,7 @@ export default function Eventos() {
             <tbody>
               {currentItems.length > 0 ? (
                 currentItems.map((evento) => (
-                  <tr
-                    key={evento.id}
-                    className={!evento.activo ? "opacity-70 bg-gray-50" : ""}
-                  >
+                  <tr key={evento.id} className={!evento.activo ? "opacity-70 bg-gray-50" : ""}>
                     <td>
                       <input
                         type="checkbox"
@@ -626,11 +593,7 @@ export default function Eventos() {
                     <td>{evento.duracion || "N/A"} minutos</td>
                     <td>{evento.capacidad || "Sin límite"}</td>
                     <td>
-                      <span
-                        className={`badge ${
-                          evento.activo ? "badge-success" : "badge-error"
-                        }`}
-                      >
+                      <span className={`badge ${evento.activo ? "badge-success" : "badge-error"}`}>
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
@@ -654,9 +617,7 @@ export default function Eventos() {
                         ) : (
                           <button
                             className="btn btn-sm btn-outline btn-success p-1"
-                            onClick={() =>
-                              handleEventoToggleActive(evento.id, evento.activo)
-                            }
+                            onClick={() => handleEventoToggleActive(evento.id, evento.activo)}
                             title="Activar"
                           >
                             <Power className="h-4 w-4" />
@@ -675,8 +636,10 @@ export default function Eventos() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-4">
-                    No se encontraron eventos
+                  <td colSpan="8" className="text-center py-10">
+                    <p className="text-gray-500">
+                      No se encontraron eventos que coincidan con los criterios de búsqueda
+                    </p>
                   </td>
                 </tr>
               )}
@@ -684,124 +647,154 @@ export default function Eventos() {
           </table>
         </div>
 
-        {/* Vista móvil */}
+        {/* Vista móvil mejorada */}
         <div className="md:hidden space-y-4">
           {currentItems.length > 0 ? (
             currentItems.map((evento) => (
               <div
                 key={evento.id}
-                className={`border rounded-lg p-4 ${
-                  !evento.activo ? "opacity-70 bg-gray-50" : ""
-                }`}
+                className={`border rounded-lg overflow-hidden ${!evento.activo ? "opacity-70 bg-gray-50" : ""}`}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-medium">{evento.nombre}</div>
-                    <div className="text-sm text-gray-500">
-                      {evento.salonNombre}
+                <div className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedEventos.includes(evento.id)}
+                          onChange={() => toggleEventoSelection(evento.id)}
+                          className="mr-1"
+                        />
+                        <div>
+                          <div className="font-medium text-lg">{evento.nombre}</div>
+                          <div className="text-sm text-gray-500 mt-1">{evento.salonNombre}</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center text-sm text-gray-600">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        <span className="truncate">{formatDateTime(evento.fecha)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <button
-                    onClick={() =>
-                      setExpandedEvento(
-                        expandedEvento === evento.id ? null : evento.id
-                      )
-                    }
-                    className="text-gray-500"
-                  >
-                    {expandedEvento === evento.id ? (
-                      <ChevronUp />
-                    ) : (
-                      <ChevronDown />
-                    )}
-                  </button>
-                </div>
-
-                {expandedEvento === evento.id && (
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center">
-                      <span className="text-gray-500 w-24">Fecha:</span>
-                      <span>{formatDateTime(evento.fecha)}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-gray-500 w-24">Duración:</span>
-                      <span>{evento.duracion || "N/A"} minutos</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-gray-500 w-24">Capacidad:</span>
-                      <span>{evento.capacidad || "Sin límite"}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-gray-500 w-24">Estado:</span>
-                      <span
-                        className={`badge ${
-                          evento.activo ? "badge-success" : "badge-error"
-                        }`}
-                      >
+                    <div className="flex flex-col items-end">
+                      <span className={`badge ${evento.activo ? "badge-success" : "badge-error"} mb-2`}>
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
-                    </div>
-
-                    <div className="flex justify-between pt-2">
                       <button
-                        className="btn btn-sm btn-outline btn-primary"
-                        onClick={() => handleEditEvento(evento)}
+                        onClick={() => setExpandedEvento(expandedEvento === evento.id ? null : evento.id)}
+                        className="text-gray-500 flex items-center gap-1"
                       >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      {evento.activo ? (
-                        <button
-                          className="btn btn-sm btn-outline btn-warning"
-                          onClick={() => handleLogicalDelete(evento.id)}
-                        >
-                          <Archive className="h-4 w-4" />
-                        </button>
-                      ) : (
-                        <button
-                          className="btn btn-sm btn-outline btn-success"
-                          onClick={() =>
-                            handleEventoToggleActive(evento.id, evento.activo)
-                          }
-                        >
-                          <Power className="h-4 w-4" />
-                        </button>
-                      )}
-                      <button
-                        className="btn btn-sm btn-outline btn-error"
-                        onClick={() => handlePhysicalDelete(evento.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        {expandedEvento === evento.id ? (
+                          <>
+                            <span className="text-xs">Cerrar</span>
+                            <ChevronUp className="h-4 w-4" />
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xs">Detalles</span>
+                            <ChevronDown className="h-4 w-4" />
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
-                )}
+
+                  {expandedEvento === evento.id && (
+                    <div className="mt-4 space-y-3 overflow-x-hidden">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="text-gray-500 text-sm">Duración:</span>
+                          <span className="ml-2">{evento.duracion || "N/A"} minutos</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 text-gray-500 mr-2" />
+                          <span className="text-gray-500 text-sm">Capacidad:</span>
+                          <span className="ml-2">{evento.capacidad || "Sin límite"}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between pt-3 mt-2 border-t">
+                        <div className="grid grid-cols-3 gap-2 w-full">
+                          <button
+                            className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
+                            onClick={() => handleEditEvento(evento)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Editar</span>
+                          </button>
+                          {evento.activo ? (
+                            <button
+                              className="btn btn-sm btn-outline btn-warning flex items-center justify-center"
+                              onClick={() => handleLogicalDelete(evento.id)}
+                            >
+                              <Archive className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Desactivar</span>
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-sm btn-outline btn-success flex items-center justify-center"
+                              onClick={() => handleEventoToggleActive(evento.id, evento.activo)}
+                            >
+                              <Power className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Activar</span>
+                            </button>
+                          )}
+                          <button
+                            className="btn btn-sm btn-outline btn-error flex items-center justify-center"
+                            onClick={() => handlePhysicalDelete(evento.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Eliminar</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-4">No se encontraron eventos</div>
+            <div className="text-center py-10 border rounded-lg">
+              <p className="text-gray-500">No se encontraron eventos que coincidan con los criterios de búsqueda</p>
+            </div>
           )}
         </div>
       </div>
 
       {/* Paginación */}
       {totalPages > 1 && (
-        <div className="pagination mt-6 flex justify-center gap-2">
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              className={`btn btn-sm ${
-                currentPage === index + 1 ? "btn-primary" : "btn-outline"
-              }`}
-              onClick={() => setCurrentPage(index + 1)}
-            >
-              {index + 1}
+        <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
+          {currentPage > 1 && (
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage(currentPage - 1)}>
+              <ChevronRight className="h-4 w-4 rotate-180" />
             </button>
-          ))}
+          )}
+          {[...Array(totalPages)].map((_, index) => {
+            // Show limited page numbers on mobile
+            if (index === 0 || index === totalPages - 1 || (index >= currentPage - 2 && index <= currentPage + 0)) {
+              return (
+                <button
+                  key={index}
+                  className={`btn btn-sm ${currentPage === index + 1 ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => setCurrentPage(index + 1)}
+                >
+                  {index + 1}
+                </button>
+              )
+            } else if (
+              (index === currentPage - 3 && currentPage > 3) ||
+              (index === currentPage + 1 && currentPage < totalPages - 2)
+            ) {
+              return (
+                <span key={index} className="flex items-center justify-center px-2">
+                  ...
+                </span>
+              )
+            }
+            return null
+          })}
           {currentPage < totalPages && (
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage(currentPage + 1)}>
               <ChevronRight className="h-4 w-4" />
             </button>
           )}
@@ -809,23 +802,18 @@ export default function Eventos() {
       )}
 
       {/* Modales */}
-      {showModal && (
-        <EventoModal
-          onClose={() => setShowModal(false)}
-          onEventoAdded={handleEventoAdded}
-        />
-      )}
+      {showModal && <EventoModal onClose={() => setShowModal(false)} onEventoAdded={handleEventoAdded} />}
 
       {showEditModal && eventoEditar && (
         <EventoEditarModal
           evento={eventoEditar}
           onClose={() => {
-            setShowEditModal(false);
-            setEventoEditar(null);
+            setShowEditModal(false)
+            setEventoEditar(null)
           }}
           onEventoUpdated={handleEventoUpdated}
         />
       )}
     </div>
-  );
+  )
 }
