@@ -24,7 +24,7 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function Usuarios() {
   const [isClient, setIsClient] = useState(false);
@@ -360,9 +360,21 @@ export default function Usuarios() {
 
   const modificarUsuario = async (id, datosActualizados) => {
     try {
+      // Mostrar loading mientras se envía
+      Swal.fire({
+        title: "Guardando cambios...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const response = await fetch(`${API_URL}/api/users/perfil/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Asegurar autenticación
+        },
         body: JSON.stringify(datosActualizados),
       });
 
@@ -375,21 +387,25 @@ export default function Usuarios() {
       }
 
       await fetchUsuarios();
-      setUsuarioEditar(null);
+
       Swal.fire({
         icon: "success",
-        title: "Usuario modificado",
-        text: "Los datos del usuario han sido modificados correctamente",
+        title: "¡Éxito!",
+        text: "Los datos del usuario se actualizaron correctamente",
+        timer: 2000,
+        showConfirmButton: false,
       });
     } catch (error) {
+      console.error("Error al modificar usuario:", error);
+
       Swal.fire({
         icon: "error",
-        title: "Error al modificar usuario",
-        text:
-          error.message || "Hubo un error al modificar los datos del usuario",
-        footer:
-          "Verifica que todos los campos cumplan con los requisitos y que no existan duplicados de email o nombre de usuario",
+        title: "Error",
+        text: error.message || "Hubo un problema al actualizar el usuario",
+        footer: "Por favor verifique los datos e intente nuevamente",
       });
+
+      throw error; // Re-lanzar para manejo adicional si es necesario
     }
   };
 
