@@ -16,6 +16,7 @@ import {
   Calendar,
   Clock,
   Users,
+  ListFilter,
 } from "lucide-react"
 import Header from "../components/header"
 import EventoModal from "../components/evento-modal"
@@ -34,7 +35,7 @@ export default function Eventos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [showInactive, setShowInactive] = useState(false)
+  const [filterMode, setFilterMode] = useState("active") // Options: "active", "inactive", "all"
   const [selectedEventos, setSelectedEventos] = useState([])
   const [eventoEditar, setEventoEditar] = useState(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -50,7 +51,7 @@ export default function Eventos() {
     if (isClient) {
       fetchEventos()
     }
-  }, [showInactive, isClient])
+  }, [filterMode, isClient])
 
   const removeAccents = (str) => {
     return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
@@ -68,7 +69,17 @@ export default function Eventos() {
       const resultData = await response.json()
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        const filteredData = showInactive ? resultData.data : resultData.data.filter((evento) => evento.activo)
+        // Apply filter based on filterMode
+        let filteredData
+
+        if (filterMode === "active") {
+          filteredData = resultData.data.filter((evento) => evento.activo)
+        } else if (filterMode === "inactive") {
+          filteredData = resultData.data.filter((evento) => !evento.activo)
+        } else {
+          // "all" mode - no filtering
+          filteredData = resultData.data
+        }
 
         const mappedEventos = filteredData.map((evento) => ({
           id: evento.Id || evento.id,
@@ -518,13 +529,29 @@ export default function Eventos() {
             <Search className="absolute left-3 top-1/3 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
 
-          <button
-            className={`btn ${showInactive ? "btn-warning" : "btn-outline"} flex items-center gap-2 w-full md:w-auto`}
-            onClick={() => setShowInactive(!showInactive)}
-          >
-            {showInactive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {showInactive ? "Ver activos" : "Ver inactivos"}
-          </button>
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <button
+              className={`btn ${filterMode === "active" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => setFilterMode("active")}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">Activos</span>
+            </button>
+            <button
+              className={`btn ${filterMode === "inactive" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => setFilterMode("inactive")}
+            >
+              <EyeOff className="h-4 w-4" />
+              <span className="hidden sm:inline">Inactivos</span>
+            </button>
+            <button
+              className={`btn ${filterMode === "all" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => setFilterMode("all")}
+            >
+              <ListFilter className="h-4 w-4" />
+              <span className="hidden sm:inline">Todos</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">

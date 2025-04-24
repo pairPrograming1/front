@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   MoreHorizontal,
+  ListFilter,
 } from "lucide-react"
 import UsuarioModal from "../components/usuario-modal"
 import UsuarioEditarModal from "../components/usuario-editar-modal"
@@ -32,7 +33,7 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
-  const [filterInactive, setFilterInactive] = useState(false)
+  const [filterMode, setFilterMode] = useState("active") // Options: "active", "inactive", "all"
   const [searchTerm, setSearchTerm] = useState("")
   const [error, setError] = useState(null)
   const [selectedUsers, setSelectedUsers] = useState([])
@@ -48,8 +49,19 @@ export default function Usuarios() {
   const fetchUsuarios = async () => {
     setLoading(true)
     try {
-      const statusQuery = filterInactive ? "false" : "true"
-      const response = await fetch(`${API_URL}/api/users/usuarios?status=${statusQuery}`)
+      let url = `${API_URL}/api/users/usuarios?`
+
+      // Add status filter based on filterMode
+      if (filterMode === "active") {
+        url += "status=true"
+      } else if (filterMode === "inactive") {
+        url += "status=false"
+      } else {
+        // For "all" mode, we might need to adjust the API or handle filtering client-side
+        url += "includeAll=true"
+      }
+
+      const response = await fetch(url)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null)
@@ -59,7 +71,13 @@ export default function Usuarios() {
       }
 
       const data = await response.json()
-      setUsuarios(data)
+
+      // If the API doesn't support "all" mode, we can filter client-side
+      if (filterMode === "all" && Array.isArray(data)) {
+        setUsuarios(data)
+      } else {
+        setUsuarios(data)
+      }
     } catch (err) {
       setError(err.message)
       Swal.fire({
@@ -77,7 +95,7 @@ export default function Usuarios() {
     if (isClient) {
       fetchUsuarios()
     }
-  }, [filterInactive, isClient])
+  }, [filterMode, isClient])
 
   const removeAccents = (str) => {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -457,13 +475,29 @@ export default function Usuarios() {
             <Search className="absolute left-3 top-1/3 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
 
-          <button
-            className={`btn ${filterInactive ? "btn-warning" : "btn-outline"} flex items-center gap-2 w-full md:w-auto`}
-            onClick={() => setFilterInactive((prev) => !prev)}
-          >
-            {filterInactive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {filterInactive ? "Ver activos" : "Ver inactivos"}
-          </button>
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <button
+              className={`btn ${filterMode === "active" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => setFilterMode("active")}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">Activos</span>
+            </button>
+            <button
+              className={`btn ${filterMode === "inactive" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => setFilterMode("inactive")}
+            >
+              <EyeOff className="h-4 w-4" />
+              <span className="hidden sm:inline">Inactivos</span>
+            </button>
+            <button
+              className={`btn ${filterMode === "all" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => setFilterMode("all")}
+            >
+              <ListFilter className="h-4 w-4" />
+              <span className="hidden sm:inline">Todos</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">
@@ -738,3 +772,4 @@ export default function Usuarios() {
     </div>
   )
 }
+

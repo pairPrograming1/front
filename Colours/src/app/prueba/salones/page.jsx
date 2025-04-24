@@ -13,6 +13,7 @@ import {
   Edit,
   ChevronDown,
   ChevronUp,
+  ListFilter,
 } from "lucide-react"
 import SalonModal from "../components/salon-modal"
 import SalonEditarModal from "../components/salon-editar-modal"
@@ -24,16 +25,18 @@ const API_URL = apiUrls.production
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false)
-  const [salones, setSalones] = useState([])
+  const [allSalones, setAllSalones] = useState([]) // Store all fetched salones
+  const [filteredSalones, setFilteredSalones] = useState([]) // Store filtered salones for display
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
-  const [verInactivos, setVerInactivos] = useState(false)
+  const [filterMode, setFilterMode] = useState("active") // Options: "active", "inactive", "all"
   const [salonAEditar, setSalonAEditar] = useState(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [expandedSalon, setExpandedSalon] = useState(null)
+  const [selectedSalones, setSelectedSalones] = useState([])
 
   const itemsPerPage = 10
 
@@ -41,22 +44,20 @@ export default function Salones() {
     return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
   }
 
-  const fetchSalones = async (pageNum = 1, limitNum = 10, search = "", includeInactive = false) => {
+  const fetchSalones = async (pageNum = 1, limitNum = 10, search = "") => {
     try {
       setLoading(true)
 
-      // Construir URL con parámetros de consulta
-      let url = `${API_URL}/api/salon?page=${pageNum}&limit=${limitNum}`
+      // Fetch all salones to ensure we have complete data for filtering
+      let url = `${API_URL}/api/salon?page=${pageNum}&limit=100` // Fetch more to ensure we have all data
 
-      // Añadir término de búsqueda si existe
+      // Add search parameter if provided
       if (search) {
         url += `&search=${encodeURIComponent(search)}`
       }
 
-      // Añadir parámetro para incluir eliminados según el estado de verInactivos
-      if (includeInactive) {
-        url += "&includeDeleted=true"
-      }
+      // Always include all salones (active and inactive) in the fetch
+      url += "&includeAll=true"
 
       const response = await fetch(url)
 
@@ -65,43 +66,97 @@ export default function Salones() {
       }
 
       const data = await response.json()
+      let salonesData = []
 
-      // Verificar si la respuesta incluye información de paginación
+      // Handle different response formats
       if (data.pagination) {
-        // Actualizar el estado con la información de paginación
+        salonesData = Array.isArray(data.data) ? data.data : []
         setTotalPages(data.pagination.totalPages)
         setCurrentPage(data.pagination.page)
-
-        // Guardar los salones desde data.data
-        setSalones(Array.isArray(data.data) ? data.data : [])
       } else {
-        // Manejar respuestas antiguas o sin paginación
-        const salonesData = Array.isArray(data) ? data : data.data ? data.data : data.salones ? data.salones : [data]
+        salonesData = Array.isArray(data) ? data : data.data ? data.data : data.salones ? data.salones : [data]
 
-        setSalones(salonesData)
-
-        // Calcular paginación manual si la API no la proporciona
+        // Calculate pagination manually
         setTotalPages(Math.ceil(salonesData.length / limitNum))
       }
+
+      // Store all fetched salones
+      setAllSalones(salonesData)
+
+      // Apply filters
+      applyFilters(salonesData, search, filterMode)
     } catch (err) {
       setError(err.message)
-      setSalones([])
+      setAllSalones([])
+      setFilteredSalones([])
     } finally {
       setLoading(false)
     }
   }
 
+  // Function to apply filters to the data
+  const applyFilters = (salones, search = searchTerm, mode = filterMode) => {
+    let filtered = [...salones]
+
+    // Apply search filter if provided
+    if (search) {
+      const searchLower = removeAccents(search.toLowerCase())
+      filtered = filtered.filter((salon) => {
+        const nombre = removeAccents((salon.salon || salon.nombre || "").toLowerCase())
+        const contacto = removeAccents((salon.contacto || "").toLowerCase())
+        const email = removeAccents((salon.email || "").toLowerCase())
+        const whatsapp = (salon.whatsapp || "").toLowerCase()
+        const cuit = (salon.cuit || "").toLowerCase()
+
+        return (
+          nombre.includes(searchLower) ||
+          contacto.includes(searchLower) ||
+          email.includes(searchLower) ||
+          whatsapp.includes(searchLower) ||
+          cuit.includes(searchLower)
+        )
+      })
+    }
+
+    // Apply status filter
+    if (mode === "active") {
+      filtered = filtered.filter((salon) => salon.isActive === true || salon.estatus === true || salon.activo === true)
+    } else if (mode === "inactive") {
+      filtered = filtered.filter(
+        (salon) => salon.isActive === false || salon.estatus === false || salon.activo === false,
+      )
+    }
+
+    // Update filtered salones
+    setFilteredSalones(filtered)
+
+    // Reset selected salones when filters change
+    setSelectedSalones([])
+  }
+
   useEffect(() => {
-    fetchSalones(currentPage, itemsPerPage, searchTerm, verInactivos)
-  }, [verInactivos])
+    fetchSalones(currentPage, itemsPerPage, searchTerm)
+  }, [])
+
+  // Apply filters when filter mode changes
+  useEffect(() => {
+    if (allSalones.length > 0) {
+      applyFilters(allSalones)
+    }
+  }, [filterMode])
 
   const refreshSalones = async () => {
-    await fetchSalones(currentPage, itemsPerPage, searchTerm, verInactivos)
+    await fetchSalones(currentPage, itemsPerPage, searchTerm)
   }
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage)
-    fetchSalones(newPage, itemsPerPage, searchTerm, verInactivos)
+
+    // Calculate pagination for filtered results
+    const startIndex = (newPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+
+    // No need to fetch again, just update the current page
   }
 
   const handleAddSalon = async (newSalon) => {
@@ -245,20 +300,114 @@ export default function Salones() {
   }
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value)
-    setCurrentPage(1)
-    // Debounce para buscar después de que el usuario deje de escribir
     const searchValue = e.target.value
-    const handler = setTimeout(() => {
-      fetchSalones(1, itemsPerPage, searchValue, verInactivos)
-    }, 300)
-    return () => clearTimeout(handler)
+    setSearchTerm(searchValue)
+    setCurrentPage(1)
+
+    // Apply filters with the new search term
+    applyFilters(allSalones, searchValue, filterMode)
   }
 
-  const toggleVerInactivos = () => {
-    setVerInactivos((prev) => !prev)
-    setCurrentPage(1) // Resetear a la primera página al cambiar el filtro
+  const toggleSalonSelection = (id) => {
+    setSelectedSalones((prev) => (prev.includes(id) ? prev.filter((salonId) => salonId !== id) : [...prev, id]))
   }
+
+  const toggleAllSelection = () => {
+    const currentPageItems = getCurrentPageItems()
+
+    if (selectedSalones.length === currentPageItems.length) {
+      setSelectedSalones([])
+    } else {
+      setSelectedSalones(currentPageItems.map((salon) => salon.id || salon._id || salon.Id))
+    }
+  }
+
+  const bulkToggleStatus = async (activate) => {
+    if (selectedSalones.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Ningún salón seleccionado",
+        text: `Por favor selecciona al menos un salón para ${activate ? "activar" : "desactivar"}`,
+      })
+      return
+    }
+
+    const result = await Swal.fire({
+      title: `¿${activate ? "Activar" : "Desactivar"} salones seleccionados?`,
+      text: `¿Desea ${activate ? "activar" : "desactivar"} los ${selectedSalones.length} salones seleccionados?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: activate ? "#3085d6" : "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: `Sí, ${activate ? "activar" : "desactivar"} (${selectedSalones.length})`,
+      cancelButtonText: "Cancelar",
+    })
+
+    if (result.isConfirmed) {
+      try {
+        Swal.fire({
+          title: "Procesando...",
+          text: `${activate ? "Activando" : "Desactivando"} salones seleccionados`,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          didOpen: () => {
+            Swal.showLoading()
+          },
+        })
+
+        const updatePromises = selectedSalones.map((id) =>
+          fetch(`${API_URL}/api/salon/toggle-status/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isActive: activate }),
+          }),
+        )
+
+        await Promise.all(updatePromises)
+
+        Swal.fire({
+          title: "¡Completado!",
+          text: `Los salones seleccionados han sido ${activate ? "activados" : "desactivados"}`,
+          icon: "success",
+          confirmButtonText: "OK",
+        })
+
+        await refreshSalones()
+        setSelectedSalones([])
+      } catch (err) {
+        console.error(`Error al ${activate ? "activar" : "desactivar"} salones:`, err)
+        Swal.fire({
+          title: "Error",
+          text: `No se pudieron ${activate ? "activar" : "desactivar"} los salones seleccionados.`,
+          icon: "error",
+          confirmButtonText: "OK",
+        })
+      }
+    }
+  }
+
+  // Get items for the current page
+  const getCurrentPageItems = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    return filteredSalones.slice(startIndex, endIndex)
+  }
+
+  const currentItems = getCurrentPageItems()
+
+  const handleFilterChange = (mode) => {
+    setFilterMode(mode)
+    setCurrentPage(1)
+  }
+
+  // Calculate total pages based on filtered results
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredSalones.length / itemsPerPage))
+    // Reset to page 1 if current page is now invalid
+    if (currentPage > Math.ceil(filteredSalones.length / itemsPerPage)) {
+      setCurrentPage(1)
+    }
+  }, [filteredSalones, itemsPerPage])
 
   if (loading) {
     return (
@@ -300,16 +449,50 @@ export default function Salones() {
             <Search className="absolute left-3 top-1/3 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
 
-          <button
-            className={`btn ${verInactivos ? "btn-warning" : "btn-outline"} flex items-center gap-2 w-full md:w-auto`}
-            onClick={toggleVerInactivos}
-          >
-            {verInactivos ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {verInactivos ? "Ver activos" : "Ver inactivos"}
-          </button>
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <button
+              className={`btn ${filterMode === "active" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => handleFilterChange("active")}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">Activos</span>
+            </button>
+            <button
+              className={`btn ${filterMode === "inactive" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => handleFilterChange("inactive")}
+            >
+              <EyeOff className="h-4 w-4" />
+              <span className="hidden sm:inline">Inactivos</span>
+            </button>
+            <button
+              className={`btn ${filterMode === "all" ? "btn-warning" : "btn-outline"} flex items-center gap-2 flex-1 md:flex-none`}
+              onClick={() => handleFilterChange("all")}
+            >
+              <ListFilter className="h-4 w-4" />
+              <span className="hidden sm:inline">Todos</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4">
+          {selectedSalones.length > 0 && (
+            <>
+              <button
+                className="btn btn-success flex items-center gap-2 w-full md:w-auto"
+                onClick={() => bulkToggleStatus(true)}
+              >
+                <Power className="h-4 w-4" />
+                Activar {selectedSalones.length}
+              </button>
+              <button
+                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
+                onClick={() => bulkToggleStatus(false)}
+              >
+                <Archive className="h-4 w-4" />
+                Desactivar {selectedSalones.length}
+              </button>
+            </>
+          )}
           <button
             className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
             onClick={() => setShowModal(true)}
@@ -320,6 +503,19 @@ export default function Salones() {
         </div>
       </div>
 
+      {/* Filter status message */}
+      <div className="mb-4 text-sm text-gray-500">
+        {filteredSalones.length === 0 ? (
+          <p>No se encontraron salones con los filtros actuales</p>
+        ) : (
+          <p>
+            Mostrando {currentItems.length} de {filteredSalones.length} salones
+            {filterMode === "active" ? " activos" : filterMode === "inactive" ? " inactivos" : ""}
+            {searchTerm ? ` que coinciden con "${searchTerm}"` : ""}
+          </p>
+        )}
+      </div>
+
       {/* Tabla de salones */}
       <div className="overflow-x-auto">
         {/* Vista de escritorio */}
@@ -327,6 +523,13 @@ export default function Salones() {
           <table className="table min-w-full">
             <thead>
               <tr>
+                <th className="w-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedSalones.length === currentItems.length && currentItems.length > 0}
+                    onChange={toggleAllSelection}
+                  />
+                </th>
                 <th>Salón</th>
                 <th>CUIT</th>
                 <th>Nombre del Contacto</th>
@@ -338,15 +541,20 @@ export default function Salones() {
               </tr>
             </thead>
             <tbody>
-              {salones.length > 0 ? (
-                salones.map((salon) => {
+              {currentItems.length > 0 ? (
+                currentItems.map((salon) => {
                   const isActive = salon.isActive ?? salon.estatus ?? true
+                  const salonId = salon.id || salon._id || salon.Id
 
                   return (
-                    <tr
-                      key={salon.id || salon._id || salon.Id}
-                      className={`cursor-pointer ${!isActive ? "opacity-70 bg-gray-50" : ""}`}
-                    >
+                    <tr key={salonId} className={`cursor-pointer ${!isActive ? "opacity-70 bg-gray-50" : ""}`}>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedSalones.includes(salonId)}
+                          onChange={() => toggleSalonSelection(salonId)}
+                        />
+                      </td>
                       <td>{salon.salon || salon.nombre}</td>
                       <td>{salon.cuit}</td>
                       <td>{salon.contacto || salon.nombre}</td>
@@ -375,7 +583,7 @@ export default function Salones() {
                             className={`btn btn-sm btn-outline ${isActive ? "btn-warning" : "btn-success"} p-1`}
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleToggleSalonStatus(salon.id || salon._id || salon.Id, isActive)
+                              handleToggleSalonStatus(salonId, isActive)
                             }}
                             title={isActive ? "Desactivar" : "Activar"}
                           >
@@ -386,7 +594,7 @@ export default function Salones() {
                             className="btn btn-sm btn-outline btn-error p-1"
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleDeleteSalon(salon.id || salon._id || salon.Id)
+                              handleDeleteSalon(salonId)
                             }}
                             title="Eliminar permanentemente"
                           >
@@ -399,7 +607,7 @@ export default function Salones() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-10">
+                  <td colSpan="9" className="text-center py-10">
                     <p className="text-gray-500">
                       No se encontraron salones que coincidan con los criterios de búsqueda
                     </p>
@@ -412,8 +620,8 @@ export default function Salones() {
 
         {/* Vista móvil mejorada */}
         <div className="md:hidden space-y-4">
-          {salones.length > 0 ? (
-            salones.map((salon) => {
+          {currentItems.length > 0 ? (
+            currentItems.map((salon) => {
               const isActive = salon.isActive ?? salon.estatus ?? true
               const salonId = salon.id || salon._id || salon.Id
 
@@ -424,13 +632,21 @@ export default function Salones() {
                 >
                   <div className="p-4">
                     <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="font-medium text-lg">{salon.salon || salon.nombre}</div>
-                        <div className="text-sm text-gray-500 mt-1 flex items-center">
-                          <span
-                            className={`inline-block w-2 h-2 rounded-full mr-2 ${isActive ? "bg-green-500" : "bg-red-500"}`}
-                          ></span>
-                          <span>{isActive ? "Activo" : "Inactivo"}</span>
+                      <div className="flex-1 flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedSalones.includes(salonId)}
+                          onChange={() => toggleSalonSelection(salonId)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-lg">{salon.salon || salon.nombre}</div>
+                          <div className="text-sm text-gray-500 mt-1 flex items-center">
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full mr-2 ${isActive ? "bg-green-500" : "bg-red-500"}`}
+                            ></span>
+                            <span>{isActive ? "Activo" : "Inactivo"}</span>
+                          </div>
                         </div>
                       </div>
                       <button
@@ -589,3 +805,4 @@ export default function Salones() {
     </div>
   )
 }
+
