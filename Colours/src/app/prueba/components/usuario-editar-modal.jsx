@@ -157,8 +157,8 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
+    <div className="fixed inset-0 flex items-center justify-center z-50 ">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-2xl shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-white">Editar Usuario</h2>
           <button
@@ -170,23 +170,26 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm text-yellow-400 mb-1">
-                Usuario
-              </label>
-              <input
-                type="text"
-                name="usuario"
-                placeholder="Nombre de usuario"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.usuario}
-                onChange={handleChange}
-                required
-              />
-            </div>
+          {/* Username field - full width in all screen sizes */}
+          <div className="w-full">
+            <label className="block text-sm text-yellow-400 mb-1">
+              Usuario
+            </label>
+            <input
+              type="text"
+              name="usuario"
+              placeholder="Nombre de usuario"
+              className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+              value={formData.usuario}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
+          {/* Two-column grid for larger screens, single column for mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* First column */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">
                   Nombre
@@ -201,6 +204,41 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
                   required
                 />
               </div>
+
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Dirección
+                </label>
+                <input
+                  type="text"
+                  name="direccion"
+                  placeholder="Dirección completa"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  WhatsApp
+                </label>
+                <input
+                  type="text"
+                  name="whatsapp"
+                  placeholder="Ej: +5491123456789"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.whatsapp}
+                  onChange={handleChange}
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Solo números, el + debe ir al inicio
+                </p>
+              </div>
+            </div>
+
+            {/* Second column */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm text-yellow-400 mb-1">
                   Apellido
@@ -215,67 +253,38 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
                   required
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm text-yellow-400 mb-1">
-                Dirección
-              </label>
-              <input
-                type="text"
-                name="direccion"
-                placeholder="Dirección completa"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.direccion}
-                onChange={handleChange}
-              />
-            </div>
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Correo electrónico"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm text-yellow-400 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Correo electrónico"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-yellow-400 mb-1">
-                WhatsApp
-              </label>
-              <input
-                type="text"
-                name="whatsapp"
-                placeholder="Ej: +5491123456789"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.whatsapp}
-                onChange={handleChange}
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Solo números, el + debe ir al inicio
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm text-yellow-400 mb-1">DNI</label>
-              <input
-                type="text"
-                name="dni"
-                placeholder="Ej: 12345678M"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.dni}
-                onChange={handleChange}
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Números y letra M o F al final
-              </p>
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  DNI
+                </label>
+                <input
+                  type="text"
+                  name="dni"
+                  placeholder="Ej: 12345678M"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.dni}
+                  onChange={handleChange}
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Números y letra M o F al final
+                </p>
+              </div>
             </div>
           </div>
 

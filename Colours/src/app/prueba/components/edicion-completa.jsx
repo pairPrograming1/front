@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Swal from "sweetalert2"
-import { X } from "lucide-react"
-import ImageUploaderModal from "./image-uploader-modal"
-import ImageGallery from "./ImageGallery"
-import apiUrls from "@/app/components/utils/apiConfig"
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Swal from "sweetalert2";
+import { X } from "lucide-react";
+import ImageUploaderModal from "./image-uploader-modal";
+import ImageGallery from "./ImageGallery";
+import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
-  const [activeTab, setActiveTab] = useState("informacion")
-  const [showImageUploader, setShowImageUploader] = useState(false)
-  const [showImageGallery, setShowImageGallery] = useState(false)
-  const [loadingImages, setLoadingImages] = useState(false)
-  const [errorImages, setErrorImages] = useState(null)
-  const [salones, setSalones] = useState([])
-  const [loadingSalones, setLoadingSalones] = useState(false)
-  const [errorSalones, setErrorSalones] = useState(null)
-  const [validationError, setValidationError] = useState(null)
+  const [activeTab, setActiveTab] = useState("informacion");
+  const [showImageUploader, setShowImageUploader] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [loadingImages, setLoadingImages] = useState(false);
+  const [errorImages, setErrorImages] = useState(null);
+  const [salones, setSalones] = useState([]);
+  const [loadingSalones, setLoadingSalones] = useState(false);
+  const [errorSalones, setErrorSalones] = useState(null);
+  const [validationError, setValidationError] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -32,7 +32,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     es_online: punto?.es_online || false,
     salonesHabilitados: punto?.salonesHabilitados || [],
     vendedoresAsignados: punto?.vendedoresAsignados || [],
-    imagenes: punto?.imagenes || ["/placeholder.svg", "/placeholder.svg", "/placeholder.svg", "/placeholder.svg"],
+    imagenes: punto?.imagenes || [
+      "/placeholder.svg",
+      "/placeholder.svg",
+      "/placeholder.svg",
+      "/placeholder.svg",
+    ],
     tiposCobro: {
       mercadoPago: {
         apiKey: punto?.tiposCobro?.mercadoPago?.apiKey || "",
@@ -43,7 +48,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         entidadCobro: punto?.tiposCobro?.transferencia?.entidadCobro || "",
       },
     },
-  })
+  });
 
   useEffect(() => {
     if (punto) {
@@ -70,195 +75,206 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
             entidadCobro: punto.tiposCobro?.transferencia?.entidadCobro || "",
           },
         },
-      })
+      });
     }
-  }, [punto])
+  }, [punto]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
 
     // Validación especial para teléfono
     if (name === "telefono") {
-      const validatedValue = value.replace(/[^0-9+]/g, "")
+      const validatedValue = value.replace(/[^0-9+]/g, "");
       if (validatedValue.includes("+")) {
-        const parts = validatedValue.split("+")
+        const parts = validatedValue.split("+");
         if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          return
+          return;
         }
       }
-      setData((prev) => ({ ...prev, [name]: validatedValue }))
-      return
+      setData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
     }
 
     // Validación especial para whatsapp
     if (name === "whatsapp") {
-      const validatedValue = value.replace(/[^0-9+]/g, "")
+      const validatedValue = value.replace(/[^0-9+]/g, "");
       if (validatedValue.includes("+")) {
-        const parts = validatedValue.split("+")
+        const parts = validatedValue.split("+");
         if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          return
+          return;
         }
       }
-      setData((prev) => ({ ...prev, [name]: validatedValue }))
-      return
+      setData((prev) => ({ ...prev, [name]: validatedValue }));
+      return;
     }
 
     // Validación especial para CUIT
     if (name === "cuit") {
-      const digits = value.replace(/\D/g, "")
-      setData((prev) => ({ ...prev, [name]: digits }))
-      return
+      const digits = value.replace(/\D/g, "");
+      setData((prev) => ({ ...prev, [name]: digits }));
+      return;
     }
 
     // Para los demás campos
     setData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
-    }))
-  }
+    }));
+  };
 
   const formatCUIT = (cuit) => {
-    const digits = cuit.replace(/\D/g, "")
+    const digits = cuit.replace(/\D/g, "");
     if (digits.length === 11) {
-      return `${digits.substring(0, 2)}-${digits.substring(2, 10)}-${digits.substring(10)}`
+      return `${digits.substring(0, 2)}-${digits.substring(
+        2,
+        10
+      )}-${digits.substring(10)}`;
     }
-    return digits
-  }
+    return digits;
+  };
 
   const fetchSalones = async () => {
     try {
-      setLoadingSalones(true)
-      const response = await fetch(`${API_URL}/api/salon?limit=100`) // Aumentamos el límite a 100
+      setLoadingSalones(true);
+      const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentamos el límite a 100
       if (!response.ok) {
-        throw new Error(`Error al obtener salones: ${response.status}`)
+        throw new Error(`Error al obtener salones: ${response.status}`);
       }
 
-      const result = await response.json()
+      const result = await response.json();
       if (result.success && result.data) {
-        const salonesActivos = result.data.filter((salon) => salon.estatus === true)
-        setSalones(salonesActivos)
+        const salonesActivos = result.data.filter(
+          (salon) => salon.estatus === true
+        );
+        setSalones(salonesActivos);
       } else {
-        throw new Error(result.message || "Error al obtener los salones")
+        throw new Error(result.message || "Error al obtener los salones");
       }
     } catch (err) {
-      console.error("Error fetching salones:", err)
-      setErrorSalones(err.message)
+      console.error("Error fetching salones:", err);
+      setErrorSalones(err.message);
     } finally {
-      setLoadingSalones(false)
+      setLoadingSalones(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchSalones()
-  }, [])
+    fetchSalones();
+  }, []);
 
   const fetchPuntoImages = async () => {
-    if (!punto?.id) return
+    if (!punto?.id) return;
 
     try {
-      setLoadingImages(true)
-      const response = await fetch(`${API_URL}/api/puntodeventa/${punto.id}`)
+      setLoadingImages(true);
+      const response = await fetch(`${API_URL}/api/puntodeventa/${punto.id}`);
 
       if (!response.ok) {
-        throw new Error(`Error al obtener imágenes: ${response.status}`)
+        throw new Error(`Error al obtener imágenes: ${response.status}`);
       }
 
-      const result = await response.json()
+      const result = await response.json();
       if (result.success && result.data && result.data.imagenes) {
         setData((prev) => ({
           ...prev,
           imagenes: result.data.imagenes,
-        }))
+        }));
       }
     } catch (err) {
-      console.error("Error fetching images:", err)
-      setErrorImages(err.message)
+      console.error("Error fetching images:", err);
+      setErrorImages(err.message);
     } finally {
-      setLoadingImages(false)
+      setLoadingImages(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (punto?.id) {
-      fetchPuntoImages()
+      fetchPuntoImages();
     }
-  }, [punto?.id])
+  }, [punto?.id]);
 
   const handleImageSelected = (imageUrl) => {
-    const newImages = [...data.imagenes]
-    const placeholderIndex = newImages.findIndex((img) => img === "/placeholder.svg")
+    const newImages = [...data.imagenes];
+    const placeholderIndex = newImages.findIndex(
+      (img) => img === "/placeholder.svg"
+    );
 
     if (placeholderIndex !== -1) {
-      newImages[placeholderIndex] = imageUrl
+      newImages[placeholderIndex] = imageUrl;
     } else {
-      newImages[0] = imageUrl
+      newImages[0] = imageUrl;
     }
 
     setData((prev) => ({
       ...prev,
       imagenes: newImages,
-    }))
-  }
+    }));
+  };
 
   const validateForm = () => {
     // Validar campos requeridos
-    const requiredFields = ["razon", "nombre", "direccion", "cuit", "email"]
+    const requiredFields = ["razon", "nombre", "direccion", "cuit", "email"];
 
     for (const field of requiredFields) {
       if (!data[field] || data[field].trim() === "") {
-        return `El campo ${field} es requerido`
+        return `El campo ${field} es requerido`;
       }
     }
 
     // Validar teléfono
     if (data.telefono && !/^\+?\d+$/.test(data.telefono)) {
-      return "El teléfono solo puede contener números y un + al inicio"
+      return "El teléfono solo puede contener números y un + al inicio";
     }
 
     // Validar whatsapp
     if (data.whatsapp && !/^\+?\d+$/.test(data.whatsapp)) {
-      return "El WhatsApp solo puede contener números y un + al inicio"
+      return "El WhatsApp solo puede contener números y un + al inicio";
     }
 
     // Validar CUIT
-    const formattedCUIT = formatCUIT(data.cuit)
-    const cuitPattern = /^\d{2}-\d{8}-\d{1}$/
+    const formattedCUIT = formatCUIT(data.cuit);
+    const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
     if (!cuitPattern.test(formattedCUIT)) {
-      return "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X"
+      return "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X";
     }
 
     // Validar email
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(data.email)) {
-      return "El formato del correo electrónico es inválido"
+      return "El formato del correo electrónico es inválido";
     }
 
-    return null
-  }
+    return null;
+  };
 
   const handleSubmit = async () => {
-    const validationError = validateForm()
+    const validationError = validateForm();
     if (validationError) {
-      setValidationError(validationError)
+      setValidationError(validationError);
       Swal.fire({
         icon: "error",
         title: "Error de validación",
         text: validationError,
-      })
-      return
+      });
+      return;
     }
 
     try {
-      const formattedCUIT = formatCUIT(data.cuit)
+      const formattedCUIT = formatCUIT(data.cuit);
       const submitData = {
         ...data,
         cuit: formattedCUIT,
-        image: data.imagenes.find((img) => img !== "/placeholder.svg") || data.imagenes[0],
-      }
+        image:
+          data.imagenes.find((img) => img !== "/placeholder.svg") ||
+          data.imagenes[0],
+      };
 
-      const endpoint = punto?.id ? `${API_URL}/api/puntodeventa/${punto.id}` : `${API_URL}/api/puntodeventa`
+      const endpoint = punto?.id
+        ? `${API_URL}/api/puntodeventa/${punto.id}`
+        : `${API_URL}/api/puntodeventa`;
 
-      const method = punto?.id ? "PUT" : "POST"
+      const method = punto?.id ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {
         method,
@@ -266,37 +282,42 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(submitData),
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Error al guardar los datos")
+        throw new Error(result.message || "Error al guardar los datos");
       }
 
-      setValidationError(null)
-      onUpdate?.()
-      onClose()
+      setValidationError(null);
+      onUpdate?.();
+      onClose();
 
       Swal.fire({
         icon: "success",
         title: punto?.id ? "Actualizado" : "Creado",
-        text: punto?.id ? "Punto de venta actualizado correctamente" : "Punto de venta creado correctamente",
-      })
+        text: punto?.id
+          ? "Punto de venta actualizado correctamente"
+          : "Punto de venta creado correctamente",
+      });
     } catch (error) {
-      console.error("Error:", error)
+      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
         text: error.message,
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/80 transition-opacity" onClick={onClose}></div>
+      <div
+        className="fixed inset-0  transition-opacity"
+        onClick={onClose}
+      ></div>
 
       {/* Modal container */}
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -359,7 +380,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                   required
                 />
                 {data.cuit.length === 11 && (
-                  <span className="absolute right-3 top-3 text-green-400 text-sm">{formatCUIT(data.cuit)}</span>
+                  <span className="absolute right-3 top-3 text-green-400 text-sm">
+                    {formatCUIT(data.cuit)}
+                  </span>
                 )}
               </div>
               <input
@@ -416,7 +439,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                     </button>
                     <button
                       className={`rounded-lg px-4 py-2 text-sm sm:px-6 sm:text-base ${
-                        activeTab === "cobros" ? "bg-yellow-700 text-white" : "bg-gray-700 text-white hover:bg-gray-600"
+                        activeTab === "cobros"
+                          ? "bg-yellow-700 text-white"
+                          : "bg-gray-700 text-white hover:bg-gray-600"
                       } transition-colors flex-1 sm:flex-none`}
                       onClick={() => setActiveTab("cobros")}
                     >
@@ -432,7 +457,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           <h3 className="text-lg font-semibold text-yellow-500">
                             Salones Habilitados ({salones.length})
                           </h3>
-                          <div className="text-sm text-gray-400 mt-1 sm:mt-0">Mostrando todos los salones activos</div>
+                          <div className="text-sm text-gray-400 mt-1 sm:mt-0">
+                            Mostrando todos los salones activos
+                          </div>
                         </div>
 
                         {/* Contenedor con scroll para todos los salones */}
@@ -442,44 +469,61 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                         >
                           {loadingSalones ? (
                             <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                              <p className="text-yellow-500">Cargando salones...</p>
+                              <p className="text-yellow-500">
+                                Cargando salones...
+                              </p>
                             </div>
                           ) : errorSalones ? (
                             <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                              <p className="text-red-400">Error: {errorSalones}</p>
+                              <p className="text-red-400">
+                                Error: {errorSalones}
+                              </p>
                             </div>
                           ) : salones.length > 0 ? (
                             salones.map((salon) => (
                               <div
                                 key={salon.id}
                                 className={`bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden hover:bg-gray-600 transition-colors cursor-pointer ${
-                                  data.salonesHabilitados.some((s) => s.id === salon.id)
+                                  data.salonesHabilitados.some(
+                                    (s) => s.id === salon.id
+                                  )
                                     ? "bg-yellow-700/20 border-yellow-500"
                                     : ""
                                 }`}
                                 onClick={() => {
-                                  const isSelected = data.salonesHabilitados.some((s) => s.id === salon.id)
+                                  const isSelected =
+                                    data.salonesHabilitados.some(
+                                      (s) => s.id === salon.id
+                                    );
                                   setData((prev) => ({
                                     ...prev,
                                     salonesHabilitados: isSelected
-                                      ? prev.salonesHabilitados.filter((s) => s.id !== salon.id)
+                                      ? prev.salonesHabilitados.filter(
+                                          (s) => s.id !== salon.id
+                                        )
                                       : [...prev.salonesHabilitados, salon],
-                                  }))
+                                  }));
                                 }}
                               >
                                 <div className="p-0 h-32 flex flex-col items-center justify-center">
                                   <span className="text-xl font-light italic text-white text-center px-2">
                                     {salon.nombre}
                                   </span>
-                                  {data.salonesHabilitados.some((s) => s.id === salon.id) && (
-                                    <span className="text-green-400 text-xs mt-1">Seleccionado</span>
+                                  {data.salonesHabilitados.some(
+                                    (s) => s.id === salon.id
+                                  ) && (
+                                    <span className="text-green-400 text-xs mt-1">
+                                      Seleccionado
+                                    </span>
                                   )}
                                 </div>
                               </div>
                             ))
                           ) : (
                             <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                              <p className="text-gray-400">No hay salones activos disponibles</p>
+                              <p className="text-gray-400">
+                                No hay salones activos disponibles
+                              </p>
                             </div>
                           )}
                         </div>
@@ -487,9 +531,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
                       {/* Vendedores asignados */}
                       <div>
-                        <h3 className="text-lg font-semibold text-yellow-500 mb-4">Vendedores asignados</h3>
+                        <h3 className="text-lg font-semibold text-yellow-500 mb-4">
+                          Vendedores asignados
+                        </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {data.vendedoresAsignados && data.vendedoresAsignados.length > 0 ? (
+                          {data.vendedoresAsignados &&
+                          data.vendedoresAsignados.length > 0 ? (
                             data.vendedoresAsignados.map((vendedor, index) => (
                               <div
                                 key={index}
@@ -497,17 +544,27 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                               >
                                 <div className="p-4 h-32">
                                   <div className="space-y-1 text-white">
-                                    <p className="font-medium">{vendedor.nombre}</p>
-                                    <p className="text-xs text-gray-300">Teléfono: {vendedor.telefono}</p>
-                                    <p className="text-xs text-gray-300">Email: {vendedor.email}</p>
-                                    <p className="text-xs text-gray-300">WhatsApp: {vendedor.whatsapp}</p>
+                                    <p className="font-medium">
+                                      {vendedor.nombre}
+                                    </p>
+                                    <p className="text-xs text-gray-300">
+                                      Teléfono: {vendedor.telefono}
+                                    </p>
+                                    <p className="text-xs text-gray-300">
+                                      Email: {vendedor.email}
+                                    </p>
+                                    <p className="text-xs text-gray-300">
+                                      WhatsApp: {vendedor.whatsapp}
+                                    </p>
                                   </div>
                                 </div>
                               </div>
                             ))
                           ) : (
                             <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                              <p className="text-gray-400">No hay vendedores asignados</p>
+                              <p className="text-gray-400">
+                                No hay vendedores asignados
+                              </p>
                             </div>
                           )}
                         </div>
@@ -517,7 +574,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
                   {activeTab === "cobros" && (
                     <div>
-                      <h3 className="text-lg font-semibold text-yellow-500 mb-4">Información de Cobros</h3>
+                      <h3 className="text-lg font-semibold text-yellow-500 mb-4">
+                        Información de Cobros
+                      </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                         <div className="bg-gray-700 border border-yellow-600 rounded-lg">
                           <div className="p-4">
@@ -588,7 +647,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                               <input
                                 type="text"
                                 placeholder="Entidad de Cobro"
-                                value={data.tiposCobro.transferencia.entidadCobro}
+                                value={
+                                  data.tiposCobro.transferencia.entidadCobro
+                                }
                                 onChange={(e) =>
                                   setData({
                                     ...data,
@@ -643,7 +704,11 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                   </button>
                 </div>
 
-                {errorImages && <div className="text-red-400 text-sm mb-2">Error: {errorImages}</div>}
+                {errorImages && (
+                  <div className="text-red-400 text-sm mb-2">
+                    Error: {errorImages}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-2">
                   {loadingImages ? (
@@ -667,7 +732,9 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                     ))
                   ) : (
                     <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                      <p className="text-gray-400">No hay imágenes disponibles</p>
+                      <p className="text-gray-400">
+                        No hay imágenes disponibles
+                      </p>
                     </div>
                   )}
                 </div>
@@ -700,8 +767,8 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         <ImageUploaderModal
           onClose={() => setShowImageUploader(false)}
           onImageSelected={(imageUrl) => {
-            handleImageSelected(imageUrl)
-            setShowImageUploader(false)
+            handleImageSelected(imageUrl);
+            setShowImageUploader(false);
           }}
         />
       )}
@@ -711,13 +778,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         <ImageGallery
           onClose={() => setShowImageGallery(false)}
           onImageSelected={(imageUrl) => {
-            handleImageSelected(imageUrl)
-            setShowImageGallery(false)
+            handleImageSelected(imageUrl);
+            setShowImageGallery(false);
           }}
           puntoId={punto?.id}
         />
       )}
     </div>
-  )
+  );
 }
-  

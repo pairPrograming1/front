@@ -92,7 +92,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-2xl shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-white">
             {userData ? "Editar Usuario" : "Agregar Usuario"}
@@ -106,86 +106,107 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="usuario"
-            placeholder="Usuario"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.usuario}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="nombre"
-            placeholder="Nombre"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="apellido"
-            placeholder="Apellido"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.apellido}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="dni"
-            placeholder="DNI (solo números y M/F al final)"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.dni}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="E-mail"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="direccion"
-            placeholder="Dirección"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.direccion}
-            onChange={handleChange}
-          />
-          <input
-            type="text"
-            name="whatsapp"
-            placeholder="WhatsApp (solo números, + al inicio)"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.whatsapp}
-            onChange={handleChange}
-          />
-          {!userData && (
+          {/* Usuario field - full width in all screen sizes */}
+          <div className="w-full">
             <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
+              type="text"
+              name="usuario"
+              placeholder="Usuario"
               className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-              value={formData.password}
+              value={formData.usuario}
               onChange={handleChange}
-              required={!userData}
+              required
             />
-          )}
-          <input
-            type="text"
-            name="roleId"
-            placeholder="Rol ID (opcional)"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            value={formData.roleId}
-            onChange={handleChange}
-          />
+          </div>
+
+          {/* Two-column grid for larger screens, single column for mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* First column */}
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="nombre"
+                placeholder="Nombre"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="dni"
+                placeholder="DNI (solo números y M/F al final)"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.dni}
+                onChange={handleChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="direccion"
+                placeholder="Dirección"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.direccion}
+                onChange={handleChange}
+              />
+
+              <input
+                type="text"
+                name="whatsapp"
+                placeholder="WhatsApp (solo números, + al inicio)"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.whatsapp}
+                onChange={handleChange}
+              />
+            </div>
+
+            {/* Second column */}
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="apellido"
+                placeholder="Apellido"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.apellido}
+                onChange={handleChange}
+                required
+              />
+
+              <input
+                type="email"
+                name="email"
+                placeholder="E-mail"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+
+              {!userData && (
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Contraseña"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required={!userData}
+                />
+              )}
+
+              <input
+                type="text"
+                name="roleId"
+                placeholder="Rol ID (opcional)"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                value={formData.roleId}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300"

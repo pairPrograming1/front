@@ -91,7 +91,7 @@ export default function PuntoModal({ onClose, onSubmit }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-2xl shadow-lg shadow-yellow-800/20">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-white">Agregar Punto</h2>
           <button
@@ -109,88 +109,100 @@ export default function PuntoModal({ onClose, onSubmit }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="razon"
-            value={formData.razon}
-            onChange={handleChange}
-            placeholder="Razón Social *"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            required
-          />
-
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            placeholder="Nombre *"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            required
-          />
-
-          <input
-            type="text"
-            name="direccion"
-            value={formData.direccion}
-            onChange={handleChange}
-            placeholder="Dirección *"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            required
-          />
-
-          <div className="relative">
-            <input
-              type="tel"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              placeholder="Teléfono (solo números, + opcional) *"
-              className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-              required
-            />
-          </div>
-
-          <div className="relative">
+          {/* Razón Social - full width in all screen sizes */}
+          <div className="w-full">
             <input
               type="text"
-              name="cuit"
-              value={formData.cuit}
+              name="razon"
+              value={formData.razon}
               onChange={handleChange}
-              placeholder="CUIT (11 dígitos) *"
+              placeholder="Razón Social *"
               className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-              maxLength="11"
               required
             />
-            {formData.cuit.length === 11 && (
-              <span className="absolute right-3 top-3 text-green-400 text-sm">
-                {formatCUIT(formData.cuit)}
-              </span>
-            )}
           </div>
 
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="E-mail *"
-            className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-            required
-          />
+          {/* Two-column grid for larger screens, single column for mobile */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* First column */}
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Nombre *"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                required
+              />
 
-          <div className="flex items-center mb-4">
-            <input
-              type="checkbox"
-              name="es_online"
-              checked={formData.es_online}
-              onChange={handleChange}
-              className="mr-2 h-4 w-4 text-yellow-600 bg-gray-700 border-yellow-600 rounded focus:ring-yellow-500"
-              id="es_online"
-            />
-            <label htmlFor="es_online" className="text-white">
-              Punto Online
-            </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  placeholder="Teléfono (solo números, + opcional) *"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  required
+                />
+              </div>
+
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="E-mail *"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                required
+              />
+            </div>
+
+            {/* Second column */}
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="direccion"
+                value={formData.direccion}
+                onChange={handleChange}
+                placeholder="Dirección *"
+                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                required
+              />
+
+              <div className="relative">
+                <input
+                  type="text"
+                  name="cuit"
+                  value={formData.cuit}
+                  onChange={handleChange}
+                  placeholder="CUIT (11 dígitos) *"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  maxLength="11"
+                  required
+                />
+                {formData.cuit.length === 11 && (
+                  <span className="absolute right-3 top-3 text-green-400 text-sm">
+                    {formatCUIT(formData.cuit)}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center pt-2">
+                <input
+                  type="checkbox"
+                  name="es_online"
+                  checked={formData.es_online}
+                  onChange={handleChange}
+                  className="mr-2 h-4 w-4 text-yellow-600 bg-gray-700 border-yellow-600 rounded focus:ring-yellow-500"
+                  id="es_online"
+                />
+                <label htmlFor="es_online" className="text-white">
+                  Punto Online
+                </label>
+              </div>
+            </div>
           </div>
 
           <button
