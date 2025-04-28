@@ -37,7 +37,7 @@ export default function LoginForm() {
       // Primer paso: autenticación del usuario
       const respuesta = await axios.post(`${API_URL}/api/auth`, datosLogin);
 
-      console.log("Inicio de sesión exitoso:", respuesta.data);
+     
 
       // Segundo paso: verificar el usuario para obtener su información completa incluyendo el rol
       const verificarResponse = await axios.post(
@@ -55,7 +55,7 @@ export default function LoginForm() {
       // Obtener el rol desde la respuesta de verificación
       const userData = verificarResponse.data.usuario;
       const userRole = userData.rol;
-      console.log("esto es data", userData, "esto es rol", userRole)
+     
       // Guardar los datos completos de sesión en el contexto
       setAuthData({
         ...respuesta.data,

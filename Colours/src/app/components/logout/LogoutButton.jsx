@@ -3,11 +3,14 @@ import { useContext } from "react";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "../../context/AuthContext";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useDispatch } from "react-redux";
+import { clearUserData } from "@/lib/slices/profileSlice";
 
 export function LogoutButton() {
   const { setAuthData } = useContext(AuthContext);
   const { logout } = useAuth0();
   const router = useRouter();
+  const dispatch= useDispatch()
 
   // const handleLogout = () => {
   //   setAuthData(null); // Borra el estado de la sesión
@@ -18,6 +21,7 @@ export function LogoutButton() {
   //   }, 500); // Retraso de 500ms
   // };
   const handleLogout = () => {
+    dispatch(clearUserData());
     // Determine the current URL (works in both local and deployed environments)
     const currentOrigin = window.location.origin;
     
