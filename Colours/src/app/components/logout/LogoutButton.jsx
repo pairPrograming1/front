@@ -18,15 +18,21 @@ export function LogoutButton() {
   //   }, 500); // Retraso de 500ms
   // };
   const handleLogout = () => {
-    setAuthData(null); // Borra el estado de la sesión
-    localStorage.removeItem("authData"); // Borra los datos del localStorage
+    // Determine the current URL (works in both local and deployed environments)
+    const currentOrigin = window.location.origin;
     
-    // Usar el método promise-based
-    logout({ logoutParams: { returnTo: undefined } })
-      .then(() => {
-        // Una vez completado el logout de Auth0, redirigir usando el router de Next.js
-        router.push("/");
-      });
+    // Clear local state first
+    setAuthData(null);
+    localStorage.removeItem("authData");
+    
+    // Use the current origin as the returnTo URL
+    logout({ 
+      logoutParams: { 
+        returnTo: currentOrigin 
+      } 
+    });
+    
+    // Note: No need for router.push here as Auth0 will handle the redirect
   };
 
  
