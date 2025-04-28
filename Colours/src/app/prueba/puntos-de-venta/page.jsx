@@ -25,6 +25,8 @@ import apiUrls from "@/app/components/utils/apiConfig";
 const API_URL = apiUrls.production;
 
 export default function PuntosDeVenta() {
+  console.log("Datos iniciales del componente PuntosDeVenta"); // Log para mostrar los datos iniciales
+
   const [showModal, setShowModal] = useState(false);
   const [puntos, setPuntos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

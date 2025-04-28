@@ -1,24 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Swal from "sweetalert2";
 import { X } from "lucide-react";
-import ImageUploaderModal from "./image-uploader-modal";
-import ImageGallery from "./ImageGallery";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [activeTab, setActiveTab] = useState("informacion");
-  const [showImageUploader, setShowImageUploader] = useState(false);
-  const [showImageGallery, setShowImageGallery] = useState(false);
-  const [loadingImages, setLoadingImages] = useState(false);
-  const [errorImages, setErrorImages] = useState(null);
-  const [salones, setSalones] = useState([]);
   const [loadingSalones, setLoadingSalones] = useState(false);
   const [errorSalones, setErrorSalones] = useState(null);
+  const [salones, setSalones] = useState([]);
   const [validationError, setValidationError] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
@@ -32,12 +25,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     es_online: punto?.es_online || false,
     salonesHabilitados: punto?.salonesHabilitados || [],
     vendedoresAsignados: punto?.vendedoresAsignados || [],
-    imagenes: punto?.imagenes || [
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-    ],
     tiposCobro: {
       mercadoPago: {
         apiKey: punto?.tiposCobro?.mercadoPago?.apiKey || "",
@@ -64,7 +51,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         es_online: punto.es_online || false,
         salonesHabilitados: punto.salonesHabilitados || [],
         vendedoresAsignados: punto.vendedoresAsignados || [],
-        imagenes: punto.image || ["/placeholder.svg"],
         tiposCobro: {
           mercadoPago: {
             apiKey: punto.tiposCobro?.mercadoPago?.apiKey || "",
@@ -162,38 +148,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     fetchSalones();
   }, []);
 
-  const fetchPuntoImages = async () => {
-    if (!punto?.id) return;
-
-    try {
-      setLoadingImages(true);
-      const response = await fetch(`${API_URL}/api/puntodeventa/${punto.id}`);
-
-      if (!response.ok) {
-        throw new Error(`Error al obtener imágenes: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success && result.data && result.data.imagenes) {
-        setData((prev) => ({
-          ...prev,
-          imagenes: result.data.imagenes,
-        }));
-      }
-    } catch (err) {
-      console.error("Error fetching images:", err);
-      setErrorImages(err.message);
-    } finally {
-      setLoadingImages(false);
-    }
-  };
-
-  useEffect(() => {
-    if (punto?.id) {
-      fetchPuntoImages();
-    }
-  }, [punto?.id]);
-
   const handleImageSelected = (imageUrl) => {
     const newImages = [...data.imagenes];
     const placeholderIndex = newImages.findIndex(
@@ -265,9 +219,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       const submitData = {
         ...data,
         cuit: formattedCUIT,
-        image:
-          data.imagenes.find((img) => img !== "/placeholder.svg") ||
-          data.imagenes[0],
       };
 
       const endpoint = punto?.id
@@ -680,65 +631,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
               </div>
 
               {/* Right Column - Images */}
-              <div className="w-full lg:w-72 order-1 lg:order-2">
-                {/* Opciones de imagen */}
-                <div className="flex space-x-2 mb-4">
-                  <button
-                    className="bg-yellow-700 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
-                    onClick={() => setShowImageUploader(true)}
-                  >
-                    Subir Imagen
-                  </button>
-                  <button
-                    className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
-                    onClick={() => setShowImageGallery(true)}
-                  >
-                    Galería
-                  </button>
-                  <button
-                    className="bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
-                    onClick={fetchPuntoImages}
-                    disabled={loadingImages || !punto?.id}
-                  >
-                    {loadingImages ? "..." : "Actualizar"}
-                  </button>
-                </div>
-
-                {errorImages && (
-                  <div className="text-red-400 text-sm mb-2">
-                    Error: {errorImages}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-2">
-                  {loadingImages ? (
-                    <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                      <p className="text-yellow-500">Cargando imágenes...</p>
-                    </div>
-                  ) : data.imagenes && data.imagenes.length > 0 ? (
-                    data.imagenes.map((imagen, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square bg-yellow-700/30 rounded-lg overflow-hidden border border-yellow-600"
-                      >
-                        <Image
-                          src={imagen || "/placeholder.svg"}
-                          alt="Imagen de galería"
-                          width={100}
-                          height={100}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                      <p className="text-gray-400">
-                        No hay imágenes disponibles
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <div className="w-full lg:w-72 order-1 lg:order-2"></div>
             </div>
           </div>
 
@@ -761,29 +654,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           </div>
         </div>
       </div>
-
-      {/* Image Uploader Modal */}
-      {showImageUploader && (
-        <ImageUploaderModal
-          onClose={() => setShowImageUploader(false)}
-          onImageSelected={(imageUrl) => {
-            handleImageSelected(imageUrl);
-            setShowImageUploader(false);
-          }}
-        />
-      )}
-
-      {/* Image Gallery Modal */}
-      {showImageGallery && (
-        <ImageGallery
-          onClose={() => setShowImageGallery(false)}
-          onImageSelected={(imageUrl) => {
-            handleImageSelected(imageUrl);
-            setShowImageGallery(false);
-          }}
-          puntoId={punto?.id}
-        />
-      )}
     </div>
   );
 }
