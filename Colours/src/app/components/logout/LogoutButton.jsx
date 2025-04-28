@@ -9,14 +9,27 @@ export function LogoutButton() {
   const { logout } = useAuth0();
   const router = useRouter();
 
+  // const handleLogout = () => {
+  //   setAuthData(null); // Borra el estado de la sesión
+  //   localStorage.removeItem("authData"); // Borra los datos del localStorage
+  //   logout({ returnTo: window.location.origin }); // Cierra la sesión de Auth0
+  //   setTimeout(() => {
+  //     router.push("/login"); // Redirige a la ruta /login después de un breve retraso
+  //   }, 500); // Retraso de 500ms
+  // };
   const handleLogout = () => {
     setAuthData(null); // Borra el estado de la sesión
     localStorage.removeItem("authData"); // Borra los datos del localStorage
-    logout({ returnTo: window.location.origin }); // Cierra la sesión de Auth0
-    setTimeout(() => {
-      router.push("/login"); // Redirige a la ruta /login después de un breve retraso
-    }, 500); // Retraso de 500ms
+    
+    // Usar el método promise-based
+    logout({ logoutParams: { returnTo: undefined } })
+      .then(() => {
+        // Una vez completado el logout de Auth0, redirigir usando el router de Next.js
+        router.push("/");
+      });
   };
+
+ 
 
   return <button onClick={handleLogout}>Logout</button>;
 }

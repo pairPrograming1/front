@@ -55,7 +55,7 @@ export default function LoginForm() {
       // Obtener el rol desde la respuesta de verificación
       const userData = verificarResponse.data.usuario;
       const userRole = userData.rol;
-
+      console.log("esto es data", userData, "esto es rol", userRole)
       // Guardar los datos completos de sesión en el contexto
       setAuthData({
         ...respuesta.data,
