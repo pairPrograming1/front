@@ -609,7 +609,7 @@ export default function Eventos() {
                 <th>Duración</th>
                 <th>Capacidad</th>
                 <th>Estado</th>
-                <th className="w-40">Acciones</th>
+                {currentItems.length > 0 && <th className="w-40">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -641,43 +641,48 @@ export default function Eventos() {
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button
-                          className="btn btn-sm btn-outline btn-primary p-1"
-                          onClick={() => handleEditEvento(evento)}
-                          title="Editar"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        {evento.activo ? (
+                    {currentItems.length > 0 && (
+                      <td>
+                        <div className="flex gap-2">
                           <button
-                            className="btn btn-sm btn-outline btn-warning p-1"
-                            onClick={() => handleLogicalDelete(evento.id)}
-                            title="Desactivar"
+                            className="btn btn-sm btn-outline btn-primary p-1"
+                            onClick={() => handleEditEvento(evento)}
+                            title="Editar"
                           >
-                            <Archive className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </button>
-                        ) : (
+                          {evento.activo ? (
+                            <button
+                              className="btn btn-sm btn-outline btn-warning p-1"
+                              onClick={() => handleLogicalDelete(evento.id)}
+                              title="Desactivar"
+                            >
+                              <Archive className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-sm btn-outline btn-success p-1"
+                              onClick={() =>
+                                handleEventoToggleActive(
+                                  evento.id,
+                                  evento.activo
+                                )
+                              }
+                              title="Activar"
+                            >
+                              <Power className="h-4 w-4" />
+                            </button>
+                          )}
                           <button
-                            className="btn btn-sm btn-outline btn-success p-1"
-                            onClick={() =>
-                              handleEventoToggleActive(evento.id, evento.activo)
-                            }
-                            title="Activar"
+                            className="btn btn-sm btn-outline btn-error p-1"
+                            onClick={() => handlePhysicalDelete(evento.id)}
+                            title="Eliminar permanentemente"
                           >
-                            <Power className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                        )}
-                        <button
-                          className="btn btn-sm btn-outline btn-error p-1"
-                          onClick={() => handlePhysicalDelete(evento.id)}
-                          title="Eliminar permanentemente"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
