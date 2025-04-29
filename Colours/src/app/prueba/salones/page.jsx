@@ -18,10 +18,11 @@ import {
 import SalonModal from "../components/salon-modal";
 import SalonEditarModal from "../components/salon-editar-modal";
 import Header from "../components/header";
+import UploadImageModal from "../components/upload-image-modal"; // Importa el nuevo modal
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
@@ -37,6 +38,7 @@ export default function Salones() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedSalon, setExpandedSalon] = useState(null);
   const [selectedSalones, setSelectedSalones] = useState([]);
+  const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
 
   const itemsPerPage = 10;
 
@@ -543,6 +545,13 @@ export default function Salones() {
             <Plus className="h-4 w-4" />
             Agregar salón
           </button>
+          <button
+            className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
+            onClick={() => setShowUploadModal(true)} // Abre el modal de carga de imágenes
+          >
+            <Plus className="h-4 w-4" />
+            Cargar imágenes
+          </button>
         </div>
       </div>
 
@@ -913,6 +922,13 @@ export default function Salones() {
           salon={salonAEditar}
           onClose={handleUpdateSalon}
           API_URL={`${API_URL}/api/salon`}
+        />
+      )}
+
+      {showUploadModal && (
+        <UploadImageModal
+          onClose={() => setShowUploadModal(false)} // Cierra el modal
+          API_URL={`${API_URL}/api/upload/image`} // URL del endpoint para subir imágenes
         />
       )}
     </div>

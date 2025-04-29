@@ -1,7 +1,7 @@
 "use client";
 
 import { X, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   const [formData, setFormData] = useState({
@@ -16,11 +16,31 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     cbu: "",
     alias: "",
     estatus: "true",
+    image: "", // Nueva propiedad para la URL de la imagen
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("info");
+  const [images, setImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null); // Nueva variable de estado
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await fetch(`http://localhost:4000/api/upload/images`);
+        if (!response.ok) {
+          throw new Error("Error al obtener las imágenes");
+        }
+        const data = await response.json();
+        setImages(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchImages();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,51 +61,14 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
       return;
     }
 
-    // Validación especial para CUIT (solo números, se formatea después)
+    // Validación especial para CUIT (acepta números y caracteres)
     if (name === "cuit") {
-      const digits = value.replace(/\D/g, "");
-      setFormData((prev) => ({ ...prev, [name]: digits }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
       return;
     }
 
     // Para los demás campos, actualizamos normalmente
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const checkSalonExists = async (name) => {
-    try {
-      const response = await fetch(`${API_URL}?search=${name}`);
-      if (!response.ok) {
-        return false;
-      }
-      const data = await response.json();
-      const salones = Array.isArray(data)
-        ? data
-        : data.data
-        ? data.data
-        : data.salones
-        ? data.salones
-        : [];
-
-      return salones.some(
-        (salon) =>
-          salon.salon && salon.salon.toLowerCase() === name.toLowerCase()
-      );
-    } catch (error) {
-      console.error("Error checking salon:", error);
-      return false;
-    }
-  };
-
-  const formatCUIT = (cuit) => {
-    const digits = cuit.replace(/\D/g, "");
-    if (digits.length === 11) {
-      return `${digits.substring(0, 2)}-${digits.substring(
-        2,
-        10
-      )}-${digits.substring(10)}`;
-    }
-    return digits; // Devuelve solo dígitos si no está completo
   };
 
   const handleSubmit = async (e) => {
@@ -130,12 +113,65 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
         cuit: formattedCUIT,
       };
 
+      // Eliminar la propiedad `image` si está vacía
+      if (!submissionData.image) {
+        delete submissionData.image;
+      }
+
       await onAddSalon(submissionData);
       onClose();
     } catch (error) {
       setError(error.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = (url) => {
+    navigator.clipboard.writeText(url).then(
+      () => {
+        setSelectedImage(url); // Marca la imagen como seleccionada
+        setFormData((prev) => ({ ...prev, image: url })); // Actualiza la URL de la imagen en formData
+      },
+      (err) => {
+        console.error("Error al copiar la URL:", err);
+      }
+    );
+  };
+
+  const formatCUIT = (cuit) => {
+    const digits = cuit.replace(/\D/g, ""); // Elimina caracteres no numéricos
+    if (digits.length === 11) {
+      return `${digits.substring(0, 2)}-${digits.substring(
+        2,
+        10
+      )}-${digits.substring(10)}`;
+    }
+    return digits; // Devuelve solo los dígitos si no está completo
+  };
+
+  const checkSalonExists = async (name) => {
+    try {
+      const response = await fetch(`${API_URL}?search=${name}`);
+      if (!response.ok) {
+        return false;
+      }
+      const data = await response.json();
+      const salones = Array.isArray(data)
+        ? data
+        : data.data
+        ? data.data
+        : data.salones
+        ? data.salones
+        : [];
+
+      return salones.some(
+        (salon) =>
+          salon.salon && salon.salon.toLowerCase() === name.toLowerCase()
+      );
+    } catch (error) {
+      console.error("Error checking salon:", error);
+      return false;
     }
   };
 
@@ -327,6 +363,34 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
               )}
             </button>
           </form>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white">
+              Imágenes disponibles
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((image) => (
+                <div key={image.id} className="relative">
+                  <img
+                    src={image.url}
+                    alt="Imagen subida"
+                    className={`w-full h-auto rounded-lg border cursor-pointer ${
+                      selectedImage === image.url
+                        ? "border-green-500"
+                        : "border-yellow-600"
+                    }`} // Cambia el borde si está seleccionada
+                    onClick={() => copyToClipboard(image.url)} // Actualiza formData.image al seleccionar
+                    title="Haz clic para copiar la URL"
+                  />
+                  {selectedImage === image.url && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                      ✓
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
