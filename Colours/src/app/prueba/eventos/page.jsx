@@ -60,35 +60,20 @@ export default function Eventos() {
   const fetchEventos = async () => {
     try {
       setLoading(true);
-      console.log("Fetching eventos desde:", `${API_URL}/api/evento/`); // Agregar log para verificar la URL
-      const response = await fetch(`${API_URL}/api/evento/`);
+      const response = await fetch(
+        `${API_URL}/api/evento?activo=${
+          filterMode !== "all" ? filterMode === "active" : ""
+        }`
+      );
 
       if (!response.ok) {
-        console.error(
-          "Error en la respuesta de la API:",
-          response.status,
-          response.statusText
-        ); // Log detallado
         throw new Error("Error al cargar los eventos");
       }
 
       const resultData = await response.json();
-      console.log("Datos recibidos de la API:", resultData); // Log para verificar los datos recibidos
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        // Apply filter based on filterMode
-        let filteredData;
-
-        if (filterMode === "active") {
-          filteredData = resultData.data.filter((evento) => evento.activo);
-        } else if (filterMode === "inactive") {
-          filteredData = resultData.data.filter((evento) => !evento.activo);
-        } else {
-          // "all" mode - no filtering
-          filteredData = resultData.data;
-        }
-
-        const mappedEventos = filteredData.map((evento) => ({
+        const mappedEventos = resultData.data.map((evento) => ({
           id: evento.id,
           nombre: evento.nombre,
           descripcion: evento.descripcion || "Sin descripción",
@@ -96,19 +81,17 @@ export default function Eventos() {
           duracion: evento.duracion,
           capacidad: evento.capacidad,
           activo: evento.activo,
-          salon: evento.salon || "Sin salón asignado",
+          salon: evento.salonId || "Sin salón asignado",
         }));
 
         setEventos(mappedEventos);
       } else {
-        console.error("Formato de respuesta incorrecto:", resultData); // Log para formato incorrecto
         setEventos([]);
         throw new Error("Formato de respuesta incorrecto");
       }
 
       setError(null);
     } catch (err) {
-      console.error("Error fetching eventos:", err); // Log del error
       setError(
         "No se pudieron cargar los eventos. Por favor intente nuevamente."
       );
@@ -174,22 +157,10 @@ export default function Eventos() {
 
   const handleEventoAdded = async (eventoData) => {
     try {
-      // Validar que eventoData sea un objeto y que el campo "nombre" esté definido y no vacío
-      if (!eventoData || typeof eventoData !== "object") {
-        throw new Error("Datos del evento no válidos.");
+      if (!eventoData.nombre) {
+        throw new Error("El campo 'nombre' es obligatorio.");
       }
-
-      if (!eventoData.nombre || eventoData.nombre.trim() === "") {
-        Swal.fire({
-          title: "Error",
-          text: "El nombre del evento es obligatorio.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        return;
-      }
-
-      const response = await fetch(`${API_URL}/api/evento/`, {
+      const response = await fetch(`${API_URL}/api/evento`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -207,19 +178,15 @@ export default function Eventos() {
         title: "¡Éxito!",
         text: result.message || "El evento ha sido agregado correctamente",
         icon: "success",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
       });
 
       fetchEventos();
       setShowModal(false);
     } catch (err) {
-      console.error("Error al agregar evento:", err); // Log del error
       Swal.fire({
         title: "Error",
         text: err.message || "No se pudo agregar el evento.",
         icon: "error",
-        confirmButtonText: "OK",
       });
     }
   };
@@ -244,19 +211,15 @@ export default function Eventos() {
         title: "¡Éxito!",
         text: result.message || "El evento ha sido actualizado correctamente",
         icon: "success",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
       });
 
       fetchEventos();
       setShowEditModal(false);
     } catch (err) {
-      console.error("Error al actualizar evento:", err);
       Swal.fire({
         title: "Error",
         text: "No se pudo actualizar el evento.",
         icon: "error",
-        confirmButtonText: "OK",
       });
     }
   };
@@ -277,19 +240,14 @@ export default function Eventos() {
         title: "¡Completado!",
         text: result.message || "El evento ha sido desactivado correctamente",
         icon: "success",
-        confirmButtonText: "OK",
-        timer: 2000,
-        showConfirmButton: false,
       });
 
       fetchEventos();
     } catch (err) {
-      console.error("Error al desactivar evento:", err);
       Swal.fire({
         title: "Error",
         text: "No se pudo desactivar el evento.",
         icon: "error",
-        confirmButtonText: "OK",
       });
     }
   };
@@ -310,19 +268,14 @@ export default function Eventos() {
         title: "¡Eliminado!",
         text: result.message || "El evento ha sido eliminado permanentemente",
         icon: "success",
-        confirmButtonText: "OK",
-        timer: 2000,
-        showConfirmButton: false,
       });
 
       fetchEventos();
     } catch (err) {
-      console.error("Error al eliminar evento:", err);
       Swal.fire({
         title: "Error",
         text: "No se pudo eliminar el evento.",
         icon: "error",
-        confirmButtonText: "OK",
       });
     }
   };

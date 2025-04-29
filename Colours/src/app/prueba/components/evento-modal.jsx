@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
+import Swal from "sweetalert2";
 
 const API_URL = apiUrls.local;
 
@@ -27,7 +28,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     const fetchSalones = async () => {
       try {
         setFetchingSalones(true);
-        const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentar el límite para obtener todos los salones
+        const response = await fetch(`${API_URL}/api/salon?limit=100`);
         if (!response.ok) {
           throw new Error("Error al cargar los salones");
         }
@@ -70,6 +71,12 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           setError(
             "No hay salones disponibles o los salones no tienen IDs válidos"
           );
+        } else {
+          // Seleccionar automáticamente el primer salón activo si existe
+          setFormData((prev) => ({
+            ...prev,
+            salonId: normalizedSalones[0].Id, // O usar normalizedSalones[0].nombre si prefieres el nombre
+          }));
         }
       } catch (err) {
         console.error("Error fetching salones:", err);
@@ -103,42 +110,17 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Validar que los campos requeridos estén completos
-      if (!formData.nombre || formData.nombre.trim() === "") {
-        throw new Error("El nombre del evento es obligatorio.");
-      }
-      if (!formData.salonId) {
-        throw new Error("Por favor seleccione un salón válido.");
-      }
-      if (!formData.fecha) {
-        throw new Error("La fecha y hora del evento son obligatorias.");
-      }
-
-      const formattedData = {
-        ...formData,
-        fecha: new Date(formData.fecha).toISOString(),
-        image: formData.image || null, // Validar campo opcional
-        descripcion: formData.descripcion || null, // Validar campo opcional
-      };
-
-      // Llamar a la función onEventoAdded con los datos del formulario
-      if (onEventoAdded) {
-        onEventoAdded(formattedData);
-      }
-
-      onClose();
-    } catch (err) {
-      console.error("Error al enviar el formulario:", err);
-      setError(err.message || "Ocurrió un error al crear el evento.");
-    } finally {
-      setLoading(false);
+    if (!formData.nombre) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "El campo 'nombre' es obligatorio.",
+      });
+      return;
     }
+    onEventoAdded(formData);
   };
 
   const getTodayString = () => {
@@ -172,23 +154,19 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium mb-1 text-white">
-              Nombre del Evento
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Nombre del Evento"
-                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                value={formData.nombre}
-                onChange={handleChange}
-                required
-              />
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-            </div>
+            <label htmlFor="nombre">Nombre del Evento</label>
+            <input
+              type="text"
+              id="nombre"
+              name="nombre"
+              value={formData.nombre || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, nombre: e.target.value })
+              }
+              required
+            />
           </div>
 
           <div>
