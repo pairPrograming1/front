@@ -22,6 +22,8 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [images, setImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(salon?.image || ""); // Nueva variable de estado para la imagen seleccionada
 
   useEffect(() => {
     if (salon) {
@@ -41,6 +43,23 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
       setInitialSalonName(salon.salon || "");
     }
   }, [salon]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await fetch(`http://localhost:4000/api/upload/images`);
+        if (!response.ok) {
+          throw new Error("Error al obtener las imágenes");
+        }
+        const data = await response.json();
+        setImages(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchImages();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -183,6 +202,11 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleImageEdit = (url) => {
+    setSelectedImage(url); // Marca la imagen como seleccionada
+    setFormData((prev) => ({ ...prev, image: url })); // Actualiza la URL de la imagen en formData
   };
 
   return (
@@ -386,6 +410,34 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
               )}
             </button>
           </form>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white">
+              Imágenes disponibles
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((image) => (
+                <div key={image.id} className="relative">
+                  <img
+                    src={image.url}
+                    alt="Imagen subida"
+                    className={`w-full h-auto rounded-lg border cursor-pointer ${
+                      selectedImage === image.url
+                        ? "border-green-500"
+                        : "border-yellow-600"
+                    }`} // Cambia el borde si está seleccionada
+                    onClick={() => handleImageEdit(image.url)} // Permite editar la imagen seleccionada
+                    title="Haz clic para seleccionar la imagen"
+                  />
+                  {selectedImage === image.url && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                      ✓
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { X } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [activeTab, setActiveTab] = useState("informacion");
@@ -420,11 +420,13 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                               >
                                 <div className="h-40 bg-gray-800 overflow-hidden">
                                   <img
-                                    src={salon.image || "/placeholder.svg"}
+                                    src={salon.image || ""}
                                     alt={salon.nombre}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                      e.target.src = "/placeholder.svg";
+                                      e.target.onerror = null; // Evitar bucle infinito
+                                      e.target.src = ""; // Limpiar src
+                                      e.target.alt = "Imagen no disponible"; // Mostrar texto alternativo
                                     }}
                                   />
                                 </div>
