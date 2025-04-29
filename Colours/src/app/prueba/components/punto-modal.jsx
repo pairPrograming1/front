@@ -15,6 +15,7 @@ export default function PuntoModal({ onClose, onSubmit }) {
   });
 
   const [error, setError] = useState(null);
+  const [cuitFormatted, setCuitFormatted] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -35,10 +36,42 @@ export default function PuntoModal({ onClose, onSubmit }) {
       return;
     }
 
-    // Validación especial para CUIT (solo números, se formatea después)
+    // Validación especial para CUIT
     if (name === "cuit") {
-      const digits = value.replace(/\D/g, "");
+      // Permite solo números y guiones
+      const digits = value.replace(/[^\d-]/g, "");
+
+      // Limita a 11 dígitos (sin contar los guiones)
+      const digitCount = digits.replace(/-/g, "").length;
+      if (digitCount > 11) return;
+
       setFormData((prev) => ({ ...prev, [name]: digits }));
+
+      // Formatea el CUIT para mostrar
+      const cleanDigits = digits.replace(/-/g, "");
+      if (cleanDigits.length >= 2 && cleanDigits.length <= 10) {
+        setCuitFormatted(
+          `${cleanDigits.substring(0, 2)}-${cleanDigits.substring(2)}`
+        );
+      } else if (cleanDigits.length === 11) {
+        setCuitFormatted(
+          `${cleanDigits.substring(0, 2)}-${cleanDigits.substring(
+            2,
+            10
+          )}-${cleanDigits.substring(10)}`
+        );
+      } else {
+        setCuitFormatted(cleanDigits);
+      }
+      return;
+    }
+
+    // Validación especial para email (solo cuando está completo)
+    if (name === "email") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
       return;
     }
 
@@ -49,15 +82,13 @@ export default function PuntoModal({ onClose, onSubmit }) {
     }));
   };
 
-  const formatCUIT = (cuit) => {
-    const digits = cuit.replace(/\D/g, "");
-    if (digits.length === 11) {
-      return `${digits.substring(0, 2)}-${digits.substring(
-        2,
-        10
-      )}-${digits.substring(10)}`;
-    }
-    return digits; // Devuelve solo dígitos si no está completo
+  const validateCUIT = (cuit) => {
+    const digits = cuit.replace(/-/g, "");
+    if (digits.length !== 11) return false;
+
+    // Validación básica de formato XX-XXXXXXXX-X
+    const cuitPattern = /^\d{2}-?\d{8}-?\d{1}$/;
+    return cuitPattern.test(cuit);
   };
 
   const handleSubmit = (e) => {
@@ -65,15 +96,52 @@ export default function PuntoModal({ onClose, onSubmit }) {
     setError(null);
 
     // Validaciones antes de enviar
-    if (formData.telefono && !/^\+?\d+$/.test(formData.telefono)) {
+    if (!formData.razon.trim()) {
+      setError("La razón social es requerida");
+      return;
+    }
+
+    if (!formData.nombre.trim()) {
+      setError("El nombre es requerido");
+      return;
+    }
+
+    if (!formData.direccion.trim()) {
+      setError("La dirección es requerida");
+      return;
+    }
+
+    // Validación de teléfono
+    if (!formData.telefono.trim()) {
+      setError("El teléfono es requerido");
+      return;
+    }
+
+    if (!/^\+?\d+$/.test(formData.telefono)) {
       setError("El teléfono solo puede contener números y un + al inicio");
       return;
     }
 
-    const formattedCUIT = formatCUIT(formData.cuit);
-    const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
-    if (!cuitPattern.test(formattedCUIT)) {
-      setError("El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X");
+    // Validación de CUIT
+    if (!formData.cuit.trim()) {
+      setError("El CUIT es requerido");
+      return;
+    }
+
+    const cleanCUIT = formData.cuit.replace(/-/g, "");
+    if (cleanCUIT.length !== 11) {
+      setError("El CUIT debe tener exactamente 11 dígitos");
+      return;
+    }
+
+    if (!validateCUIT(formData.cuit)) {
+      setError("El formato del CUIT es inválido (debe ser XX-XXXXXXXX-X)");
+      return;
+    }
+
+    // Validación de email
+    if (!formData.email.trim()) {
+      setError("El email es requerido");
       return;
     }
 
@@ -82,6 +150,12 @@ export default function PuntoModal({ onClose, onSubmit }) {
       setError("El formato del correo electrónico es inválido");
       return;
     }
+
+    // Formatear CUIT antes de enviar (XX-XXXXXXXX-X)
+    const formattedCUIT = cleanCUIT.replace(
+      /(\d{2})(\d{8})(\d{1})/,
+      "$1-$2-$3"
+    );
 
     onSubmit({
       ...formData,
@@ -146,6 +220,14 @@ export default function PuntoModal({ onClose, onSubmit }) {
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   required
                 />
+                {formData.telefono && (
+                  <span className="absolute right-3 top-3 text-gray-400 text-xs">
+                    {formData.telefono.replace(
+                      /(\+\d{2})(\d{4})(\d{4})/,
+                      "$1 $2 $3"
+                    )}
+                  </span>
+                )}
               </div>
 
               <input
@@ -177,14 +259,14 @@ export default function PuntoModal({ onClose, onSubmit }) {
                   name="cuit"
                   value={formData.cuit}
                   onChange={handleChange}
-                  placeholder="CUIT (11 dígitos) *"
+                  placeholder="CUIT (11 dígitos) sin guiones*"
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  maxLength="11"
+                  maxLength={13} // Permite guiones
                   required
                 />
-                {formData.cuit.length === 11 && (
+                {formData.cuit.replace(/-/g, "").length === 11 && (
                   <span className="absolute right-3 top-3 text-green-400 text-sm">
-                    {formatCUIT(formData.cuit)}
+                    {cuitFormatted}
                   </span>
                 )}
               </div>
