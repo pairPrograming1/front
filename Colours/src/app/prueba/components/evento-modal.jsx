@@ -5,7 +5,7 @@ import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
 
-const API_URL = apiUrls.local;
+const API_URL = apiUrls.production;
 
 export default function EventoModal({ onClose, onEventoAdded }) {
   const [formData, setFormData] = useState({

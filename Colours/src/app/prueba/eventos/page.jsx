@@ -24,7 +24,7 @@ import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.local;
+const API_URL = apiUrls.production;
 
 export default function Eventos() {
   const [isClient, setIsClient] = useState(false);
@@ -193,6 +193,10 @@ export default function Eventos() {
 
   const handleEventoUpdated = async (id, eventoData) => {
     try {
+      if (!id) {
+        throw new Error("El ID del evento no es válido.");
+      }
+
       const response = await fetch(`${API_URL}/api/evento/${id}`, {
         method: "PUT",
         headers: {
@@ -216,11 +220,7 @@ export default function Eventos() {
       fetchEventos();
       setShowEditModal(false);
     } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo actualizar el evento.",
-        icon: "error",
-      });
+      fetchEventos();
     }
   };
 
@@ -477,6 +477,14 @@ export default function Eventos() {
   };
 
   const handleEditEvento = (evento) => {
+    if (!evento?.id) {
+      Swal.fire({
+        title: "Error",
+        text: "El evento seleccionado no tiene un ID válido.",
+        icon: "error",
+      });
+      return;
+    }
     setEventoEditar(evento);
     setShowEditModal(true);
   };

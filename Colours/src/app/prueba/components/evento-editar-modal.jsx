@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
+import Swal from "sweetalert2";
 
-const API_URL = apiUrls.local;
+const API_URL = apiUrls.production;
 
 export default function EventoEditarModal({
   evento,
@@ -18,6 +19,8 @@ export default function EventoEditarModal({
     capacidad: 1,
     activo: true,
     salonId: "",
+    image: "", // Nuevo campo
+    descripcion: "", // Nuevo campo
   });
 
   const [salones, setSalones] = useState([]);
@@ -37,7 +40,20 @@ export default function EventoEditarModal({
         capacidad: evento.capacidad || 1,
         activo: evento.activo !== undefined ? evento.activo : true,
         salonId: evento.salonId || "",
+        image: evento.image || "", // Nuevo campo
+        descripcion: evento.descripcion || "", // Nuevo campo
       });
+    }
+  }, [evento]);
+
+  useEffect(() => {
+    if (!evento?.id) {
+      Swal.fire({
+        title: "Error",
+        text: "El evento no tiene un ID válido. No se puede editar.",
+        icon: "error",
+      });
+      onClose();
     }
   }, [evento]);
 
@@ -131,12 +147,20 @@ export default function EventoEditarModal({
         throw new Error("Por favor seleccione un salón válido");
       }
 
+      if (!evento?.id) {
+        throw new Error(
+          "El ID del evento no está definido. No se puede actualizar el evento."
+        );
+      }
+
       const formattedData = {
         ...formData,
         fecha: new Date(formData.fecha).toISOString(),
+        salonNombre:
+          salones.find((salon) => salon.Id === formData.salonId)?.nombre || "",
       };
 
-      const response = await fetch(`${API_URL}/api/evento/${evento.Id}`, {
+      const response = await fetch(`${API_URL}/api/evento/${evento.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -356,6 +380,37 @@ export default function EventoEditarModal({
                 </div>
               </label>
             </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1 text-white">
+              URL de la Imagen (opcional)
+            </label>
+            <div className="relative">
+              <input
+                type="url"
+                name="image"
+                placeholder="https://example.com/imagen.jpg"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.image}
+                onChange={handleChange}
+              />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1 text-white">
+              Descripción del Evento (opcional)
+            </label>
+            <textarea
+              name="descripcion"
+              placeholder="Descripción detallada del evento"
+              className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+              value={formData.descripcion}
+              onChange={handleChange}
+              rows="4"
+            ></textarea>
           </div>
 
           <button

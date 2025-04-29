@@ -22,7 +22,7 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.local;
+const API_URL = apiUrls.production;
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
