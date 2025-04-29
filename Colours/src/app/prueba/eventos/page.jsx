@@ -60,13 +60,20 @@ export default function Eventos() {
   const fetchEventos = async () => {
     try {
       setLoading(true);
+      console.log("Fetching eventos desde:", `${API_URL}/api/evento/`); // Agregar log para verificar la URL
       const response = await fetch(`${API_URL}/api/evento/`);
 
       if (!response.ok) {
+        console.error(
+          "Error en la respuesta de la API:",
+          response.status,
+          response.statusText
+        ); // Log detallado
         throw new Error("Error al cargar los eventos");
       }
 
       const resultData = await response.json();
+      console.log("Datos recibidos de la API:", resultData); // Log para verificar los datos recibidos
 
       if (resultData.success && Array.isArray(resultData.data)) {
         // Apply filter based on filterMode
@@ -94,13 +101,14 @@ export default function Eventos() {
 
         setEventos(mappedEventos);
       } else {
+        console.error("Formato de respuesta incorrecto:", resultData); // Log para formato incorrecto
         setEventos([]);
         throw new Error("Formato de respuesta incorrecto");
       }
 
       setError(null);
     } catch (err) {
-      console.error("Error fetching eventos:", err);
+      console.error("Error fetching eventos:", err); // Log del error
       setError(
         "No se pudieron cargar los eventos. Por favor intente nuevamente."
       );
@@ -166,7 +174,22 @@ export default function Eventos() {
 
   const handleEventoAdded = async (eventoData) => {
     try {
-      const response = await fetch(`${API_URL}/api/eventos/`, {
+      // Validar que eventoData sea un objeto y que el campo "nombre" esté definido y no vacío
+      if (!eventoData || typeof eventoData !== "object") {
+        throw new Error("Datos del evento no válidos.");
+      }
+
+      if (!eventoData.nombre || eventoData.nombre.trim() === "") {
+        Swal.fire({
+          title: "Error",
+          text: "El nombre del evento es obligatorio.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/evento/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -191,10 +214,10 @@ export default function Eventos() {
       fetchEventos();
       setShowModal(false);
     } catch (err) {
-      console.error("Error al agregar evento:", err);
+      console.error("Error al agregar evento:", err); // Log del error
       Swal.fire({
         title: "Error",
-        text: "No se pudo agregar el evento.",
+        text: err.message || "No se pudo agregar el evento.",
         icon: "error",
         confirmButtonText: "OK",
       });

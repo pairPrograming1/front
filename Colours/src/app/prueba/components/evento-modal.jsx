@@ -109,50 +109,33 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     setError(null);
 
     try {
+      // Validar que los campos requeridos estén completos
+      if (!formData.nombre || formData.nombre.trim() === "") {
+        throw new Error("El nombre del evento es obligatorio.");
+      }
       if (!formData.salonId) {
-        throw new Error("Por favor seleccione un salón válido");
+        throw new Error("Por favor seleccione un salón válido.");
+      }
+      if (!formData.fecha) {
+        throw new Error("La fecha y hora del evento son obligatorias.");
       }
 
       const formattedData = {
         ...formData,
-        salonId: formData.salonId, // Asegurar que el salonId se incluya
         fecha: new Date(formData.fecha).toISOString(),
         image: formData.image || null, // Validar campo opcional
         descripcion: formData.descripcion || null, // Validar campo opcional
       };
 
-      const response = await fetch(`${API_URL}/api/evento/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`
-        );
+      // Llamar a la función onEventoAdded con los datos del formulario
+      if (onEventoAdded) {
+        onEventoAdded(formattedData);
       }
 
-      const result = await response.json();
-
-      if (result.success) {
-        if (onEventoAdded) onEventoAdded();
-        onClose();
-      } else {
-        throw new Error(
-          result.message || "Error desconocido al crear el evento"
-        );
-      }
+      onClose();
     } catch (err) {
-      console.error("Error creating evento:", err);
-      setError(
-        err.message ||
-          "No se pudo crear el evento. Por favor intente nuevamente."
-      );
+      console.error("Error al enviar el formulario:", err);
+      setError(err.message || "Ocurrió un error al crear el evento.");
     } finally {
       setLoading(false);
     }
