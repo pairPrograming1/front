@@ -60,7 +60,11 @@ export default function Eventos() {
   const fetchEventos = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/evento/`);
+      const response = await fetch(
+        `${API_URL}/api/evento?activo=${
+          filterMode !== "all" ? filterMode === "active" : ""
+        }`
+      );
 
       if (!response.ok) {
         throw new Error("Error al cargar los eventos");
@@ -69,28 +73,15 @@ export default function Eventos() {
       const resultData = await response.json();
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        // Apply filter based on filterMode
-        let filteredData;
-
-        if (filterMode === "active") {
-          filteredData = resultData.data.filter((evento) => evento.activo);
-        } else if (filterMode === "inactive") {
-          filteredData = resultData.data.filter((evento) => !evento.activo);
-        } else {
-          // "all" mode - no filtering
-          filteredData = resultData.data;
-        }
-
-        const mappedEventos = filteredData.map((evento) => ({
-          id: evento.Id || evento.id,
-          Id: evento.Id || evento.id,
+        const mappedEventos = resultData.data.map((evento) => ({
+          id: evento.id,
           nombre: evento.nombre,
+          descripcion: evento.descripcion || "Sin descripción",
           fecha: evento.fecha,
-          duracion: evento.duracion || evento.duraccion,
+          duracion: evento.duracion,
           capacidad: evento.capacidad,
           activo: evento.activo,
-          salonId: evento.salonId,
-          salonNombre: evento.salon?.nombre || "Sin salón asignado",
+          salon: evento.salonNombre || "Sin salón asignado", // Cambiado para mostrar el nombre
         }));
 
         setEventos(mappedEventos);
@@ -101,7 +92,6 @@ export default function Eventos() {
 
       setError(null);
     } catch (err) {
-      console.error("Error fetching eventos:", err);
       setError(
         "No se pudieron cargar los eventos. Por favor intente nuevamente."
       );
@@ -140,7 +130,7 @@ export default function Eventos() {
     const searchText = removeAccents(searchTerm.toLowerCase());
     return (
       removeAccents(evento.nombre?.toLowerCase()).includes(searchText) ||
-      removeAccents(evento.salonNombre?.toLowerCase()).includes(searchText) ||
+      removeAccents(evento.salon?.toLowerCase()).includes(searchText) ||
       formatDateTime(evento.fecha)
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
@@ -165,140 +155,128 @@ export default function Eventos() {
     }
   };
 
-  const handleEventoAdded = () => {
-    setShowModal(false);
-    fetchEventos();
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "El evento ha sido agregado correctamente",
-      icon: "success",
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "OK",
-    });
+  const handleEventoAdded = async (eventoData) => {
+    try {
+      if (!eventoData.nombre) {
+        throw new Error("El campo 'nombre' es obligatorio.");
+      }
+      const response = await fetch(`${API_URL}/api/evento`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventoData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al agregar el evento");
+      }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Éxito!",
+        text: result.message || "El evento ha sido agregado correctamente",
+        icon: "success",
+      });
+
+      fetchEventos();
+      setShowModal(false);
+    } catch (err) {
+      Swal.fire({
+        title: "Error",
+        text: err.message || "No se pudo agregar el evento.",
+        icon: "error",
+      });
+    }
   };
 
-  const handleEventoUpdated = () => {
-    setShowEditModal(false);
-    fetchEventos();
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "El evento ha sido actualizado correctamente",
-      icon: "success",
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "OK",
-    });
+  const handleEventoUpdated = async (id, eventoData) => {
+    try {
+      if (!id) {
+        throw new Error("El ID del evento no es válido.");
+      }
+
+      const response = await fetch(`${API_URL}/api/evento/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventoData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar el evento");
+      }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Éxito!",
+        text: result.message || "El evento ha sido actualizado correctamente",
+        icon: "success",
+      });
+
+      fetchEventos();
+      setShowEditModal(false);
+    } catch (err) {
+      fetchEventos();
+    }
   };
 
   const handleLogicalDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "¿Desactivar evento?",
-      text: "El evento será desactivado pero permanecerá en la base de datos",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, desactivar",
-      cancelButtonText: "Cancelar",
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/evento/${id}`, {
+        method: "PATCH",
+      });
 
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`${API_URL}/api/evento/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Error al desactivar el evento");
-        }
-
-        const data = await response.json();
-
-        Swal.fire({
-          title: "¡Completado!",
-          text: data.message || "El evento ha sido desactivado correctamente",
-          icon: "success",
-          confirmButtonText: "OK",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-
-        fetchEventos();
-      } catch (err) {
-        console.error("Error al desactivar evento:", err);
-        Swal.fire({
-          title: "Error",
-          text: "No se pudo desactivar el evento.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+      if (!response.ok) {
+        throw new Error("Error al desactivar el evento");
       }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Completado!",
+        text: result.message || "El evento ha sido desactivado correctamente",
+        icon: "success",
+      });
+
+      fetchEventos();
+    } catch (err) {
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo desactivar el evento.",
+        icon: "error",
+      });
     }
   };
 
   const handlePhysicalDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "¿Eliminar permanentemente?",
-      text: "Esta acción no se puede deshacer y el evento será eliminado permanentemente",
-      icon: "error",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar permanentemente",
-      cancelButtonText: "Cancelar",
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/evento/${id}`, {
+        method: "DELETE",
+      });
 
-    if (result.isConfirmed) {
-      try {
-        const secondConfirm = await Swal.fire({
-          title: "¿Está completamente seguro?",
-          html: `
-            <div class="text-left">
-              <p>No podrá recuperar este evento después de eliminarlo</p>
-              <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
-            </div>
-          `,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Sí, eliminar definitivamente",
-          cancelButtonText: "Cancelar",
-        });
-
-        if (!secondConfirm.isConfirmed) return;
-
-        const response = await fetch(`${API_URL}/api/evento/${id}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error("Error al eliminar el evento");
-        }
-
-        const data = await response.json();
-
-        Swal.fire({
-          title: "¡Eliminado!",
-          text: data.message || "El evento ha sido eliminado permanentemente",
-          icon: "success",
-          confirmButtonText: "OK",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-
-        fetchEventos();
-      } catch (err) {
-        console.error("Error al eliminar evento:", err);
-        Swal.fire({
-          title: "Error",
-          text: "No se pudo eliminar el evento.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+      if (!response.ok) {
+        throw new Error("Error al eliminar el evento");
       }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Eliminado!",
+        text: result.message || "El evento ha sido eliminado permanentemente",
+        icon: "success",
+      });
+
+      fetchEventos();
+    } catch (err) {
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo eliminar el evento.",
+        icon: "error",
+      });
     }
   };
 
@@ -499,6 +477,14 @@ export default function Eventos() {
   };
 
   const handleEditEvento = (evento) => {
+    if (!evento?.id) {
+      Swal.fire({
+        title: "Error",
+        text: "El evento seleccionado no tiene un ID válido.",
+        icon: "error",
+      });
+      return;
+    }
     setEventoEditar(evento);
     setShowEditModal(true);
   };
@@ -625,12 +611,13 @@ export default function Eventos() {
                   />
                 </th>
                 <th>Nombre del Evento</th>
+                <th>Descripción</th> {/* Nuevo encabezado */}
                 <th>Salón</th>
                 <th>Fecha y Hora</th>
                 <th>Duración</th>
                 <th>Capacidad</th>
                 <th>Estado</th>
-                <th className="w-40">Acciones</th>
+                {currentItems.length > 0 && <th className="w-40">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -648,7 +635,8 @@ export default function Eventos() {
                       />
                     </td>
                     <td>{evento.nombre}</td>
-                    <td>{evento.salonNombre}</td>
+                    <td>{evento.descripcion}</td> {/* Nueva columna */}
+                    <td>{evento.salon}</td>
                     <td>{formatDateTime(evento.fecha)}</td>
                     <td>{evento.duracion || "N/A"} minutos</td>
                     <td>{evento.capacidad || "Sin límite"}</td>
@@ -661,43 +649,48 @@ export default function Eventos() {
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td>
-                      <div className="flex gap-2">
-                        <button
-                          className="btn btn-sm btn-outline btn-primary p-1"
-                          onClick={() => handleEditEvento(evento)}
-                          title="Editar"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        {evento.activo ? (
+                    {currentItems.length > 0 && (
+                      <td>
+                        <div className="flex gap-2">
                           <button
-                            className="btn btn-sm btn-outline btn-warning p-1"
-                            onClick={() => handleLogicalDelete(evento.id)}
-                            title="Desactivar"
+                            className="btn btn-sm btn-outline btn-primary p-1"
+                            onClick={() => handleEditEvento(evento)}
+                            title="Editar"
                           >
-                            <Archive className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </button>
-                        ) : (
+                          {evento.activo ? (
+                            <button
+                              className="btn btn-sm btn-outline btn-warning p-1"
+                              onClick={() => handleLogicalDelete(evento.id)}
+                              title="Desactivar"
+                            >
+                              <Archive className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <button
+                              className="btn btn-sm btn-outline btn-success p-1"
+                              onClick={() =>
+                                handleEventoToggleActive(
+                                  evento.id,
+                                  evento.activo
+                                )
+                              }
+                              title="Activar"
+                            >
+                              <Power className="h-4 w-4" />
+                            </button>
+                          )}
                           <button
-                            className="btn btn-sm btn-outline btn-success p-1"
-                            onClick={() =>
-                              handleEventoToggleActive(evento.id, evento.activo)
-                            }
-                            title="Activar"
+                            className="btn btn-sm btn-outline btn-error p-1"
+                            onClick={() => handlePhysicalDelete(evento.id)}
+                            title="Eliminar permanentemente"
                           >
-                            <Power className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                        )}
-                        <button
-                          className="btn btn-sm btn-outline btn-error p-1"
-                          onClick={() => handlePhysicalDelete(evento.id)}
-                          title="Eliminar permanentemente"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
@@ -739,7 +732,7 @@ export default function Eventos() {
                             {evento.nombre}
                           </div>
                           <div className="text-sm text-gray-500 mt-1">
-                            {evento.salonNombre}
+                            {evento.salon}
                           </div>
                         </div>
                       </div>

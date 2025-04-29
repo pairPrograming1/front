@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
+import Swal from "sweetalert2";
 
 const API_URL = apiUrls.production;
 
@@ -14,6 +15,8 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     capacidad: 1,
     activo: true,
     salonId: "",
+    image: "", // Nuevo campo
+    descripcion: "", // Nuevo campo
   });
 
   const [salones, setSalones] = useState([]);
@@ -25,7 +28,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     const fetchSalones = async () => {
       try {
         setFetchingSalones(true);
-        const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentar el límite para obtener todos los salones
+        const response = await fetch(`${API_URL}/api/salon?limit=100`);
         if (!response.ok) {
           throw new Error("Error al cargar los salones");
         }
@@ -68,6 +71,12 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           setError(
             "No hay salones disponibles o los salones no tienen IDs válidos"
           );
+        } else {
+          // Seleccionar automáticamente el primer salón activo si existe
+          setFormData((prev) => ({
+            ...prev,
+            salonId: normalizedSalones[0].Id, // O usar normalizedSalones[0].nombre si prefieres el nombre
+          }));
         }
       } catch (err) {
         console.error("Error fetching salones:", err);
@@ -101,56 +110,36 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (!formData.salonId) {
-        throw new Error("Por favor seleccione un salón válido");
-      }
-
-      const formattedData = {
-        ...formData,
-        fecha: new Date(formData.fecha).toISOString(),
-      };
-
-      const response = await fetch(`${API_URL}/api/evento/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedData),
+    if (!formData.nombre) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "El campo 'nombre' es obligatorio.",
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message ||
-            `Error ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        if (onEventoAdded) onEventoAdded();
-        onClose();
-      } else {
-        throw new Error(
-          result.message || "Error desconocido al crear el evento"
-        );
-      }
-    } catch (err) {
-      console.error("Error creating evento:", err);
-      setError(
-        err.message ||
-          "No se pudo crear el evento. Por favor intente nuevamente."
-      );
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    // Buscar el salón seleccionado
+    const selectedSalon = salones.find(
+      (salon) => salon.Id === formData.salonId
+    );
+    if (!selectedSalon) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Debe seleccionar un salón válido.",
+      });
+      return;
+    }
+
+    // Enviar tanto el ID como el nombre del salón
+    onEventoAdded({
+      ...formData,
+      salonId: selectedSalon.Id,
+      salonNombre: selectedSalon.nombre,
+    });
   };
 
   const getTodayString = () => {
@@ -165,8 +154,8 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto  flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-md mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white">Agregar Evento</h2>
           <button
@@ -184,26 +173,31 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium mb-1 text-white">
               Nombre del Evento
             </label>
             <div className="relative">
               <input
                 type="text"
+                id="nombre"
                 name="nombre"
-                placeholder="Nombre del Evento"
                 className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                value={formData.nombre}
-                onChange={handleChange}
+                value={formData.nombre || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, nombre: e.target.value })
+                }
                 required
               />
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
             </div>
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium mb-1 text-white">
               Salón
             </label>
@@ -252,106 +246,137 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1 text-white">
-                Fecha y Hora
-              </label>
-              <div className="relative">
-                <input
-                  type="datetime-local"
-                  name="fecha"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                  value={formData.fecha}
-                  onChange={handleChange}
-                  min={getTodayString()}
-                  required
-                />
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1 text-white">
-                Duración (min)
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="duracion"
-                  placeholder="Duración en minutos"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                  value={formData.duracion}
-                  onChange={handleChange}
-                  min="1"
-                  required
-                />
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-              </div>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
+              Fecha y Hora
+            </label>
+            <div className="relative">
+              <input
+                type="datetime-local"
+                name="fecha"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.fecha}
+                onChange={handleChange}
+                min={getTodayString()}
+                required
+              />
+              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1 text-white">
-                Capacidad
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="capacidad"
-                  placeholder="Capacidad"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                  value={formData.capacidad}
-                  onChange={handleChange}
-                  min="1"
-                  required
-                />
-                <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-              </div>
-            </div>
-            <div className="flex items-center h-full pt-6">
-              <label className="flex items-center cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    name="activo"
-                    id="activo"
-                    className="sr-only"
-                    checked={formData.activo}
-                    onChange={handleChange}
-                  />
-                  <div
-                    className={`block w-14 h-8 rounded-full transition-colors ${
-                      formData.activo ? "bg-yellow-600" : "bg-gray-600"
-                    }`}
-                  ></div>
-                  <div
-                    className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${
-                      formData.activo ? "transform translate-x-6" : ""
-                    }`}
-                  ></div>
-                </div>
-                <div className="ml-3 text-white text-sm">
-                  {formData.activo ? "Evento Activo" : "Evento Inactivo"}
-                </div>
-              </label>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
+              Duración (min)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                name="duracion"
+                placeholder="Duración en minutos"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.duracion}
+                onChange={handleChange}
+                min="1"
+                required
+              />
+              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="w-full mt-6 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
-            disabled={loading || fetchingSalones || salones.length === 0}
-          >
-            {loading ? (
-              "Creando..."
-            ) : (
-              <>
-                <Check className="h-5 w-5" />
-                <span>Crear Evento</span>
-              </>
-            )}
-          </button>
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
+              Capacidad
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                name="capacidad"
+                placeholder="Capacidad"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.capacidad}
+                onChange={handleChange}
+                min="1"
+                required
+              />
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <label className="flex items-center cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  name="activo"
+                  id="activo"
+                  className="sr-only"
+                  checked={formData.activo}
+                  onChange={handleChange}
+                />
+                <div
+                  className={`block w-14 h-8 rounded-full transition-colors ${
+                    formData.activo ? "bg-yellow-600" : "bg-gray-600"
+                  }`}
+                ></div>
+                <div
+                  className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${
+                    formData.activo ? "transform translate-x-6" : ""
+                  }`}
+                ></div>
+              </div>
+              <div className="ml-3 text-white text-sm">
+                {formData.activo ? "Evento Activo" : "Evento Inactivo"}
+              </div>
+            </label>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1 text-white">
+              URL de la Imagen (opcional)
+            </label>
+            <div className="relative">
+              <input
+                type="url"
+                name="image"
+                placeholder="https://example.com/imagen.jpg"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.image}
+                onChange={handleChange}
+              />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1 text-white">
+              Descripción del Evento (opcional)
+            </label>
+            <textarea
+              name="descripcion"
+              placeholder="Descripción detallada del evento"
+              className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+              value={formData.descripcion}
+              onChange={handleChange}
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div className="md:col-span-2">
+            <button
+              type="submit"
+              className="w-full mt-6 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 flex items-center justify-center gap-2"
+              disabled={loading || fetchingSalones || salones.length === 0}
+            >
+              {loading ? (
+                "Creando..."
+              ) : (
+                <>
+                  <Check className="h-5 w-5" />
+                  <span>Crear Evento</span>
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
