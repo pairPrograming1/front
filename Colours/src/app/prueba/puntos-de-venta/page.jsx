@@ -22,11 +22,9 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function PuntosDeVenta() {
-  console.log("Datos iniciales del componente PuntosDeVenta"); // Log para mostrar los datos iniciales
-
   const [showModal, setShowModal] = useState(false);
   const [puntos, setPuntos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

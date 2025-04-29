@@ -259,7 +259,7 @@ export default function PuntoModal({ onClose, onSubmit }) {
                   name="cuit"
                   value={formData.cuit}
                   onChange={handleChange}
-                  placeholder="CUIT (11 dígitos) *"
+                  placeholder="CUIT (11 dígitos) sin guiones*"
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   maxLength={13} // Permite guiones
                   required
