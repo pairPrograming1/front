@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function UploadImageModal({ onClose, API_URL }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -56,7 +57,12 @@ export default function UploadImageModal({ onClose, API_URL }) {
       }
 
       const data = await response.json();
-      alert("Imagen subida correctamente: " + data.imageUrl);
+      Swal.fire({
+        icon: "success",
+        title: "Imagen subida correctamente",
+        text: `URL: ${data.imageUrl}`,
+        confirmButtonColor: "#3085d6",
+      });
       onClose();
     } catch (err) {
       setError(err.message);

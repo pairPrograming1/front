@@ -113,6 +113,11 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
         cuit: formattedCUIT,
       };
 
+      // Eliminar la propiedad `image` si está vacía
+      if (!submissionData.image) {
+        delete submissionData.image;
+      }
+
       await onAddSalon(submissionData);
       onClose();
     } catch (error) {
