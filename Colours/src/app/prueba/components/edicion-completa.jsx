@@ -1,24 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Swal from "sweetalert2";
 import { X } from "lucide-react";
-import ImageUploaderModal from "./image-uploader-modal";
-import ImageGallery from "./ImageGallery";
 import apiUrls from "@/app/components/utils/apiConfig";
 
 const API_URL = apiUrls.production;
 
 export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [activeTab, setActiveTab] = useState("informacion");
-  const [showImageUploader, setShowImageUploader] = useState(false);
-  const [showImageGallery, setShowImageGallery] = useState(false);
-  const [loadingImages, setLoadingImages] = useState(false);
-  const [errorImages, setErrorImages] = useState(null);
-  const [salones, setSalones] = useState([]);
   const [loadingSalones, setLoadingSalones] = useState(false);
   const [errorSalones, setErrorSalones] = useState(null);
+  const [salones, setSalones] = useState([]);
   const [validationError, setValidationError] = useState(null);
   const [data, setData] = useState({
     razon: punto?.razon || "",
@@ -32,12 +25,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     es_online: punto?.es_online || false,
     salonesHabilitados: punto?.salonesHabilitados || [],
     vendedoresAsignados: punto?.vendedoresAsignados || [],
-    imagenes: punto?.imagenes || [
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-      "/placeholder.svg",
-    ],
     tiposCobro: {
       mercadoPago: {
         apiKey: punto?.tiposCobro?.mercadoPago?.apiKey || "",
@@ -64,7 +51,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
         es_online: punto.es_online || false,
         salonesHabilitados: punto.salonesHabilitados || [],
         vendedoresAsignados: punto.vendedoresAsignados || [],
-        imagenes: punto.image || ["/placeholder.svg"],
         tiposCobro: {
           mercadoPago: {
             apiKey: punto.tiposCobro?.mercadoPago?.apiKey || "",
@@ -82,7 +68,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Validación especial para teléfono
     if (name === "telefono") {
       const validatedValue = value.replace(/[^0-9+]/g, "");
       if (validatedValue.includes("+")) {
@@ -95,7 +80,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       return;
     }
 
-    // Validación especial para whatsapp
     if (name === "whatsapp") {
       const validatedValue = value.replace(/[^0-9+]/g, "");
       if (validatedValue.includes("+")) {
@@ -108,14 +92,12 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       return;
     }
 
-    // Validación especial para CUIT
     if (name === "cuit") {
       const digits = value.replace(/\D/g, "");
       setData((prev) => ({ ...prev, [name]: digits }));
       return;
     }
 
-    // Para los demás campos
     setData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -136,7 +118,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const fetchSalones = async () => {
     try {
       setLoadingSalones(true);
-      const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentamos el límite a 100
+      const response = await fetch(`${API_URL}/api/salon?limit=100`);
       if (!response.ok) {
         throw new Error(`Error al obtener salones: ${response.status}`);
       }
@@ -162,58 +144,7 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     fetchSalones();
   }, []);
 
-  const fetchPuntoImages = async () => {
-    if (!punto?.id) return;
-
-    try {
-      setLoadingImages(true);
-      const response = await fetch(`${API_URL}/api/puntodeventa/${punto.id}`);
-
-      if (!response.ok) {
-        throw new Error(`Error al obtener imágenes: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success && result.data && result.data.imagenes) {
-        setData((prev) => ({
-          ...prev,
-          imagenes: result.data.imagenes,
-        }));
-      }
-    } catch (err) {
-      console.error("Error fetching images:", err);
-      setErrorImages(err.message);
-    } finally {
-      setLoadingImages(false);
-    }
-  };
-
-  useEffect(() => {
-    if (punto?.id) {
-      fetchPuntoImages();
-    }
-  }, [punto?.id]);
-
-  const handleImageSelected = (imageUrl) => {
-    const newImages = [...data.imagenes];
-    const placeholderIndex = newImages.findIndex(
-      (img) => img === "/placeholder.svg"
-    );
-
-    if (placeholderIndex !== -1) {
-      newImages[placeholderIndex] = imageUrl;
-    } else {
-      newImages[0] = imageUrl;
-    }
-
-    setData((prev) => ({
-      ...prev,
-      imagenes: newImages,
-    }));
-  };
-
   const validateForm = () => {
-    // Validar campos requeridos
     const requiredFields = ["razon", "nombre", "direccion", "cuit", "email"];
 
     for (const field of requiredFields) {
@@ -222,24 +153,20 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       }
     }
 
-    // Validar teléfono
     if (data.telefono && !/^\+?\d+$/.test(data.telefono)) {
       return "El teléfono solo puede contener números y un + al inicio";
     }
 
-    // Validar whatsapp
     if (data.whatsapp && !/^\+?\d+$/.test(data.whatsapp)) {
       return "El WhatsApp solo puede contener números y un + al inicio";
     }
 
-    // Validar CUIT
     const formattedCUIT = formatCUIT(data.cuit);
     const cuitPattern = /^\d{2}-\d{8}-\d{1}$/;
     if (!cuitPattern.test(formattedCUIT)) {
       return "El CUIT debe tener 11 dígitos con formato XX-XXXXXXXX-X";
     }
 
-    // Validar email
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(data.email)) {
       return "El formato del correo electrónico es inválido";
@@ -265,9 +192,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       const submitData = {
         ...data,
         cuit: formattedCUIT,
-        image:
-          data.imagenes.find((img) => img !== "/placeholder.svg") ||
-          data.imagenes[0],
       };
 
       const endpoint = punto?.id
@@ -313,17 +237,13 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Overlay */}
       <div
         className="fixed inset-0  transition-opacity"
         onClick={onClose}
       ></div>
 
-      {/* Modal container */}
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        {/* Modal content */}
         <div className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full max-w-6xl border-2 border-yellow-600">
-          {/* Close button */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-yellow-500 hover:text-yellow-300 focus:outline-none transition-colors"
@@ -331,7 +251,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
             <X className="h-6 w-6" />
           </button>
 
-          {/* Main Content */}
           <div className="p-4 sm:p-6 overflow-y-auto max-h-[80vh]">
             {validationError && (
               <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
@@ -339,7 +258,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
               </div>
             )}
 
-            {/* Form Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               <input
                 type="text"
@@ -420,11 +338,8 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
               </div>
             </div>
 
-            {/* Image Gallery and Tabs - Responsive Layout */}
             <div className="flex flex-col lg:flex-row gap-6">
-              {/* Left Column - Tabs */}
               <div className="flex-1 order-2 lg:order-1">
-                {/* Tabs */}
                 <div className="mb-6">
                   <div className="flex space-x-2 mb-4">
                     <button
@@ -451,7 +366,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
 
                   {activeTab === "informacion" && (
                     <div>
-                      {/* Salones Habilitados */}
                       <div className="mb-8">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                           <h3 className="text-lg font-semibold text-yellow-500">
@@ -462,7 +376,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                           </div>
                         </div>
 
-                        {/* Contenedor con scroll para todos los salones */}
                         <div
                           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-96 overflow-y-auto p-2"
                           style={{ scrollbarWidth: "thin" }}
@@ -505,14 +418,24 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                                   }));
                                 }}
                               >
-                                <div className="p-0 h-32 flex flex-col items-center justify-center">
-                                  <span className="text-xl font-light italic text-white text-center px-2">
-                                    {salon.nombre}
+                                <div className="h-40 bg-gray-800 overflow-hidden">
+                                  <img
+                                    src={salon.image || "/placeholder.svg"}
+                                    alt={salon.nombre}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.src = "/placeholder.svg";
+                                    }}
+                                  />
+                                </div>
+                                <div className="p-2">
+                                  <span className="text-sm font-light text-white">
+                                    {salon.salon}
                                   </span>
                                   {data.salonesHabilitados.some(
                                     (s) => s.id === salon.id
                                   ) && (
-                                    <span className="text-green-400 text-xs mt-1">
+                                    <span className="text-green-400 text-xs mt-1 block">
                                       Seleccionado
                                     </span>
                                   )}
@@ -529,7 +452,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                         </div>
                       </div>
 
-                      {/* Vendedores asignados */}
                       <div>
                         <h3 className="text-lg font-semibold text-yellow-500 mb-4">
                           Vendedores asignados
@@ -679,70 +601,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                 </div>
               </div>
 
-              {/* Right Column - Images */}
-              <div className="w-full lg:w-72 order-1 lg:order-2">
-                {/* Opciones de imagen */}
-                <div className="flex space-x-2 mb-4">
-                  <button
-                    className="bg-yellow-700 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
-                    onClick={() => setShowImageUploader(true)}
-                  >
-                    Subir Imagen
-                  </button>
-                  <button
-                    className="bg-blue-700 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
-                    onClick={() => setShowImageGallery(true)}
-                  >
-                    Galería
-                  </button>
-                  <button
-                    className="bg-green-700 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm flex-1 transition-colors"
-                    onClick={fetchPuntoImages}
-                    disabled={loadingImages || !punto?.id}
-                  >
-                    {loadingImages ? "..." : "Actualizar"}
-                  </button>
-                </div>
-
-                {errorImages && (
-                  <div className="text-red-400 text-sm mb-2">
-                    Error: {errorImages}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-2">
-                  {loadingImages ? (
-                    <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                      <p className="text-yellow-500">Cargando imágenes...</p>
-                    </div>
-                  ) : data.imagenes && data.imagenes.length > 0 ? (
-                    data.imagenes.map((imagen, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square bg-yellow-700/30 rounded-lg overflow-hidden border border-yellow-600"
-                      >
-                        <Image
-                          src={imagen || "/placeholder.svg"}
-                          alt="Imagen de galería"
-                          width={100}
-                          height={100}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                      <p className="text-gray-400">
-                        No hay imágenes disponibles
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <div className="w-full lg:w-72 order-1 lg:order-2"></div>
             </div>
           </div>
 
-          {/* Footer with action buttons */}
           <div className="bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-yellow-600">
             <button
               type="button"
@@ -761,29 +623,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
           </div>
         </div>
       </div>
-
-      {/* Image Uploader Modal */}
-      {showImageUploader && (
-        <ImageUploaderModal
-          onClose={() => setShowImageUploader(false)}
-          onImageSelected={(imageUrl) => {
-            handleImageSelected(imageUrl);
-            setShowImageUploader(false);
-          }}
-        />
-      )}
-
-      {/* Image Gallery Modal */}
-      {showImageGallery && (
-        <ImageGallery
-          onClose={() => setShowImageGallery(false)}
-          onImageSelected={(imageUrl) => {
-            handleImageSelected(imageUrl);
-            setShowImageGallery(false);
-          }}
-          puntoId={punto?.id}
-        />
-      )}
     </div>
   );
 }

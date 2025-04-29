@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import useImageFetcher from "./ImageFetcher";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production
+const API_URL = apiUrls.production;
 
 const ImageUploaderModal = ({ onClose, onImageSelected }) => {
   const [imageFile, setImageFile] = useState(null);
