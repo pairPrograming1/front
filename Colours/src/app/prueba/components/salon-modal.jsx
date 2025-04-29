@@ -6,7 +6,7 @@ import apiUrls from "@/app/components/utils/apiConfig";
 
 const API_URL = apiUrls.production;
 
-export default function SalonModal({ onClose, onAddSalon, API_URL }) {
+export default function SalonModal({ onClose, onAddSalon }) {
   const [formData, setFormData] = useState({
     salon: "",
     nombre: "",
