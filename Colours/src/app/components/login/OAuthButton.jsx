@@ -2,18 +2,22 @@
 
 import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useContext } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import { AuthContext } from "../../context/AuthContext"; // Ajusta la ruta según tu estructura
+import { useDispatch } from "react-redux";
+import { setUserData } from "@/lib/slices/profileSlice";
 import apiUrls from "../utils/apiConfig";
 
 const API_URL = apiUrls.production;
 
+// Clave para localStorage con nombre poco obvio
+const STORAGE_KEY = "app_session_ref"; // Parece una referencia de sesión genérica
+
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const router = useRouter();
-  const { setAuthData } = useContext(AuthContext);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -37,7 +41,7 @@ export default function OAuthButton() {
 
           const verifyData = await verifyResponse.json();
           console.log("Respuesta de verificación:", verifyData);
-
+          
           if (!verifyResponse.ok || !verifyData.registrado) {
             // Si el usuario no existe, registrarlo
             const registerUser = async () => {
@@ -90,16 +94,20 @@ export default function OAuthButton() {
             await registerUser();
           }
 
-          // Guardar datos del usuario en el contexto
+          // Guardar datos del usuario
           if (verifyData.usuario) {
             const userData = verifyData.usuario;
-            setAuthData({
+            
+            // 1. Guardar solo el ID en localStorage con nombre poco obvio
+            localStorage.setItem(STORAGE_KEY, userData.id);
+            console.log("Reference stored in localStorage");
+            
+            // 2. Guardar datos completos en Redux para estado global
+            dispatch(setUserData({
               user: userData,
-              rol: userData.rol,
-              auth0User: user,
-              isAuthenticated: true,
-            });
-
+              auth0User: user
+            }));
+            
             // Redireccionar según el rol
             if (userData.rol === "admin") {
               router.push("/prueba");
@@ -111,10 +119,11 @@ export default function OAuthButton() {
             }
           } else {
             // Si no se pudo obtener el rol, redirigir a la ruta predeterminada
-            setAuthData({
-              auth0User: user,
-              isAuthenticated: true,
-            });
+            localStorage.removeItem(STORAGE_KEY); // Asegurarse de que no haya ID guardado
+            dispatch(setUserData({
+              user: null,
+              auth0User: user
+            }));
             router.push("/users");
           }
         } catch (error) {
@@ -124,7 +133,7 @@ export default function OAuthButton() {
         }
       });
     }
-  }, [isAuthenticated, user, router, setAuthData]);
+  }, [isAuthenticated, user, router, dispatch]);
 
   return (
     <div className="text-center mt-4">
