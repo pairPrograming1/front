@@ -2,6 +2,9 @@
 
 import { X, Check } from "lucide-react";
 import { useState, useEffect } from "react";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls.production;
 
 export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   const [formData, setFormData] = useState({
@@ -28,7 +31,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/upload/images`);
+        const response = await fetch(`${API_URL}/api/upload/images`); // Usar API_URL dinámico
         if (!response.ok) {
           throw new Error("Error al obtener las imágenes");
         }
@@ -40,7 +43,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     };
 
     fetchImages();
-  }, []);
+  }, [API_URL]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
