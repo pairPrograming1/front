@@ -23,8 +23,6 @@ export default function ProfilePage() {
     address: "",
     email: "",
     whatsapp: "",
-    dni: "",      // Añadido campo DNI
-    usuario: ""   // Añadido campo usuario
   });
   const [errors, setErrors] = useState({});
 
@@ -52,8 +50,6 @@ export default function ProfilePage() {
             address: userData.direccion || '',
             email: userData.email || '',
             whatsapp: userData.whatsapp || '',
-            dni: userData.dni || '',           // Añadido campo DNI
-            usuario: userData.usuario || ''    // Añadido campo usuario
           });
         }
       } catch (err) {
@@ -92,15 +88,6 @@ export default function ProfilePage() {
       newErrors.whatsapp = "El WhatsApp debe contener solo números, +, espacios o guiones";
     }
     
-    // Validar campos obligatorios adicionales
-    if (!formData.dni.trim()) {
-      newErrors.dni = "El DNI es obligatorio";
-    }
-    
-    if (!formData.usuario.trim()) {
-      newErrors.usuario = "El nombre de usuario es obligatorio";
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -110,16 +97,6 @@ export default function ProfilePage() {
     
     // Para whatsapp, solo permitir números, +, espacios y guiones
     if (name === 'whatsapp' && value && !/^[0-9+\s-]+$/.test(value)) {
-      return;
-    }
-    
-    // Para DNI, solo permitir números y letras M o F al final (como en el componente usuario-editar-modal)
-    if (name === 'dni') {
-      const validatedValue = value.replace(/[^0-9MFmf]/g, "");
-      setFormData((prev) => ({
-        ...prev,
-        [name]: validatedValue.toUpperCase(),
-      }));
       return;
     }
     
@@ -161,8 +138,6 @@ export default function ProfilePage() {
         direccion: formData.address,
         email: formData.email,
         whatsapp: formData.whatsapp,
-        dni: formData.dni,           // Añadido campo DNI
-        usuario: formData.usuario    // Añadido campo usuario
       };
       
       // URL exacta para la solicitud PUT
@@ -170,15 +145,13 @@ export default function ProfilePage() {
       console.log("URL exacta para PUT:", url);
       console.log("Datos a enviar:", dataToSend);
       
-      // Usar fetch en lugar de axios, siguiendo el patrón del código existente
+      // Usar fetch en lugar de axios para la solicitud PUT
       const response = await fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          // Incluir token de autorización si está disponible
-          ...(localStorage.getItem("token") && {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          })
+          // Si tienes algún token de autenticación, agrégalo aquí
+          // 'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(dataToSend)
       });
@@ -187,6 +160,7 @@ export default function ProfilePage() {
       
       // Verificar si la respuesta es exitosa
       if (!response.ok) {
+        // Si la respuesta no es exitosa, lanzar un error con el estado
         const errorData = await response.json().catch(() => ({}));
         throw new Error(`Error HTTP: ${response.status} - ${errorData.message || response.statusText}`);
       }
@@ -204,8 +178,6 @@ export default function ProfilePage() {
           direccion: formData.address,
           email: formData.email,
           whatsapp: formData.whatsapp,
-          dni: formData.dni,
-          usuario: formData.usuario
         };
         
         dispatch(setUserData({
@@ -289,56 +261,6 @@ export default function ProfilePage() {
 
         {/* Formulario de perfil */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Campo de usuario */}
-          <div>
-            <label htmlFor="usuario" className="sr-only">Nombre de usuario</label>
-            <input
-              id="usuario"
-              type="text"
-              name="usuario"
-              value={formData.usuario}
-              onChange={handleChange}
-              placeholder="Nombre de usuario"
-              className={`w-full rounded-md border p-3 text-white placeholder-gray-400 focus:outline-none ${
-                errors.usuario ? "border-red-500" : "border-[#BF8D6B]"
-              }`}
-              style={{
-                backgroundColor: "transparent",
-              }}
-              required
-              autoComplete="username"
-            />
-            {errors.usuario && (
-              <p className="mt-1 text-red-400 text-xs">{errors.usuario}</p>
-            )}
-          </div>
-          
-          {/* Campo de DNI */}
-          <div>
-            <label htmlFor="dni" className="sr-only">DNI</label>
-            <input
-              id="dni"
-              type="text"
-              name="dni"
-              value={formData.dni}
-              onChange={handleChange}
-              placeholder="DNI (ej: 12345678M)"
-              className={`w-full rounded-md border p-3 text-white placeholder-gray-400 focus:outline-none ${
-                errors.dni ? "border-red-500" : "border-[#BF8D6B]"
-              }`}
-              style={{
-                backgroundColor: "transparent",
-              }}
-              required
-            />
-            {errors.dni && (
-              <p className="mt-1 text-red-400 text-xs">{errors.dni}</p>
-            )}
-            <p className="text-xs text-gray-400 mt-1">
-              Números y letra M o F al final
-            </p>
-          </div>
-          
           {/* Campo de nombre */}
           <div>
             <label htmlFor="nombre" className="sr-only">Nombre</label>
