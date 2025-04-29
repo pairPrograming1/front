@@ -115,6 +115,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
 
       const formattedData = {
         ...formData,
+        salonId: formData.salonId, // Asegurar que el salonId se incluya
         fecha: new Date(formData.fecha).toISOString(),
         image: formData.image || null, // Validar campo opcional
         descripcion: formData.descripcion || null, // Validar campo opcional

@@ -166,7 +166,7 @@ export default function Eventos() {
 
   const handleEventoAdded = async (eventoData) => {
     try {
-      const response = await fetch(`${API_URL}/eventos/`, {
+      const response = await fetch(`${API_URL}/api/eventos/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -203,7 +203,7 @@ export default function Eventos() {
 
   const handleEventoUpdated = async (id, eventoData) => {
     try {
-      const response = await fetch(`${API_URL}/eventos/${id}`, {
+      const response = await fetch(`${API_URL}/api/evento/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -240,7 +240,7 @@ export default function Eventos() {
 
   const handleLogicalDelete = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/eventos/${id}`, {
+      const response = await fetch(`${API_URL}/api/evento/${id}`, {
         method: "PATCH",
       });
 
@@ -273,7 +273,7 @@ export default function Eventos() {
 
   const handlePhysicalDelete = async (id) => {
     try {
-      const response = await fetch(`${API_URL}/eventos/${id}`, {
+      const response = await fetch(`${API_URL}/api/evento/${id}`, {
         method: "DELETE",
       });
 
@@ -338,7 +338,7 @@ export default function Eventos() {
         });
 
         const updatePromises = selectedEventos.map((id) =>
-          fetch(`${API_URL}/eventos/${id}`, {
+          fetch(`${API_URL}/api/evento/${id}`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -421,7 +421,7 @@ export default function Eventos() {
         });
 
         const deletePromises = selectedEventos.map((id) =>
-          fetch(`${API_URL}/eventos/${id}`, {
+          fetch(`${API_URL}/api/evento/${id}`, {
             method: "DELETE",
           })
         );
@@ -465,7 +465,7 @@ export default function Eventos() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`${API_URL}/eventos/${id}`, {
+        const response = await fetch(`${API_URL}/api/evento/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
