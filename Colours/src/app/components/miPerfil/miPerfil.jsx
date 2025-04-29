@@ -9,13 +9,17 @@ import apiUrls from "@/app/components/utils/apiConfig";
 
 // Clave para localStorage con nombre poco obvio
 const STORAGE_KEY = "app_session_ref";
+// URL base de la API centralizada
+const API_URL = apiUrls.production;
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const userFromRedux = useSelector(selectUser);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: "",
+    nombre: "",
+    apellido: "",
     address: "",
     email: "",
     whatsapp: "",
@@ -33,15 +37,16 @@ export default function ProfilePage() {
           return; // Si no hay ID, simplemente terminamos la carga
         }
         
-        // Hacer la petición con Axios
-        const response = await axios.get(`${apiUrls.production}/api/users/perfil/${userId}`);
+        // Hacer la petición con Axios usando la constante API_URL
+        const response = await axios.get(`${API_URL}/api/users/perfil/${userId}`);
         const userData = response.data;
         console.log("Datos del perfil:", userData);
         
         // Si hay datos, actualizar el formulario
         if (userData) {
           setFormData({
-            fullName: `${userData.nombre || ''} ${userData.apellido || ''}`.trim(),
+            nombre: userData.nombre || '',
+            apellido: userData.apellido || '',
             address: userData.direccion || '',
             email: userData.email || '',
             whatsapp: userData.whatsapp || '',
@@ -64,8 +69,12 @@ export default function ProfilePage() {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "El nombre es obligatorio";
+    if (!formData.nombre.trim()) {
+      newErrors.nombre = "El nombre es obligatorio";
+    }
+    
+    if (!formData.apellido.trim()) {
+      newErrors.apellido = "El apellido es obligatorio";
     }
     
     if (!formData.email.trim()) {
@@ -113,72 +122,108 @@ export default function ProfilePage() {
       return;
     }
     
+    setSubmitting(true);
+    
     try {
       const userId = localStorage.getItem(STORAGE_KEY);
-      if (!userId) return;
-      
-      // Preparar los datos para enviar
-      let nombre = formData.fullName;
-      let apellido = "";
-      
-      if (formData.fullName.includes(" ")) {
-        const nameParts = formData.fullName.split(" ");
-        nombre = nameParts[0];
-        apellido = nameParts.slice(1).join(" ");
+      if (!userId) {
+        setSubmitting(false);
+        return;
       }
       
+      // Preparar los datos para enviar
       const dataToSend = {
-        nombre,
-        apellido,
+        nombre: formData.nombre,
+        apellido: formData.apellido,
         direccion: formData.address,
         email: formData.email,
         whatsapp: formData.whatsapp,
       };
       
-      // Enviar la actualización
-      const response = await axios.put(`${apiUrls.production}/api/users/${userId}`, dataToSend);
+      // URL exacta para la solicitud PUT
+      const url = `${API_URL}/api/users/perfil/${userId}`;
+      console.log("URL exacta para PUT:", url);
+      console.log("Datos a enviar:", dataToSend);
       
-      // Si la actualización fue exitosa
-      if (response.status === 200) {
-        // Actualizar el estado global en Redux
-        if (userFromRedux) {
-          const updatedUser = {
-            ...userFromRedux,
-            nombre,
-            apellido,
-            direccion: formData.address,
-            email: formData.email,
-            whatsapp: formData.whatsapp,
-          };
-          
-          dispatch(setUserData({
-            user: updatedUser,
-            auth0User: userFromRedux.auth0User
-          }));
-        }
-        
-        // Mostrar mensaje de éxito con SweetAlert
-        Swal.fire({
-          title: "¡Perfil actualizado!",
-          text: "Los cambios se han guardado correctamente",
-          icon: "success",
-          confirmButtonText: "Aceptar",
-          confirmButtonColor: "#BF8D6B",
-        });
+      // Usar fetch en lugar de axios para la solicitud PUT
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          // Si tienes algún token de autenticación, agrégalo aquí
+          // 'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(dataToSend)
+      });
+      
+      console.log("Respuesta fetch status:", response.status);
+      
+      // Verificar si la respuesta es exitosa
+      if (!response.ok) {
+        // Si la respuesta no es exitosa, lanzar un error con el estado
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Error HTTP: ${response.status} - ${errorData.message || response.statusText}`);
       }
+      
+      // Parsear la respuesta JSON
+      const responseData = await response.json();
+      console.log("Respuesta fetch exitosa:", responseData);
+      
+      // Actualizar el estado global en Redux
+      if (userFromRedux) {
+        const updatedUser = {
+          ...userFromRedux,
+          nombre: formData.nombre,
+          apellido: formData.apellido,
+          direccion: formData.address,
+          email: formData.email,
+          whatsapp: formData.whatsapp,
+        };
+        
+        dispatch(setUserData({
+          user: updatedUser,
+          auth0User: userFromRedux.auth0User
+        }));
+      }
+      
+      // Mostrar mensaje de éxito con SweetAlert
+      Swal.fire({
+        title: "¡Perfil actualizado!",
+        text: "Los cambios se han guardado correctamente",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#BF8D6B",
+      });
     } catch (err) {
       console.error("Error al actualizar el perfil:", err);
       
-      // Mostrar mensaje de error
-      setErrors({
-        general: "Error al actualizar el perfil. Verifica que los datos sean correctos."
-      });
+      // Mostrar mensaje de error más específico
+      let errorMessage = "Error al actualizar el perfil. Verifica que los datos sean correctos.";
       
-      // Mostrar formato esperado
-      setErrors(prev => ({
-        ...prev,
-        format: "Formato esperado: Nombre, Apellido, Dirección, Email, WhatsApp (solo números)"
-      }));
+      // Intentar extraer información más detallada del error
+      if (err.message && err.message.includes("Error HTTP:")) {
+        const statusCode = err.message.match(/Error HTTP: (\d+)/)?.[1];
+        
+        if (statusCode === "404") {
+          errorMessage = "No se encontró la ruta para actualizar el perfil. Verifica la URL de la API.";
+        } else if (statusCode === "403") {
+          errorMessage = "No tienes permiso para actualizar este perfil.";
+        } else if (statusCode === "401") {
+          errorMessage = "Sesión expirada. Por favor, inicia sesión nuevamente.";
+        } else if (err.message.includes("-")) {
+          // Intentar extraer el mensaje de error del backend
+          const serverMessage = err.message.split("-")[1]?.trim();
+          if (serverMessage) {
+            errorMessage = serverMessage;
+          }
+        }
+      }
+      
+      setErrors({
+        general: errorMessage
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
   
@@ -213,50 +258,80 @@ export default function ProfilePage() {
             {errors.general}
           </div>
         )}
-        
-        {errors.format && (
-          <div className="mb-4 p-3 bg-blue-900/50 border border-blue-500 rounded-md text-blue-200 text-sm">
-            {errors.format}
-          </div>
-        )}
 
         {/* Formulario de perfil */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Campo de nombre */}
           <div>
+            <label htmlFor="nombre" className="sr-only">Nombre</label>
             <input
+              id="nombre"
               type="text"
-              name="fullName"
-              value={formData.fullName}
+              name="nombre"
+              value={formData.nombre}
               onChange={handleChange}
-              placeholder="Nombre y Apellido"
+              placeholder="Nombre"
               className={`w-full rounded-md border p-3 text-white placeholder-gray-400 focus:outline-none ${
-                errors.fullName ? "border-red-500" : "border-[#BF8D6B]"
+                errors.nombre ? "border-red-500" : "border-[#BF8D6B]"
               }`}
               style={{
                 backgroundColor: "transparent",
               }}
               required
+              autoComplete="given-name"
             />
-            {errors.fullName && (
-              <p className="mt-1 text-red-400 text-xs">{errors.fullName}</p>
+            {errors.nombre && (
+              <p className="mt-1 text-red-400 text-xs">{errors.nombre}</p>
             )}
           </div>
+          
+          {/* Campo de apellido */}
           <div>
+            <label htmlFor="apellido" className="sr-only">Apellido</label>
             <input
+              id="apellido"
+              type="text"
+              name="apellido"
+              value={formData.apellido}
+              onChange={handleChange}
+              placeholder="Apellido"
+              className={`w-full rounded-md border p-3 text-white placeholder-gray-400 focus:outline-none ${
+                errors.apellido ? "border-red-500" : "border-[#BF8D6B]"
+              }`}
+              style={{
+                backgroundColor: "transparent",
+              }}
+              required
+              autoComplete="family-name"
+            />
+            {errors.apellido && (
+              <p className="mt-1 text-red-400 text-xs">{errors.apellido}</p>
+            )}
+          </div>
+          
+          {/* Campo de dirección */}
+          <div>
+            <label htmlFor="address" className="sr-only">Dirección</label>
+            <input
+              id="address"
               type="text"
               name="address"
               value={formData.address}
               onChange={handleChange}
               placeholder="Dirección"
-              className="w-full rounded-md border p-3 text-white placeholder-gray-400 focus:outline-none"
+              className="w-full rounded-md border p-3 text-white placeholder-gray-400 focus:outline-none border-[#BF8D6B]"
               style={{
                 backgroundColor: "transparent",
-                borderColor: "#BF8D6B",
               }}
+              autoComplete="street-address"
             />
           </div>
+          
+          {/* Campo de email */}
           <div>
+            <label htmlFor="email" className="sr-only">Email</label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formData.email}
@@ -269,13 +344,18 @@ export default function ProfilePage() {
                 backgroundColor: "transparent",
               }}
               required
+              autoComplete="email"
             />
             {errors.email && (
               <p className="mt-1 text-red-400 text-xs">{errors.email}</p>
             )}
           </div>
+          
+          {/* Campo de WhatsApp */}
           <div>
+            <label htmlFor="whatsapp" className="sr-only">WhatsApp</label>
             <input
+              id="whatsapp"
               type="tel"
               name="whatsapp"
               value={formData.whatsapp}
@@ -287,6 +367,7 @@ export default function ProfilePage() {
               style={{
                 backgroundColor: "transparent",
               }}
+              autoComplete="tel"
             />
             {errors.whatsapp && (
               <p className="mt-1 text-red-400 text-xs">{errors.whatsapp}</p>
@@ -298,14 +379,20 @@ export default function ProfilePage() {
               type="submit"
               className="w-full rounded-md py-3 font-medium text-white transition-colors hover:bg-[#A77A5B]"
               style={{ backgroundColor: "#BF8D6B" }}
+              disabled={submitting}
             >
-              Actualizar Perfil
+              {submitting ? "Actualizando..." : "Actualizar Perfil"}
             </button>
           </div>
         </form>
 
         <div className="mt-4 text-center">
-          <button className="text-sm text-gray-300 hover:text-white">Cambiar Contraseña</button>
+          <button 
+            className="text-sm text-gray-300 hover:text-white"
+            type="button"
+          >
+            Cambiar Contraseña
+          </button>
         </div>
       </div>
     </div>
