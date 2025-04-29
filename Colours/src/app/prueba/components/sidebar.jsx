@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LucideHome, Store, Building2, CalendarDays, CreditCard, ChevronLeft, ChevronRight } from "lucide-react"
+import { LucideHome, Store, Building2, CalendarDays, CreditCard, ChevronLeft, ChevronRight, User } from 'lucide-react'
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -68,6 +68,18 @@ export default function Sidebar() {
 
       <nav className="flex-1 py-4">
         <ul className="space-y-2">
+          {/* Nuevo icono de perfil */}
+          <li onClick={(e) => e.stopPropagation()}>
+            <Link
+              href="/prueba/profile"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/profile") ? "text-[#C88D6B]" : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
+            >
+              <User className="h-5 w-5 mb-1" />
+              {!isCollapsed && <span className="text-xs md:text-sm">Mi Perfil</span>}
+            </Link>
+          </li>
           <li onClick={(e) => e.stopPropagation()}>
             <Link
               href="/prueba/usuarios"

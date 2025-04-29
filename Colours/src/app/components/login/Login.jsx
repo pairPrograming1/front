@@ -18,7 +18,7 @@ export default function Login() {
         </div>
         <LoginForm />
 
-        {/* Aquí puedes añadir tu logo si lo deseas */}
+        
       </div>
     </div>
   );
