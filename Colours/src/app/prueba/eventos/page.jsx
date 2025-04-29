@@ -81,7 +81,7 @@ export default function Eventos() {
           duracion: evento.duracion,
           capacidad: evento.capacidad,
           activo: evento.activo,
-          salon: evento.salonId || "Sin salón asignado",
+          salon: evento.salonNombre || "Sin salón asignado", // Cambiado para mostrar el nombre
         }));
 
         setEventos(mappedEventos);

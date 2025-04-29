@@ -120,7 +120,26 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       });
       return;
     }
-    onEventoAdded(formData);
+
+    // Buscar el salón seleccionado
+    const selectedSalon = salones.find(
+      (salon) => salon.Id === formData.salonId
+    );
+    if (!selectedSalon) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Debe seleccionar un salón válido.",
+      });
+      return;
+    }
+
+    // Enviar tanto el ID como el nombre del salón
+    onEventoAdded({
+      ...formData,
+      salonId: selectedSalon.Id,
+      salonNombre: selectedSalon.nombre,
+    });
   };
 
   const getTodayString = () => {
