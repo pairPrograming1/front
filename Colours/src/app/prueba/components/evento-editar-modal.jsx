@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function EventoEditarModal({
   evento,

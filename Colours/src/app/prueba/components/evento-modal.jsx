@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function EventoModal({ onClose, onEventoAdded }) {
   const [formData, setFormData] = useState({
@@ -14,6 +14,8 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     capacidad: 1,
     activo: true,
     salonId: "",
+    image: "", // Nuevo campo
+    descripcion: "", // Nuevo campo
   });
 
   const [salones, setSalones] = useState([]);
@@ -114,6 +116,8 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       const formattedData = {
         ...formData,
         fecha: new Date(formData.fecha).toISOString(),
+        image: formData.image || null, // Validar campo opcional
+        descripcion: formData.descripcion || null, // Validar campo opcional
       };
 
       const response = await fetch(`${API_URL}/api/evento/`, {
@@ -336,6 +340,37 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                 </div>
               </label>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
+              URL de la Imagen (opcional)
+            </label>
+            <div className="relative">
+              <input
+                type="url"
+                name="image"
+                placeholder="https://example.com/imagen.jpg"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.image}
+                onChange={handleChange}
+              />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1 text-white">
+              Descripción del Evento (opcional)
+            </label>
+            <textarea
+              name="descripcion"
+              placeholder="Descripción detallada del evento"
+              className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+              value={formData.descripcion}
+              onChange={handleChange}
+              rows="4"
+            ></textarea>
           </div>
 
           <button

@@ -82,15 +82,14 @@ export default function Eventos() {
         }
 
         const mappedEventos = filteredData.map((evento) => ({
-          id: evento.Id || evento.id,
-          Id: evento.Id || evento.id,
+          id: evento.id,
           nombre: evento.nombre,
+          descripcion: evento.descripcion || "Sin descripción",
           fecha: evento.fecha,
-          duracion: evento.duracion || evento.duraccion,
+          duracion: evento.duracion,
           capacidad: evento.capacidad,
           activo: evento.activo,
-          salonId: evento.salonId,
-          salonNombre: evento.salon?.nombre || "Sin salón asignado",
+          salon: evento.salon || "Sin salón asignado",
         }));
 
         setEventos(mappedEventos);
@@ -140,7 +139,7 @@ export default function Eventos() {
     const searchText = removeAccents(searchTerm.toLowerCase());
     return (
       removeAccents(evento.nombre?.toLowerCase()).includes(searchText) ||
-      removeAccents(evento.salonNombre?.toLowerCase()).includes(searchText) ||
+      removeAccents(evento.salon?.toLowerCase()).includes(searchText) ||
       formatDateTime(evento.fecha)
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
@@ -165,140 +164,143 @@ export default function Eventos() {
     }
   };
 
-  const handleEventoAdded = () => {
-    setShowModal(false);
-    fetchEventos();
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "El evento ha sido agregado correctamente",
-      icon: "success",
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "OK",
-    });
+  const handleEventoAdded = async (eventoData) => {
+    try {
+      const response = await fetch(`${API_URL}/eventos/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventoData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al agregar el evento");
+      }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Éxito!",
+        text: result.message || "El evento ha sido agregado correctamente",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+
+      fetchEventos();
+      setShowModal(false);
+    } catch (err) {
+      console.error("Error al agregar evento:", err);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo agregar el evento.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
   };
 
-  const handleEventoUpdated = () => {
-    setShowEditModal(false);
-    fetchEventos();
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "El evento ha sido actualizado correctamente",
-      icon: "success",
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "OK",
-    });
+  const handleEventoUpdated = async (id, eventoData) => {
+    try {
+      const response = await fetch(`${API_URL}/eventos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventoData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al actualizar el evento");
+      }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Éxito!",
+        text: result.message || "El evento ha sido actualizado correctamente",
+        icon: "success",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+
+      fetchEventos();
+      setShowEditModal(false);
+    } catch (err) {
+      console.error("Error al actualizar evento:", err);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo actualizar el evento.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
   };
 
   const handleLogicalDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "¿Desactivar evento?",
-      text: "El evento será desactivado pero permanecerá en la base de datos",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, desactivar",
-      cancelButtonText: "Cancelar",
-    });
+    try {
+      const response = await fetch(`${API_URL}/eventos/${id}`, {
+        method: "PATCH",
+      });
 
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`${API_URL}/api/evento/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Error al desactivar el evento");
-        }
-
-        const data = await response.json();
-
-        Swal.fire({
-          title: "¡Completado!",
-          text: data.message || "El evento ha sido desactivado correctamente",
-          icon: "success",
-          confirmButtonText: "OK",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-
-        fetchEventos();
-      } catch (err) {
-        console.error("Error al desactivar evento:", err);
-        Swal.fire({
-          title: "Error",
-          text: "No se pudo desactivar el evento.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+      if (!response.ok) {
+        throw new Error("Error al desactivar el evento");
       }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Completado!",
+        text: result.message || "El evento ha sido desactivado correctamente",
+        icon: "success",
+        confirmButtonText: "OK",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      fetchEventos();
+    } catch (err) {
+      console.error("Error al desactivar evento:", err);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo desactivar el evento.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 
   const handlePhysicalDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "¿Eliminar permanentemente?",
-      text: "Esta acción no se puede deshacer y el evento será eliminado permanentemente",
-      icon: "error",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar permanentemente",
-      cancelButtonText: "Cancelar",
-    });
+    try {
+      const response = await fetch(`${API_URL}/eventos/${id}`, {
+        method: "DELETE",
+      });
 
-    if (result.isConfirmed) {
-      try {
-        const secondConfirm = await Swal.fire({
-          title: "¿Está completamente seguro?",
-          html: `
-            <div class="text-left">
-              <p>No podrá recuperar este evento después de eliminarlo</p>
-              <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
-            </div>
-          `,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Sí, eliminar definitivamente",
-          cancelButtonText: "Cancelar",
-        });
-
-        if (!secondConfirm.isConfirmed) return;
-
-        const response = await fetch(`${API_URL}/api/evento/${id}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error("Error al eliminar el evento");
-        }
-
-        const data = await response.json();
-
-        Swal.fire({
-          title: "¡Eliminado!",
-          text: data.message || "El evento ha sido eliminado permanentemente",
-          icon: "success",
-          confirmButtonText: "OK",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-
-        fetchEventos();
-      } catch (err) {
-        console.error("Error al eliminar evento:", err);
-        Swal.fire({
-          title: "Error",
-          text: "No se pudo eliminar el evento.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+      if (!response.ok) {
+        throw new Error("Error al eliminar el evento");
       }
+
+      const result = await response.json();
+
+      Swal.fire({
+        title: "¡Eliminado!",
+        text: result.message || "El evento ha sido eliminado permanentemente",
+        icon: "success",
+        confirmButtonText: "OK",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      fetchEventos();
+    } catch (err) {
+      console.error("Error al eliminar evento:", err);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo eliminar el evento.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
     }
   };
 
@@ -336,7 +338,7 @@ export default function Eventos() {
         });
 
         const updatePromises = selectedEventos.map((id) =>
-          fetch(`${API_URL}/api/evento/${id}`, {
+          fetch(`${API_URL}/eventos/${id}`, {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
@@ -419,7 +421,7 @@ export default function Eventos() {
         });
 
         const deletePromises = selectedEventos.map((id) =>
-          fetch(`${API_URL}/api/evento/${id}`, {
+          fetch(`${API_URL}/eventos/${id}`, {
             method: "DELETE",
           })
         );
@@ -463,7 +465,7 @@ export default function Eventos() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`${API_URL}/api/evento/${id}`, {
+        const response = await fetch(`${API_URL}/eventos/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -625,6 +627,7 @@ export default function Eventos() {
                   />
                 </th>
                 <th>Nombre del Evento</th>
+                <th>Descripción</th> {/* Nuevo encabezado */}
                 <th>Salón</th>
                 <th>Fecha y Hora</th>
                 <th>Duración</th>
@@ -648,7 +651,8 @@ export default function Eventos() {
                       />
                     </td>
                     <td>{evento.nombre}</td>
-                    <td>{evento.salonNombre}</td>
+                    <td>{evento.descripcion}</td> {/* Nueva columna */}
+                    <td>{evento.salon}</td>
                     <td>{formatDateTime(evento.fecha)}</td>
                     <td>{evento.duracion || "N/A"} minutos</td>
                     <td>{evento.capacidad || "Sin límite"}</td>
@@ -739,7 +743,7 @@ export default function Eventos() {
                             {evento.nombre}
                           </div>
                           <div className="text-sm text-gray-500 mt-1">
-                            {evento.salonNombre}
+                            {evento.salon}
                           </div>
                         </div>
                       </div>
