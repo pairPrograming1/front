@@ -175,17 +175,23 @@ export default function EventoModal({ onClose, onEventoAdded }) {
 
         <form onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="nombre">Nombre del Evento</label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={formData.nombre || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, nombre: e.target.value })
-              }
-              required
-            />
+            <label className="block text-sm font-medium mb-1 text-white">
+              Nombre del Evento
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                value={formData.nombre || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, nombre: e.target.value })
+                }
+                required
+              />
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
+            </div>
           </div>
 
           <div>
