@@ -11,6 +11,7 @@ export function LogoutButton() {
   const { logout } = useAuth0();
   const router = useRouter();
   const dispatch= useDispatch()
+  const STORAGE_KEY = "app_session_ref";
 
   // const handleLogout = () => {
   //   setAuthData(null); // Borra el estado de la sesión
@@ -28,7 +29,9 @@ export function LogoutButton() {
     // Clear local state first
     setAuthData(null);
     localStorage.removeItem("authData");
-    
+    // Limpiar localStorage
+    localStorage.removeItem(STORAGE_KEY);
+
     // Use the current origin as the returnTo URL
     logout({ 
       logoutParams: { 
@@ -36,7 +39,7 @@ export function LogoutButton() {
       } 
     });
     
-    // Note: No need for router.push here as Auth0 will handle the redirect
+   
   };
 
  
