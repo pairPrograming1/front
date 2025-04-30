@@ -562,9 +562,7 @@ export default function PuntosDeVenta() {
               {currentItems.map((punto) => (
                 <tr
                   key={punto.id}
-                  className={`cursor-pointer ${
-                    !punto.isActive ? "opacity-70 bg-gray-50" : ""
-                  }`}
+                  className="border border-black rounded-lg p-4"
                   onClick={() => {
                     setSelectedPunto(punto);
                     setShowEdicionCompleta(true);
@@ -644,12 +642,7 @@ export default function PuntosDeVenta() {
         {/* Vista móvil mejorada */}
         <div className="md:hidden space-y-4">
           {currentItems.map((punto) => (
-            <div
-              key={punto.id}
-              className={`border rounded-lg p-4 ${
-                !punto.isActive ? "opacity-70 bg-gray-50" : ""
-              }`}
-            >
+            <div key={punto.id} className="border border-black rounded-lg p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1 flex items-start gap-2">
                   <input

@@ -715,9 +715,7 @@ export default function Usuarios() {
           {currentItems.map((usuario) => (
             <div
               key={usuario.id}
-              className={`border rounded-lg p-4 ${
-                !usuario.isActive ? "opacity-70 bg-gray-50" : ""
-              }`}
+              className="border border-black rounded-lg p-4"
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
