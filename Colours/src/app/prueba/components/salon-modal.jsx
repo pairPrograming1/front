@@ -28,7 +28,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/upload/images`);
+        const response = await fetch(`${API_URL.replace("/image", "/images")}`); // Endpoint dinámico
         if (!response.ok) {
           throw new Error("Error al obtener las imágenes");
         }
@@ -40,7 +40,7 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     };
 
     fetchImages();
-  }, []);
+  }, [API_URL]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
