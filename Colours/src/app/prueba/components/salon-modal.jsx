@@ -28,25 +28,19 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const imagesEndpoint = `${API_URL.replace(
-          "/api/upload/image",
-          "/api/upload/images"
-        )}`; // Ajusta el endpoint
-        const response = await fetch(imagesEndpoint);
+        const response = await fetch(`http://localhost:4000/api/upload/images`);
         if (!response.ok) {
           throw new Error("Error al obtener las imágenes");
         }
         const data = await response.json();
-        const imageArray = Array.isArray(data) ? data : data.images || []; // Asegura que sea un array
-        setImages(imageArray);
+        setImages(data);
       } catch (error) {
         console.error(error);
-        setImages([]); // En caso de error, establece un array vacío
       }
     };
 
     fetchImages();
-  }, [API_URL]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
