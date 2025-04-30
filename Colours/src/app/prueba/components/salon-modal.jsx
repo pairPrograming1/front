@@ -34,9 +34,11 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
           throw new Error("Error al obtener las imágenes");
         }
         const data = await response.json();
-        setImages(data);
+        const imageArray = Array.isArray(data) ? data : []; // Asegurarse de que sea un array
+        setImages(imageArray);
       } catch (error) {
         console.error(error);
+        setImages([]); // En caso de error, establecer un array vacío
       }
     };
 
