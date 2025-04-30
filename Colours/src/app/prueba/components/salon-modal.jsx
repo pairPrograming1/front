@@ -34,6 +34,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
         const response = await fetch(
           `https://api.cloudinary.com/v1_1/dmjusy7sn/resources/image`, // CLOUDINARY_CLOUD_NAME
           {
+            mode: "no-cors", // Agregado para evitar el bloqueo por CORS
             headers: {
               Authorization: `Basic ${btoa(
                 "176486855763434:x_IKcLqURy1kwHKNt3g3UgSB0rg"
@@ -41,6 +42,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
             },
           }
         );
+        // Nota: En modo no-cors, no puedes acceder al contenido de la respuesta.
         if (!response.ok) {
           throw new Error("Error al obtener las imágenes de Cloudinary");
         }
