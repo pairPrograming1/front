@@ -2,7 +2,6 @@
 
 import { X, Check } from "lucide-react";
 import { useState, useEffect } from "react";
-import Swal from "sweetalert2";
 
 export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   const [formData, setFormData] = useState({
@@ -19,78 +18,30 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     estatus: "true",
     image: "", // Nueva propiedad para la URL de la imagen
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [images, setImages] = useState([]); // Estado para almacenar imágenes existentes
-  const [selectedFile, setSelectedFile] = useState(null); // Archivo seleccionado para cargar
-  const [isUploading, setIsUploading] = useState(false); // Estado de carga
+  const [activeTab, setActiveTab] = useState("info");
+  const [images, setImages] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null); // Nueva variable de estado
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await fetch(
-          `${API_URL.replace("/image", "/images")}` // Endpoint para obtener imágenes
-        );
+        const imagesEndpoint = `${API_URL.replace("/image", "/images")}`; // Construir dinámicamente el endpoint
+        const response = await fetch(imagesEndpoint);
         if (!response.ok) {
           throw new Error("Error al obtener las imágenes");
         }
         const data = await response.json();
-        setImages(Array.isArray(data) ? data : []); // Asegúrate de que sea un array
-      } catch (err) {
-        console.error(err);
-        setError("Error al cargar las imágenes existentes");
+        setImages(data);
+      } catch (error) {
+        console.error(error);
       }
     };
 
     fetchImages();
   }, [API_URL]);
-
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-    setFormData((prev) => ({ ...prev, image: "" })); // Limpia la URL de imagen seleccionada
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setError("Por favor selecciona una imagen");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("image", selectedFile);
-
-    setIsUploading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al subir la imagen");
-      }
-
-      const data = await response.json();
-      Swal.fire({
-        icon: "success",
-        title: "Imagen subida correctamente",
-        text: `URL: ${data.imageUrl}`,
-        confirmButtonColor: "#3085d6",
-      });
-      setImages((prev) => [...prev, data]); // Agrega la nueva imagen al estado
-      setSelectedFile(null); // Limpia el archivo seleccionado
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleImageSelect = (url) => {
-    setFormData((prev) => ({ ...prev, image: url })); // Actualiza la URL de la imagen en formData
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -175,6 +126,18 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const copyToClipboard = (url) => {
+    navigator.clipboard.writeText(url).then(
+      () => {
+        setSelectedImage(url); // Marca la imagen como seleccionada
+        setFormData((prev) => ({ ...prev, image: url })); // Actualiza la URL de la imagen en formData
+      },
+      (err) => {
+        console.error("Error al copiar la URL:", err);
+      }
+    );
   };
 
   const formatCUIT = (cuit) => {
@@ -385,51 +348,6 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
                 onChange={handleChange}
               />
             </div>
-            <div className="relative">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="mb-4 w-full text-white"
-              />
-              <button
-                type="button"
-                onClick={handleUpload}
-                className="w-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg mb-4"
-                disabled={isUploading}
-              >
-                {isUploading ? "Subiendo..." : "Subir Imagen"}
-              </button>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">
-                Imágenes disponibles
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {images.map((image) => (
-                  <div
-                    key={image.id}
-                    className={`relative border rounded-lg cursor-pointer ${
-                      formData.image === image.url
-                        ? "border-green-500"
-                        : "border-yellow-600"
-                    }`}
-                    onClick={() => handleImageSelect(image.url)}
-                  >
-                    <img
-                      src={image.url}
-                      alt="Imagen existente"
-                      className="w-full h-auto rounded-lg"
-                    />
-                    {formData.image === image.url && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                        <Check className="h-4 w-4" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
 
             <button
               type="submit"
@@ -446,6 +364,34 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
               )}
             </button>
           </form>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white">
+              Imágenes disponibles
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((image) => (
+                <div key={image.id} className="relative">
+                  <img
+                    src={image.url}
+                    alt="Imagen subida"
+                    className={`w-full h-auto rounded-lg border cursor-pointer ${
+                      selectedImage === image.url
+                        ? "border-green-500"
+                        : "border-yellow-600"
+                    }`} // Cambia el borde si está seleccionada
+                    onClick={() => copyToClipboard(image.url)} // Actualiza formData.image al seleccionar
+                    title="Haz clic para copiar la URL"
+                  />
+                  {selectedImage === image.url && (
+                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                      ✓
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
