@@ -713,9 +713,7 @@ export default function Eventos() {
             currentItems.map((evento) => (
               <div
                 key={evento.id}
-                className={`border rounded-lg overflow-hidden ${
-                  !evento.activo ? "opacity-70 bg-gray-50" : ""
-                }`}
+                className="border border-black rounded-lg p-4"
               >
                 <div className="p-4">
                   <div className="flex justify-between items-start">
