@@ -2,8 +2,12 @@
 
 import { X, Check } from "lucide-react";
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
 
-export default function SalonEditarModal({ salon, onClose, API_URL }) {
+const API_URL = apiUrls.production;
+
+export default function SalonEditarModal({ salon, onClose }) {
   const [formData, setFormData] = useState({
     salon: salon?.salon || "",
     nombre: salon?.nombre || "",
@@ -24,6 +28,7 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
   const [successMessage, setSuccessMessage] = useState(null);
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(salon?.image || ""); // Nueva variable de estado para la imagen seleccionada
+  const [loading, setLoading] = useState(false); // Estado para manejar la carga de imágenes
 
   useEffect(() => {
     if (salon) {
@@ -44,22 +49,39 @@ export default function SalonEditarModal({ salon, onClose, API_URL }) {
     }
   }, [salon]);
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const response = await fetch(`http://localhost:4000/api/upload/images`);
-        if (!response.ok) {
-          throw new Error("Error al obtener las imágenes");
-        }
-        const data = await response.json();
-        setImages(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
+  const fetchImages = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/upload/images`, {
+        cache: "no-store",
+      });
 
+      if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
+
+      const data = await res.json();
+      console.log("Imágenes cargadas:", data);
+      setImages(data);
+    } catch (err) {
+      console.error("Error al cargar imágenes:", err);
+      setError(err.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error al obtener imágenes",
+        text: err.message || "Ocurrió un error al obtener las imágenes",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchImages();
   }, []);
+
+  const refreshImages = () => {
+    fetchImages();
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
