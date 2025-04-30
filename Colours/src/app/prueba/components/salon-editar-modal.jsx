@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
 // Fix 1: Make sure API_URL contains complete endpoint for salons
-const API_URL = apiUrls.local;
+const API_URL = apiUrls.production;
 
 export default function SalonEditarModal({ salon, onClose }) {
   const [formData, setFormData] = useState({
