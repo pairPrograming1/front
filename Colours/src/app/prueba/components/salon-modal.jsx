@@ -6,7 +6,7 @@ import apiUrls from "@/app/components/utils/apiConfig";
 
 const API_URL = apiUrls.production;
 
-export default function SalonModal({ onClose, onAddSalon, API_URL }) {
+export default function SalonModal({ onClose, onAddSalon }) {
   const [formData, setFormData] = useState({
     salon: "",
     nombre: "",
@@ -31,19 +31,33 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/upload/images`); // Usar API_URL dinámico
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/dmjusy7sn/resources/image`, // CLOUDINARY_CLOUD_NAME
+          {
+            headers: {
+              Authorization: `Basic ${btoa(
+                "176486855763434:x_IKcLqURy1kwHKNt3g3UgSB0rg"
+              )}`, // CLOUDINARY_API_KEY:CLOUDINARY_API_SECRET
+            },
+          }
+        );
         if (!response.ok) {
-          throw new Error("Error al obtener las imágenes");
+          throw new Error("Error al obtener las imágenes de Cloudinary");
         }
         const data = await response.json();
-        setImages(data);
+        setImages(
+          data.resources.map((image) => ({
+            id: image.asset_id,
+            url: image.secure_url,
+          }))
+        );
       } catch (error) {
         console.error(error);
       }
     };
 
     fetchImages();
-  }, [API_URL]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
