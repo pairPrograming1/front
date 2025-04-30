@@ -29,8 +29,8 @@ export default function SalonModal({ onClose, onAddSalon, API_URL }) {
     const fetchImages = async () => {
       try {
         const imagesEndpoint = `${API_URL.replace(
-          "/api/salon",
-          "/api/images"
+          "/api/upload/image",
+          "/api/upload/images"
         )}`; // Ajusta el endpoint
         const response = await fetch(imagesEndpoint);
         if (!response.ok) {
