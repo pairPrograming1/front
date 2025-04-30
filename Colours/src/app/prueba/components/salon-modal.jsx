@@ -2,11 +2,8 @@
 
 import { X, Check } from "lucide-react";
 import { useState, useEffect } from "react";
-import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
-
-export default function SalonModal({ onClose, onAddSalon }) {
+export default function SalonModal({ onClose, onAddSalon, API_URL }) {
   const [formData, setFormData] = useState({
     salon: "",
     nombre: "",
@@ -32,27 +29,13 @@ export default function SalonModal({ onClose, onAddSalon }) {
     const fetchImages = async () => {
       try {
         const response = await fetch(
-          `https://api.cloudinary.com/v1_1/dmjusy7sn/resources/image`, // CLOUDINARY_CLOUD_NAME
-          {
-            mode: "no-cors", // Agregado para evitar el bloqueo por CORS
-            headers: {
-              Authorization: `Basic ${btoa(
-                "176486855763434:x_IKcLqURy1kwHKNt3g3UgSB0rg"
-              )}`, // CLOUDINARY_API_KEY:CLOUDINARY_API_SECRET
-            },
-          }
+          `https://backend-production-687d.up.railway.app/api/upload/images`
         );
-        // Nota: En modo no-cors, no puedes acceder al contenido de la respuesta.
         if (!response.ok) {
-          throw new Error("Error al obtener las imágenes de Cloudinary");
+          throw new Error("Error al obtener las imágenes");
         }
         const data = await response.json();
-        setImages(
-          data.resources.map((image) => ({
-            id: image.asset_id,
-            url: image.secure_url,
-          }))
-        );
+        setImages(data);
       } catch (error) {
         console.error(error);
       }
