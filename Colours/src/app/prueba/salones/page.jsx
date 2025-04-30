@@ -703,9 +703,7 @@ export default function Salones() {
               return (
                 <div
                   key={salonId}
-                  className={`border rounded-lg overflow-hidden ${
-                    !isActive ? "opacity-70 bg-gray-50" : ""
-                  }`}
+                  className="border border-black rounded-lg p-4"
                 >
                   <div className="p-4">
                     <div className="flex justify-between items-start">
