@@ -22,7 +22,7 @@ import UploadImageModal from "../components/upload-image-modal"; // Importa el n
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls.local;
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);

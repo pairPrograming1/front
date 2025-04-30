@@ -5,7 +5,8 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+// Fix 1: Make sure API_URL contains complete endpoint for salons
+const API_URL = apiUrls.local;
 
 export default function SalonEditarModal({ salon, onClose }) {
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ export default function SalonEditarModal({ salon, onClose }) {
     cbu: salon?.cbu || "",
     alias: salon?.alias || "",
     estatus: salon?.estatus ? true : false,
+    image: salon?.image || "", // Add image directly to formData
   });
 
   const [initialSalonName, setInitialSalonName] = useState(salon?.salon || "");
@@ -27,8 +29,8 @@ export default function SalonEditarModal({ salon, onClose }) {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [images, setImages] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(salon?.image || ""); // Nueva variable de estado para la imagen seleccionada
-  const [loading, setLoading] = useState(false); // Estado para manejar la carga de imágenes
+  const [selectedImage, setSelectedImage] = useState(salon?.image || "");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (salon) {
@@ -44,20 +46,37 @@ export default function SalonEditarModal({ salon, onClose }) {
         cbu: salon.cbu || "",
         alias: salon.alias || "",
         estatus: salon.estatus === true,
+        image: salon.image || "",
       });
       setInitialSalonName(salon.salon || "");
+      setSelectedImage(salon.image || "");
     }
   }, [salon]);
 
+  // Fix 2: Updated image fetch URL to handle possible path issues
   const fetchImages = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/upload/images`, {
+      // Fix: Use the base URL without salon-specific endpoint
+      const imageUrl = apiUrls.production + "/api/upload/images";
+      console.log("Fetching images from:", imageUrl);
+
+      const res = await fetch(imageUrl, {
         cache: "no-store",
+        method: "GET", // Explicitly define method
+        headers: {
+          Accept: "application/json",
+        },
       });
 
-      if (!res.ok) throw new Error("No se pudieron obtener las imágenes");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Error response:", errorText);
+        throw new Error(
+          `No se pudieron obtener las imágenes: ${res.status} ${res.statusText}`
+        );
+      }
 
       const data = await res.json();
       console.log("Imágenes cargadas:", data);
@@ -116,16 +135,24 @@ export default function SalonEditarModal({ salon, onClose }) {
     }));
   };
 
+  // Fix 3: Improved salon check function with better error handling
   const checkSalonExists = async (name) => {
     if (name.toLowerCase() === initialSalonName.toLowerCase()) {
       return false;
     }
 
     try {
-      const response = await fetch(`${API_URL}?search=${name}`);
+      // Fix URL construction for salon check
+      const response = await fetch(
+        `${apiUrls.production}/api/salon?search=${encodeURIComponent(name)}`
+      );
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error checking salon:", errorText);
         throw new Error("Error al verificar disponibilidad del nombre");
       }
+
       const data = await response.json();
       const salones = data.data || [];
 
@@ -196,9 +223,15 @@ export default function SalonEditarModal({ salon, onClose }) {
         capacidad: formData.capacidad
           ? Number.parseInt(formData.capacidad)
           : null,
+        image: selectedImage, // Ensure selected image is included
       };
 
-      const response = await fetch(`${API_URL}/${salon.Id}`, {
+      // Fix 4: Improved API call with proper URL and error handling
+      console.log("Sending update to:", `${API_URL}/api/salon/${salon.Id}`); // Corregido
+      console.log("Update data:", submissionData);
+
+      const response = await fetch(`${API_URL}/api/salon/${salon.Id}`, {
+        // Corregido
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -207,9 +240,11 @@ export default function SalonEditarModal({ salon, onClose }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Server error:", errorData);
         throw new Error(
-          errorData.message || "Error al actualizar la información del salón"
+          errorData.message ||
+            `Error al actualizar (${response.status}: ${response.statusText})`
         );
       }
 
@@ -220,6 +255,7 @@ export default function SalonEditarModal({ salon, onClose }) {
         onClose(true);
       }, 1500);
     } catch (error) {
+      console.error("Submit error:", error);
       setError(error.message);
     } finally {
       setIsSubmitting(false);
@@ -227,8 +263,8 @@ export default function SalonEditarModal({ salon, onClose }) {
   };
 
   const handleImageEdit = (url) => {
-    setSelectedImage(url); // Marca la imagen como seleccionada
-    setFormData((prev) => ({ ...prev, image: url })); // Actualiza la URL de la imagen en formData
+    setSelectedImage(url);
+    setFormData((prev) => ({ ...prev, image: url }));
   };
 
   return (
@@ -236,11 +272,11 @@ export default function SalonEditarModal({ salon, onClose }) {
       <div className="min-h-screen px-4 text-center flex items-center justify-center">
         {/* Overlay */}
         <div
-          className="fixed inset-0 transition-opacity"
+          className="fixed inset-0 transition-opacity "
           onClick={() => onClose(false)}
         ></div>
 
-        {/* Modal container - Increased width for larger screens */}
+        {/* Modal container */}
         <div className="inline-block align-middle bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 text-left overflow-hidden transform transition-all my-8 z-10 relative max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-white">Editar Salón</h2>
@@ -433,32 +469,53 @@ export default function SalonEditarModal({ salon, onClose }) {
             </button>
           </form>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">
-              Imágenes disponibles
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((image) => (
-                <div key={image.id} className="relative">
-                  <img
-                    src={image.url}
-                    alt="Imagen subida"
-                    className={`w-full h-auto rounded-lg border cursor-pointer ${
-                      selectedImage === image.url
-                        ? "border-green-500"
-                        : "border-yellow-600"
-                    }`} // Cambia el borde si está seleccionada
-                    onClick={() => handleImageEdit(image.url)} // Permite editar la imagen seleccionada
-                    title="Haz clic para seleccionar la imagen"
-                  />
-                  {selectedImage === image.url && (
-                    <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
-                      ✓
-                    </div>
-                  )}
-                </div>
-              ))}
+          <div className="mt-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-white">
+                Imágenes disponibles
+              </h3>
+              {loading ? (
+                <span className="text-yellow-500">Cargando imágenes...</span>
+              ) : (
+                <button
+                  onClick={refreshImages}
+                  className="text-sm text-yellow-500 hover:text-yellow-400"
+                >
+                  Refrescar imágenes
+                </button>
+              )}
             </div>
+
+            {images.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <div key={image.id || index} className="relative">
+                    <img
+                      src={image.url}
+                      alt="Imagen subida"
+                      className={`w-full h-32 object-cover rounded-lg border-2 cursor-pointer ${
+                        selectedImage === image.url
+                          ? "border-green-500"
+                          : "border-yellow-600"
+                      }`}
+                      onClick={() => handleImageEdit(image.url)}
+                      title="Haz clic para seleccionar la imagen"
+                    />
+                    {selectedImage === image.url && (
+                      <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full p-1">
+                        <Check className="h-4 w-4" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-400">
+                {loading
+                  ? "Cargando imágenes..."
+                  : "No hay imágenes disponibles"}
+              </div>
+            )}
           </div>
         </div>
       </div>
