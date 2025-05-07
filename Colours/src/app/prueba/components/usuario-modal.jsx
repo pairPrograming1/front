@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 
 export default function UsuarioModal({ onClose, onSave, userData }) {
   const [formData, setFormData] = useState({
@@ -36,6 +37,40 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     }
   }, [userData]);
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    // Validación especial para WhatsApp al perder el foco
+    if (name === "whatsapp") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El número de WhatsApp debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+
+    // Validación especial para DNI al perder el foco
+    if (name === "dni") {
+      const numericValue = value.replace(/[MFmf]/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El DNI debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -47,7 +82,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
       if (validatedValue.includes("+")) {
         const parts = validatedValue.split("+");
         if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          // Si hay más de un + o no está al inicio, no actualizamos
           return;
         }
       }
@@ -140,6 +174,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.dni}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 required
               />
 
@@ -159,6 +194,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.whatsapp}
                 onChange={handleChange}
+                onBlur={handleBlur}
               />
             </div>
 

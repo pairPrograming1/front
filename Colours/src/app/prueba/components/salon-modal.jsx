@@ -64,18 +64,34 @@ export default function SalonModal({ onClose, onAddSalon }) {
     fetchImages();
   };
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    // Validación especial para WhatsApp al perder el foco
+    if (name === "whatsapp") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El WhatsApp debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Validación especial para WhatsApp
     if (name === "whatsapp") {
-      // Permite solo números y el símbolo + al inicio
       const validatedValue = value.replace(/[^0-9+]/g, "");
-      // Si contiene +, debe estar al inicio y solo una vez
       if (validatedValue.includes("+")) {
         const parts = validatedValue.split("+");
         if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          // Si hay más de un + o no está al inicio, no actualizamos
           return;
         }
       }
@@ -230,7 +246,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Column 1 - Basic Info */}
               <div className="space-y-4">
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Nombre del Salón
+                  </label>
                   <input
                     type="text"
                     name="salon"
@@ -242,7 +261,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   />
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Nombre del Contacto
+                  </label>
                   <input
                     type="text"
                     name="nombre"
@@ -254,7 +276,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   />
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Capacidad
+                  </label>
                   <input
                     type="number"
                     name="capacidad"
@@ -266,7 +291,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   />
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    CUIT
+                  </label>
                   <input
                     type="text"
                     name="cuit"
@@ -284,7 +312,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   )}
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Email
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -299,7 +330,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
 
               {/* Column 2 - Additional Info */}
               <div className="space-y-4">
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    WhatsApp
+                  </label>
                   <input
                     type="tel"
                     name="whatsapp"
@@ -307,11 +341,15 @@ export default function SalonModal({ onClose, onAddSalon }) {
                     className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                     value={formData.whatsapp}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
                   />
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Estatus
+                  </label>
                   <select
                     name="estatus"
                     value={formData.estatus}
@@ -323,7 +361,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   </select>
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Clave Pública de MercadoPago
+                  </label>
                   <input
                     type="text"
                     name="MercadopagoKeyP"
@@ -334,7 +375,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   />
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    Token de MercadoPago
+                  </label>
                   <input
                     type="text"
                     name="Mercadopago"
@@ -345,7 +389,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   />
                 </div>
 
-                <div className="relative">
+                <div>
+                  <label className="block text-sm text-yellow-400 mb-1">
+                    CBU
+                  </label>
                   <input
                     type="text"
                     name="cbu"
@@ -358,8 +405,10 @@ export default function SalonModal({ onClose, onAddSalon }) {
               </div>
             </div>
 
-            {/* Alias field outside of grid for better layout balance */}
-            <div className="relative">
+            <div>
+              <label className="block text-sm text-yellow-400 mb-1">
+                Alias CBU
+              </label>
               <input
                 type="text"
                 name="alias"
