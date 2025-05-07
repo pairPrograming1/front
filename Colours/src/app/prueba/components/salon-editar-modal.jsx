@@ -59,7 +59,7 @@ export default function SalonEditarModal({ salon, onClose }) {
     setError(null);
     try {
       // Fix: Use the base URL without salon-specific endpoint
-      const imageUrl = apiUrls.production + "/api/upload/images";
+      const imageUrl = apiUrls + "/api/upload/images";
       console.log("Fetching images from:", imageUrl);
 
       const res = await fetch(imageUrl, {
