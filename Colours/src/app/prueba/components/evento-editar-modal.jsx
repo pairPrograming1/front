@@ -92,7 +92,7 @@ export default function EventoEditarModal({
         // Mapear los salones para normalizar la estructura
         const normalizedSalones = validSalones.map((salon) => ({
           Id: salon.Id || salon.id || salon._id,
-          nombre: salon.salon || salon.nombre || "Salón sin nombre",
+          nombre: salon.salon || salon.nombre || "Salón sin nombre", // Mostrar el campo 'salon'
           capacidad: salon.capacidad,
         }));
 
@@ -249,6 +249,11 @@ export default function EventoEditarModal({
             <label className="block text-sm font-medium mb-1 text-white">
               Salón
             </label>
+            {evento?.salon && (
+              <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500 mb-4">
+                Salón asignado: {evento.salon}
+              </div>
+            )}
             {fetchingSalones ? (
               <div className="p-3 text-center bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500">
                 Cargando salones...
