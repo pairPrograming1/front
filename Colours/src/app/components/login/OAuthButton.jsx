@@ -9,7 +9,7 @@ import { useDispatch } from "react-redux";
 import { setUserData } from "@/lib/slices/profileSlice";
 import apiUrls from "../utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 // Clave para localStorage con nombre poco obvio
 const STORAGE_KEY = "app_session_ref"; // Parece una referencia de sesión genérica
@@ -41,7 +41,7 @@ export default function OAuthButton() {
 
           const verifyData = await verifyResponse.json();
           console.log("Respuesta de verificación:", verifyData);
-          
+
           if (!verifyResponse.ok || !verifyData.registrado) {
             // Si el usuario no existe, registrarlo
             const registerUser = async () => {
@@ -97,17 +97,19 @@ export default function OAuthButton() {
           // Guardar datos del usuario
           if (verifyData.usuario) {
             const userData = verifyData.usuario;
-            
+
             // 1. Guardar solo el ID en localStorage con nombre poco obvio
             localStorage.setItem(STORAGE_KEY, userData.id);
             console.log("Reference stored in localStorage");
-            
+
             // 2. Guardar datos completos en Redux para estado global
-            dispatch(setUserData({
-              user: userData,
-              auth0User: user
-            }));
-            
+            dispatch(
+              setUserData({
+                user: userData,
+                auth0User: user,
+              })
+            );
+
             // Redireccionar según el rol
             if (userData.rol === "admin") {
               router.push("/prueba");
@@ -120,10 +122,12 @@ export default function OAuthButton() {
           } else {
             // Si no se pudo obtener el rol, redirigir a la ruta predeterminada
             localStorage.removeItem(STORAGE_KEY); // Asegurarse de que no haya ID guardado
-            dispatch(setUserData({
-              user: null,
-              auth0User: user
-            }));
+            dispatch(
+              setUserData({
+                user: null,
+                auth0User: user,
+              })
+            );
             router.push("/users");
           }
         } catch (error) {

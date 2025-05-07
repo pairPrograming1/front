@@ -24,7 +24,7 @@ import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function Eventos() {
   const [isClient, setIsClient] = useState(false);
@@ -515,7 +515,7 @@ export default function Eventos() {
       {/* Filtros y búsqueda */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="relative w-full">
+          <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4">
             <input
               type="text"
               placeholder="    Buscar eventos..."
@@ -523,7 +523,7 @@ export default function Eventos() {
               onChange={handleSearch}
               className="search-input pl-10 w-full"
             />
-            <Search className="absolute left-3 top-1/4 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
 
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
@@ -611,7 +611,7 @@ export default function Eventos() {
                   />
                 </th>
                 <th>Nombre del Evento</th>
-                <th>Descripción</th> {/* Nuevo encabezado */}
+                <th>Descripción</th>
                 <th>Salón</th>
                 <th>Fecha y Hora</th>
                 <th>Duración</th>
@@ -635,7 +635,7 @@ export default function Eventos() {
                       />
                     </td>
                     <td>{evento.nombre}</td>
-                    <td>{evento.descripcion}</td> {/* Nueva columna */}
+                    <td>{evento.descripcion}</td>
                     <td>{evento.salon}</td>
                     <td>{formatDateTime(evento.fecha)}</td>
                     <td>{evento.duracion || "N/A"} minutos</td>

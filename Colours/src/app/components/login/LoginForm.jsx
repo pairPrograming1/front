@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 import { AuthContext } from "../../context/AuthContext";
 import apiUrls from "../utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -37,8 +37,6 @@ export default function LoginForm() {
       // Primer paso: autenticación del usuario
       const respuesta = await axios.post(`${API_URL}/api/auth`, datosLogin);
 
-     
-
       // Segundo paso: verificar el usuario para obtener su información completa incluyendo el rol
       const verificarResponse = await axios.post(
         `${API_URL}/api/users/verificar`,
@@ -55,7 +53,7 @@ export default function LoginForm() {
       // Obtener el rol desde la respuesta de verificación
       const userData = verificarResponse.data.usuario;
       const userRole = userData.rol;
-     
+
       // Guardar los datos completos de sesión en el contexto
       setAuthData({
         ...respuesta.data,

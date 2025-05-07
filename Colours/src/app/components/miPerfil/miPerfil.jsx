@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -10,7 +10,7 @@ import apiUrls from "@/app/components/utils/apiConfig";
 // Clave para localStorage con nombre poco obvio
 const STORAGE_KEY = "app_session_ref";
 // URL base de la API centralizada
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -31,31 +31,34 @@ export default function ProfilePage() {
       try {
         // Obtener el ID del usuario desde localStorage
         const userId = localStorage.getItem(STORAGE_KEY);
-        
+
         if (!userId) {
           setLoading(false);
           return; // Si no hay ID, simplemente terminamos la carga
         }
-        
+
         // Hacer la petición con Axios usando la constante API_URL
-        const response = await axios.get(`${API_URL}/api/users/perfil/${userId}`);
+        const response = await axios.get(
+          `${API_URL}/api/users/perfil/${userId}`
+        );
         const userData = response.data;
         console.log("Datos del perfil:", userData);
-        
+
         // Si hay datos, actualizar el formulario
         if (userData) {
           setFormData({
-            nombre: userData.nombre || '',
-            apellido: userData.apellido || '',
-            address: userData.direccion || '',
-            email: userData.email || '',
-            whatsapp: userData.whatsapp || '',
+            nombre: userData.nombre || "",
+            apellido: userData.apellido || "",
+            address: userData.direccion || "",
+            email: userData.email || "",
+            whatsapp: userData.whatsapp || "",
           });
         }
       } catch (err) {
         console.error("Error al obtener datos del perfil:", err);
         setErrors({
-          general: "No se pudieron cargar los datos del perfil. Intenta nuevamente."
+          general:
+            "No se pudieron cargar los datos del perfil. Intenta nuevamente.",
         });
       } finally {
         setLoading(false);
@@ -68,69 +71,70 @@ export default function ProfilePage() {
   // Validar el formulario
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.nombre.trim()) {
       newErrors.nombre = "El nombre es obligatorio";
     }
-    
+
     if (!formData.apellido.trim()) {
       newErrors.apellido = "El apellido es obligatorio";
     }
-    
+
     if (!formData.email.trim()) {
       newErrors.email = "El email es obligatorio";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "El formato del email no es válido";
     }
-    
+
     // Validar que whatsapp solo contenga números
     if (formData.whatsapp && !/^[0-9+\s-]+$/.test(formData.whatsapp)) {
-      newErrors.whatsapp = "El WhatsApp debe contener solo números, +, espacios o guiones";
+      newErrors.whatsapp =
+        "El WhatsApp debe contener solo números, +, espacios o guiones";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Para whatsapp, solo permitir números, +, espacios y guiones
-    if (name === 'whatsapp' && value && !/^[0-9+\s-]+$/.test(value)) {
+    if (name === "whatsapp" && value && !/^[0-9+\s-]+$/.test(value)) {
       return;
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    
+
     // Limpiar error del campo cuando el usuario escribe
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: null
+        [name]: null,
       }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validar formulario
     if (!validateForm()) {
       return;
     }
-    
+
     setSubmitting(true);
-    
+
     try {
       const userId = localStorage.getItem(STORAGE_KEY);
       if (!userId) {
         setSubmitting(false);
         return;
       }
-      
+
       // Preparar los datos para enviar
       const dataToSend = {
         nombre: formData.nombre,
@@ -139,36 +143,40 @@ export default function ProfilePage() {
         email: formData.email,
         whatsapp: formData.whatsapp,
       };
-      
+
       // URL exacta para la solicitud PUT
       const url = `${API_URL}/api/users/perfil/${userId}`;
       console.log("URL exacta para PUT:", url);
       console.log("Datos a enviar:", dataToSend);
-      
+
       // Usar fetch en lugar de axios para la solicitud PUT
       const response = await fetch(url, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           // Si tienes algún token de autenticación, agrégalo aquí
           // 'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify(dataToSend),
       });
-      
+
       console.log("Respuesta fetch status:", response.status);
-      
+
       // Verificar si la respuesta es exitosa
       if (!response.ok) {
         // Si la respuesta no es exitosa, lanzar un error con el estado
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(`Error HTTP: ${response.status} - ${errorData.message || response.statusText}`);
+        throw new Error(
+          `Error HTTP: ${response.status} - ${
+            errorData.message || response.statusText
+          }`
+        );
       }
-      
+
       // Parsear la respuesta JSON
       const responseData = await response.json();
       console.log("Respuesta fetch exitosa:", responseData);
-      
+
       // Actualizar el estado global en Redux
       if (userFromRedux) {
         const updatedUser = {
@@ -179,13 +187,15 @@ export default function ProfilePage() {
           email: formData.email,
           whatsapp: formData.whatsapp,
         };
-        
-        dispatch(setUserData({
-          user: updatedUser,
-          auth0User: userFromRedux.auth0User
-        }));
+
+        dispatch(
+          setUserData({
+            user: updatedUser,
+            auth0User: userFromRedux.auth0User,
+          })
+        );
       }
-      
+
       // Mostrar mensaje de éxito con SweetAlert
       Swal.fire({
         title: "¡Perfil actualizado!",
@@ -196,20 +206,23 @@ export default function ProfilePage() {
       });
     } catch (err) {
       console.error("Error al actualizar el perfil:", err);
-      
+
       // Mostrar mensaje de error más específico
-      let errorMessage = "Error al actualizar el perfil. Verifica que los datos sean correctos.";
-      
+      let errorMessage =
+        "Error al actualizar el perfil. Verifica que los datos sean correctos.";
+
       // Intentar extraer información más detallada del error
       if (err.message && err.message.includes("Error HTTP:")) {
         const statusCode = err.message.match(/Error HTTP: (\d+)/)?.[1];
-        
+
         if (statusCode === "404") {
-          errorMessage = "No se encontró la ruta para actualizar el perfil. Verifica la URL de la API.";
+          errorMessage =
+            "No se encontró la ruta para actualizar el perfil. Verifica la URL de la API.";
         } else if (statusCode === "403") {
           errorMessage = "No tienes permiso para actualizar este perfil.";
         } else if (statusCode === "401") {
-          errorMessage = "Sesión expirada. Por favor, inicia sesión nuevamente.";
+          errorMessage =
+            "Sesión expirada. Por favor, inicia sesión nuevamente.";
         } else if (err.message.includes("-")) {
           // Intentar extraer el mensaje de error del backend
           const serverMessage = err.message.split("-")[1]?.trim();
@@ -218,15 +231,15 @@ export default function ProfilePage() {
           }
         }
       }
-      
+
       setErrors({
-        general: errorMessage
+        general: errorMessage,
       });
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   if (loading) {
     return (
       <div className="flex min-h-full w-full flex-col items-center p-4">
@@ -263,7 +276,9 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Campo de nombre */}
           <div>
-            <label htmlFor="nombre" className="sr-only">Nombre</label>
+            <label htmlFor="nombre" className="sr-only">
+              Nombre
+            </label>
             <input
               id="nombre"
               type="text"
@@ -284,10 +299,12 @@ export default function ProfilePage() {
               <p className="mt-1 text-red-400 text-xs">{errors.nombre}</p>
             )}
           </div>
-          
+
           {/* Campo de apellido */}
           <div>
-            <label htmlFor="apellido" className="sr-only">Apellido</label>
+            <label htmlFor="apellido" className="sr-only">
+              Apellido
+            </label>
             <input
               id="apellido"
               type="text"
@@ -308,10 +325,12 @@ export default function ProfilePage() {
               <p className="mt-1 text-red-400 text-xs">{errors.apellido}</p>
             )}
           </div>
-          
+
           {/* Campo de dirección */}
           <div>
-            <label htmlFor="address" className="sr-only">Dirección</label>
+            <label htmlFor="address" className="sr-only">
+              Dirección
+            </label>
             <input
               id="address"
               type="text"
@@ -326,10 +345,12 @@ export default function ProfilePage() {
               autoComplete="street-address"
             />
           </div>
-          
+
           {/* Campo de email */}
           <div>
-            <label htmlFor="email" className="sr-only">Email</label>
+            <label htmlFor="email" className="sr-only">
+              Email
+            </label>
             <input
               id="email"
               type="email"
@@ -350,10 +371,12 @@ export default function ProfilePage() {
               <p className="mt-1 text-red-400 text-xs">{errors.email}</p>
             )}
           </div>
-          
+
           {/* Campo de WhatsApp */}
           <div>
-            <label htmlFor="whatsapp" className="sr-only">WhatsApp</label>
+            <label htmlFor="whatsapp" className="sr-only">
+              WhatsApp
+            </label>
             <input
               id="whatsapp"
               type="tel"
@@ -387,7 +410,7 @@ export default function ProfilePage() {
         </form>
 
         <div className="mt-4 text-center">
-          <button 
+          <button
             className="text-sm text-gray-300 hover:text-white"
             type="button"
           >
