@@ -65,6 +65,40 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
   }, [punto]);
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    // Validación especial para teléfono al perder el foco
+    if (name === "telefono") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El teléfono debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+
+    // Validación especial para WhatsApp al perder el foco
+    if (name === "whatsapp") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El WhatsApp debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -259,71 +293,101 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              <input
-                type="text"
-                name="razon"
-                placeholder="Razón Social *"
-                value={data.razon}
-                onChange={handleChange}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                required
-              />
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Nombre *"
-                value={data.nombre}
-                onChange={handleChange}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                required
-              />
-              <input
-                type="text"
-                name="direccion"
-                placeholder="Dirección *"
-                value={data.direccion}
-                onChange={handleChange}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                required
-              />
-              <div className="relative">
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Razón Social
+                </label>
                 <input
                   type="text"
-                  name="cuit"
-                  placeholder="CUIT (11 dígitos) *"
-                  value={data.cuit}
+                  name="razon"
+                  placeholder="Razón Social *"
+                  value={data.razon}
                   onChange={handleChange}
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                  maxLength="11"
+                  className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
                   required
                 />
-                {data.cuit.length === 11 && (
-                  <span className="absolute right-3 top-3 text-green-400 text-sm">
-                    {formatCUIT(data.cuit)}
-                  </span>
-                )}
               </div>
-              <input
-                type="email"
-                name="email"
-                placeholder="E-mail *"
-                value={data.email}
-                onChange={handleChange}
-                className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                required
-              />
-
-              <div className="relative">
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Nombre
+                </label>
                 <input
-                  type="tel"
-                  name="telefono"
-                  placeholder="Teléfono (solo números, + opcional)"
-                  value={data.telefono}
+                  type="text"
+                  name="nombre"
+                  placeholder="Nombre *"
+                  value={data.nombre}
                   onChange={handleChange}
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Dirección
+                </label>
+                <input
+                  type="text"
+                  name="direccion"
+                  placeholder="Dirección *"
+                  value={data.direccion}
+                  onChange={handleChange}
+                  className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  CUIT
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="cuit"
+                    placeholder="CUIT (11 dígitos) *"
+                    value={data.cuit}
+                    onChange={handleChange}
+                    className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                    maxLength="11"
+                    required
+                  />
+                  {data.cuit.length === 11 && (
+                    <span className="absolute right-3 top-3 text-green-400 text-sm">
+                      {formatCUIT(data.cuit)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="E-mail *"
+                  value={data.email}
+                  onChange={handleChange}
+                  className="bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  required
                 />
               </div>
 
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  WhatsApp
+                </label>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    name="whatsapp"
+                    placeholder="WhatsApp (solo números, + opcional)"
+                    value={data.whatsapp}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    className="w-full bg-gray-700 border border-yellow-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
+                  />
+                </div>
+              </div>
               <div className="flex items-center">
                 <label className="flex items-center space-x-2 text-white">
                   <input

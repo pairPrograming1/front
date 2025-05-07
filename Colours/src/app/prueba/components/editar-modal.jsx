@@ -34,18 +34,34 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
     }
   }, [punto]);
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    // Validación especial para teléfono al perder el foco
+    if (name === "telefono") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El teléfono debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     // Validación especial para teléfono
     if (name === "telefono") {
-      // Permite solo números y el símbolo + al inicio
       const validatedValue = value.replace(/[^0-9+]/g, "");
-      // Si contiene +, debe estar al inicio y solo una vez
       if (validatedValue.includes("+")) {
         const parts = validatedValue.split("+");
         if (parts.length > 2 || (parts.length === 2 && parts[0] !== "")) {
-          // Si hay más de un + o no está al inicio, no actualizamos
           return;
         }
       }
@@ -165,52 +181,74 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Column 1 */}
             <div className="space-y-4">
-              <input
-                type="text"
-                name="razon"
-                value={formData.razon}
-                onChange={handleChange}
-                placeholder="Razón Social *"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                required
-              />
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Razón Social
+                </label>
+                <input
+                  type="text"
+                  name="razon"
+                  value={formData.razon}
+                  onChange={handleChange}
+                  placeholder="Razón Social *"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  required
+                />
+              </div>
 
-              <input
-                type="text"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                placeholder="Nombre *"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                required
-              />
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  placeholder="Nombre *"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  required
+                />
+              </div>
 
-              <input
-                type="text"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                placeholder="Dirección *"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                required
-              />
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Dirección
+                </label>
+                <input
+                  type="text"
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                  placeholder="Dirección *"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  required
+                />
+              </div>
             </div>
 
             {/* Column 2 */}
             <div className="space-y-4">
-              <div className="relative">
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  Teléfono
+                </label>
                 <input
                   type="tel"
                   name="telefono"
                   value={formData.telefono}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="Teléfono (solo números, + opcional) *"
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   required
                 />
               </div>
 
-              <div className="relative">
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  CUIT
+                </label>
                 <input
                   type="text"
                   name="cuit"
@@ -228,15 +266,20 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                 )}
               </div>
 
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="E-mail *"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                required
-              />
+              <div>
+                <label className="block text-sm text-yellow-400 mb-1">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="E-mail *"
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  required
+                />
+              </div>
             </div>
           </div>
 
