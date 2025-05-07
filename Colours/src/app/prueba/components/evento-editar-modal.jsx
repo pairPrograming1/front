@@ -5,7 +5,7 @@ import { X, Calendar, Clock, Users, Home, Check } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function EventoEditarModal({
   evento,
@@ -19,7 +19,6 @@ export default function EventoEditarModal({
     capacidad: 1,
     activo: true,
     salonId: "",
-    image: "", // Nuevo campo
     descripcion: "", // Nuevo campo
   });
 
@@ -40,7 +39,6 @@ export default function EventoEditarModal({
         capacidad: evento.capacidad || 1,
         activo: evento.activo !== undefined ? evento.activo : true,
         salonId: evento.salonId || "",
-        image: evento.image || "", // Nuevo campo
         descripcion: evento.descripcion || "", // Nuevo campo
       });
     }
@@ -94,7 +92,7 @@ export default function EventoEditarModal({
         // Mapear los salones para normalizar la estructura
         const normalizedSalones = validSalones.map((salon) => ({
           Id: salon.Id || salon.id || salon._id,
-          nombre: salon.salon || salon.nombre || "Salón sin nombre",
+          nombre: salon.salon || salon.nombre || "Salón sin nombre", // Mostrar el campo 'salon'
           capacidad: salon.capacidad,
         }));
 
@@ -251,6 +249,11 @@ export default function EventoEditarModal({
             <label className="block text-sm font-medium mb-1 text-white">
               Salón
             </label>
+            {evento?.salon && (
+              <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500 mb-4">
+                Salón asignado: {evento.salon}
+              </div>
+            )}
             {fetchingSalones ? (
               <div className="p-3 text-center bg-gray-700 rounded-lg border border-yellow-600 text-yellow-500">
                 Cargando salones...
@@ -379,23 +382,6 @@ export default function EventoEditarModal({
                   {formData.activo ? "Evento Activo" : "Evento Inactivo"}
                 </div>
               </label>
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1 text-white">
-              URL de la Imagen (opcional)
-            </label>
-            <div className="relative">
-              <input
-                type="url"
-                name="image"
-                placeholder="https://example.com/imagen.jpg"
-                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                value={formData.image}
-                onChange={handleChange}
-              />
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
             </div>
           </div>
 

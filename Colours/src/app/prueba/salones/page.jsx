@@ -22,7 +22,7 @@ import UploadImageModal from "../components/upload-image-modal"; // Importa el n
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function Salones() {
   const [showModal, setShowModal] = useState(false);
@@ -476,8 +476,8 @@ export default function Salones() {
 
       {/* Filtros y búsqueda */}
       <div className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="relative w-full">
+        <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
+          <div className="relative w-full md:w-1/1">
             <input
               type="text"
               placeholder="    Buscar salones..."
@@ -485,14 +485,14 @@ export default function Salones() {
               onChange={handleSearch}
               className="search-input pl-10 w-full"
             />
-            <Search className="absolute left-3 top-1/5 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
 
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <div className="flex gap-2 w-full md:w-auto">
             <button
               className={`btn ${
                 filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
+              } flex items-center gap-2`}
               onClick={() => handleFilterChange("active")}
             >
               <Eye className="h-4 w-4" />
@@ -501,7 +501,7 @@ export default function Salones() {
             <button
               className={`btn ${
                 filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
+              } flex items-center gap-2`}
               onClick={() => handleFilterChange("inactive")}
             >
               <EyeOff className="h-4 w-4" />
@@ -510,7 +510,7 @@ export default function Salones() {
             <button
               className={`btn ${
                 filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
+              } flex items-center gap-2`}
               onClick={() => handleFilterChange("all")}
             >
               <ListFilter className="h-4 w-4" />

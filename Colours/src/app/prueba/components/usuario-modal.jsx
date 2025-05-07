@@ -195,15 +195,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
                   required={!userData}
                 />
               )}
-
-              <input
-                type="text"
-                name="roleId"
-                placeholder="Rol ID (opcional)"
-                className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                value={formData.roleId}
-                onChange={handleChange}
-              />
             </div>
           </div>
 

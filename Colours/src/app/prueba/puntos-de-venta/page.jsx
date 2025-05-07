@@ -22,7 +22,7 @@ import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function PuntosDeVenta() {
   const [showModal, setShowModal] = useState(false);
@@ -452,7 +452,7 @@ export default function PuntosDeVenta() {
       {/* Filtros y búsqueda */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="relative w-full">
+          <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4">
             <input
               type="text"
               placeholder="    Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
@@ -460,7 +460,7 @@ export default function PuntosDeVenta() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input pl-10 w-full"
             />
-            <Search className="absolute left-3 top-1/4 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
 
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
