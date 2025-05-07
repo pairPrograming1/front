@@ -189,7 +189,7 @@ export default function Usuarios() {
     }
 
     Swal.fire({
-      title: "¿Asignar rol de vendor?",
+      title: "¿Asignar rol de vendedor?",
       text: "Esto cambiará el rol de los usuarios seleccionados a 'vendor'",
       icon: "question",
       showCancelButton: true,
@@ -658,7 +658,7 @@ export default function Usuarios() {
                           : "badge-secondary"
                       }`}
                     >
-                      {usuario.rol || "vendor"}
+                      {usuario.rol === "admin" ? "Administrador" : "Vendedor"}
                     </span>
                   </td>
                   <td>
@@ -772,7 +772,7 @@ export default function Usuarios() {
                             : "badge-secondary"
                         } inline-block w-fit mt-1`}
                       >
-                        {usuario.rol || "vendor"}
+                        {usuario.rol === "admin" ? "Administrador" : "Vendedor"}
                       </span>
                     </div>
                     <div className="flex flex-col">
