@@ -611,7 +611,7 @@ export default function Eventos() {
                   />
                 </th>
                 <th>Nombre del Evento</th>
-                <th>Descripción</th> {/* Nuevo encabezado */}
+                <th>Descripción</th>
                 <th>Salón</th>
                 <th>Fecha y Hora</th>
                 <th>Duración</th>
@@ -635,7 +635,7 @@ export default function Eventos() {
                       />
                     </td>
                     <td>{evento.nombre}</td>
-                    <td>{evento.descripcion}</td> {/* Nueva columna */}
+                    <td>{evento.descripcion}</td>
                     <td>{evento.salon}</td>
                     <td>{formatDateTime(evento.fecha)}</td>
                     <td>{evento.duracion || "N/A"} minutos</td>
