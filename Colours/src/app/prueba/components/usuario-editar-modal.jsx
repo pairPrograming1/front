@@ -40,6 +40,40 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
     }
   }, [usuario]);
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    // Validación especial para WhatsApp al perder el foco
+    if (name === "whatsapp") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El número de WhatsApp debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+
+    // Validación especial para DNI al perder el foco
+    if (name === "dni") {
+      const numericValue = value.replace(/[MFmf]/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El DNI debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -230,6 +264,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   value={formData.whatsapp}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <p className="text-xs text-gray-400 mt-1">
                   Solo números, el + debe ir al inicio
@@ -280,6 +315,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   value={formData.dni}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <p className="text-xs text-gray-400 mt-1">
                   Números y letra M o F al final

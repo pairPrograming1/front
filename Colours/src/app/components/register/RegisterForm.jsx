@@ -7,7 +7,7 @@ import InputField from "./InputField";
 import Swal from "sweetalert2";
 import apiUrls from "../utils/apiConfig";
 
-const API_URL = apiUrls.production;
+const API_URL = apiUrls;
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -26,18 +26,50 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const handleBlur = (e) => {
+    const { id, value } = e.target;
+
+    // Validación especial para WhatsApp al perder el foco
+    if (id === "whatsapp") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El WhatsApp debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+
+    // Validación especial para DNI al perder el foco
+    if (id === "dni") {
+      const numericValue = value.replace(/[MF]/gi, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El DNI debe tener entre 9 y 14 caracteres.",
+        });
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { id, value } = e.target;
 
-    // Special validation for DNI field
+    // Validación especial para DNI
     if (id === "dni") {
-      // Only allow numbers and the letters M and F
       const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
       setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
     }
-    // Special validation for whatsapp field
+    // Validación especial para WhatsApp
     else if (id === "whatsapp") {
-      // Only allow numbers and + character
       const sanitizedValue = value.replace(/[^0-9+]/g, "");
       setFormData((prevData) => ({ ...prevData, [id]: sanitizedValue }));
     } else {
@@ -229,6 +261,7 @@ export default function RegisterForm() {
           id="dni"
           value={formData.dni}
           onChange={handleChange}
+          onBlur={handleBlur}
           placeholder="Solo números y opcionalmente M o F"
         />
         <InputField
@@ -258,6 +291,7 @@ export default function RegisterForm() {
           id="whatsapp"
           value={formData.whatsapp}
           onChange={handleChange}
+          onBlur={handleBlur}
           placeholder="Formato: +549XXXXXXXXXX"
         />
         <InputField
