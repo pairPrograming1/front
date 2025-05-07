@@ -5,7 +5,6 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [authData, setAuthData] = useState(() => {
-    // Verificar si estamos en el cliente antes de acceder a localStorage
     if (typeof window !== "undefined") {
       const storedAuthData = localStorage.getItem("authData");
       return storedAuthData ? JSON.parse(storedAuthData) : null;
@@ -13,14 +12,37 @@ export function AuthProvider({ children }) {
     return null;
   });
 
+  // Efecto para persistir en localStorage
   useEffect(() => {
-    // Guardar authData en localStorage cuando cambie, solo en el cliente
     if (typeof window !== "undefined") {
       if (authData) {
         localStorage.setItem("authData", JSON.stringify(authData));
       } else {
         localStorage.removeItem("authData");
       }
+    }
+  }, [authData]);
+
+  // Efecto para verificar cambios en el rol y cerrar sesión si es necesario
+  useEffect(() => {
+    if (authData?.roleChanged) {
+      // Si el rol ha cambiado, cerrar sesión
+      setAuthData(null);
+      console.log("Sesión cerrada debido a cambio de rol");
+
+      // Opcional: redirigir al usuario a la página de login
+      // window.location.href = '/login';
+    }
+  }, [authData?.role]);
+
+  // Nuevo efecto para loguear los datos cuando cambian
+  useEffect(() => {
+    console.log("Datos actualizados del usuario:", authData);
+
+    if (authData?.token) {
+      console.log("Usuario autenticado con token");
+    } else if (authData === null) {
+      console.log("No hay usuario logueado");
     }
   }, [authData]);
 

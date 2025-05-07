@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Plus,
@@ -23,10 +24,15 @@ import UsuarioEditarModal from "../components/usuario-editar-modal";
 import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
+import { AuthContext } from "../../context/AuthContext";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const API_URL = apiUrls;
 
 export default function Usuarios() {
+  const { authData, setAuthData } = useContext(AuthContext);
+  const { logout } = useAuth0();
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
@@ -45,6 +51,22 @@ export default function Usuarios() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const isCurrentUser = (userId) => {
+    return authData?.user?.id === userId;
+  };
+
+  const handleLogout = async () => {
+    try {
+      setAuthData(null);
+      localStorage.removeItem("authData");
+      await logout({ returnTo: window.location.origin });
+      router.push("/login");
+    } catch (error) {
+      console.error("Error durante el logout:", error);
+      window.location.href = "/login";
+    }
+  };
 
   const fetchUsuarios = async () => {
     setLoading(true);
@@ -143,25 +165,20 @@ export default function Usuarios() {
       return;
     }
 
+    const currentUserInSelection = selectedUsers.some(isCurrentUser);
+
     Swal.fire({
       title: `Asignar rol de administrador`,
       html: `
         <div class="text-left">
-          <p>¿Estás seguro de asignar el rol de <strong>administrador</strong> a <strong>${selectedUsers.length}</strong> usuario(s) seleccionado(s)?</p>
-          <div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm text-yellow-700">
-                  Los administradores tendrán acceso completo al sistema.
-                </p>
-              </div>
-            </div>
-          </div>
+          <p>¿Estás seguro de asignar el rol de <strong>administrador</strong> a <strong>${
+            selectedUsers.length
+          }</strong> usuario(s) seleccionado(s)?</p>
+          ${
+            currentUserInSelection
+              ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
+              : ""
+          }
         </div>
       `,
       icon: "question",
@@ -188,9 +205,20 @@ export default function Usuarios() {
       return;
     }
 
+    const currentUserInSelection = selectedUsers.some(isCurrentUser);
+
     Swal.fire({
       title: "¿Asignar rol de vendedor?",
-      text: "Esto cambiará el rol de los usuarios seleccionados a 'vendor'",
+      html: `
+        <div class="text-left">
+          <p>Esto cambiará el rol de los usuarios seleccionados a 'vendor'</p>
+          ${
+            currentUserInSelection
+              ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
+              : ""
+          }
+        </div>
+      `,
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -257,6 +285,18 @@ export default function Usuarios() {
           }</ul>`,
         }),
       });
+
+      if (selectedUsers.some(isCurrentUser)) {
+        Swal.fire({
+          title: "Tu rol ha cambiado",
+          text: "Serás redirigido al login para aplicar los cambios",
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+        }).then(() => {
+          handleLogout();
+        });
+      }
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -390,6 +430,18 @@ export default function Usuarios() {
         timer: 2000,
         showConfirmButton: false,
       });
+
+      if (isCurrentUser(id)) {
+        Swal.fire({
+          title: "Tus datos han cambiado",
+          text: "Serás redirigido al login para aplicar los cambios",
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+        }).then(() => {
+          handleLogout();
+        });
+      }
     } catch (error) {
       console.error("Error al modificar usuario:", error);
 
@@ -465,11 +517,24 @@ export default function Usuarios() {
       }
 
       await fetchUsuarios();
-      Swal.fire({
-        icon: "success",
-        title: "Rol actualizado",
-        text: `El rol ha sido actualizado a ${rol}`,
-      });
+
+      if (isCurrentUser(id)) {
+        Swal.fire({
+          title: "Tu rol ha cambiado",
+          text: "Serás redirigido al login para aplicar los cambios",
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+        }).then(() => {
+          handleLogout();
+        });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Rol actualizado",
+          text: `El rol ha sido actualizado a ${rol}`,
+        });
+      }
     } catch (error) {
       Swal.fire({
         icon: "error",
