@@ -522,24 +522,24 @@ export default function Usuarios() {
       <Header title="Usuarios" />
 
       <div className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="   Buscar por nombre, usuario o email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input pl-10 w-full py-2"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <Search className="text-gray-400 h-4 w-4" />
-              </div>
+        <div className="flex flex-wrap gap-2 w-full">
+          <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4 ">
+            <input
+              type="text"
+              placeholder="    Buscar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input pl-10 w-full py-1"
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <Search className="text-gray-400 h-4 w-4" />
             </div>
+          </div>
+          <div className="flex gap-2 w-full md:w-auto">
             <button
               className={`btn ${
                 filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
+              } flex items-center gap-2`}
               onClick={() => setFilterMode("active")}
             >
               <Eye className="h-4 w-4" />
@@ -548,7 +548,7 @@ export default function Usuarios() {
             <button
               className={`btn ${
                 filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
+              } flex items-center gap-2`}
               onClick={() => setFilterMode("inactive")}
             >
               <EyeOff className="h-4 w-4" />
@@ -557,7 +557,7 @@ export default function Usuarios() {
             <button
               className={`btn ${
                 filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2 flex-1 md:flex-none`}
+              } flex items-center gap-2`}
               onClick={() => setFilterMode("all")}
             >
               <ListFilter className="h-4 w-4" />
