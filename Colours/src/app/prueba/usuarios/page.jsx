@@ -602,7 +602,7 @@ export default function Usuarios() {
                 disabled={selectedUsers.length === 0}
               >
                 <UserPlus className="h-4 w-4" />
-                Asignar rol Admin
+                Asignar rol Administrador
               </button>
             </div>
           </div>
