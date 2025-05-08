@@ -431,9 +431,10 @@ export default function Usuarios() {
         showConfirmButton: false,
       });
 
-      if (isCurrentUser(id)) {
+      // Solo cerrar sesión si es el usuario actual Y se modificó el rol
+      if (isCurrentUser(id) && datosActualizados.rol) {
         Swal.fire({
-          title: "Tus datos han cambiado",
+          title: "Tu rol ha cambiado",
           text: "Serás redirigido al login para aplicar los cambios",
           icon: "info",
           timer: 3000,
