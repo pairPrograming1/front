@@ -720,10 +720,16 @@ export default function Usuarios() {
                       className={`badge ${
                         usuario.rol === "admin"
                           ? "badge-primary"
-                          : "badge-secondary"
+                          : usuario.rol === "vendor"
+                          ? "badge-secondary"
+                          : "badge-neutral"
                       }`}
                     >
-                      {usuario.rol === "admin" ? "Administrador" : "Vendedor"}
+                      {usuario.rol === "admin"
+                        ? "Administrador"
+                        : usuario.rol === "vendor"
+                        ? "Vendedor"
+                        : "Común"}
                     </span>
                   </td>
                   <td>
@@ -834,10 +840,16 @@ export default function Usuarios() {
                         className={`badge ${
                           usuario.rol === "admin"
                             ? "badge-primary"
-                            : "badge-secondary"
+                            : usuario.rol === "vendor"
+                            ? "badge-secondary"
+                            : "badge-neutral"
                         } inline-block w-fit mt-1`}
                       >
-                        {usuario.rol === "admin" ? "Administrador" : "Vendedor"}
+                        {usuario.rol === "admin"
+                          ? "Administrador"
+                          : usuario.rol === "vendor"
+                          ? "Vendedor"
+                          : "Común"}
                       </span>
                     </div>
                     <div className="flex flex-col">
