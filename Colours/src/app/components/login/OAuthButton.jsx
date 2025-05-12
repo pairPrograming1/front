@@ -2,22 +2,18 @@
 
 import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import { useDispatch } from "react-redux";
-import { setUserData } from "@/lib/slices/profileSlice";
 import apiUrls from "../utils/apiConfig";
+import { AuthContext } from "../../context/AuthContext";
 
 const API_URL = apiUrls;
-
-// Clave para localStorage con nombre poco obvio
-const STORAGE_KEY = "app_session_ref"; // Parece una referencia de sesión genérica
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const router = useRouter();
-  const dispatch = useDispatch();
+  const { setAuthData } = useContext(AuthContext);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -28,7 +24,6 @@ export default function OAuthButton() {
         confirmButtonText: "Continuar",
       }).then(async () => {
         try {
-          // Verificar si el usuario existe en la base de datos
           const verifyResponse = await fetch(`${API_URL}/api/users/verificar`, {
             method: "POST",
             headers: {
@@ -40,10 +35,8 @@ export default function OAuthButton() {
           });
 
           const verifyData = await verifyResponse.json();
-          console.log("Respuesta de verificación:", verifyData);
 
           if (!verifyResponse.ok || !verifyData.registrado) {
-            // Si el usuario no existe, registrarlo
             const registerUser = async () => {
               try {
                 const response = await fetch(`${API_URL}/api/users/register`, {
@@ -65,8 +58,6 @@ export default function OAuthButton() {
                     response.statusText
                   );
                 } else {
-                  console.log("Usuario registrado exitosamente");
-                  // Verificar de nuevo para obtener el usuario recién creado
                   const newVerifyResponse = await fetch(
                     `${API_URL}/api/users/verificar`,
                     {
@@ -79,7 +70,6 @@ export default function OAuthButton() {
                       }),
                     }
                   );
-
                   const newVerifyData = await newVerifyResponse.json();
 
                   if (newVerifyResponse.ok && newVerifyData.registrado) {
@@ -90,54 +80,48 @@ export default function OAuthButton() {
                 console.error("Error en la solicitud:", error);
               }
             };
-
             await registerUser();
           }
 
-          // Guardar datos del usuario
+          // ESTRUCTURA ESTANDARIZADA PARA EL CONTEXTO
           if (verifyData.usuario) {
             const userData = verifyData.usuario;
 
-            // 1. Guardar solo el ID en localStorage con nombre poco obvio
-            localStorage.setItem(STORAGE_KEY, userData.id);
-            console.log("Reference stored in localStorage");
-
-            // 2. Guardar datos completos en Redux para estado global
-            dispatch(
-              setUserData({
-                user: userData,
+            // Formato estandarizado para el contexto
+            const standardAuthData = {
+              user: userData,
+              token: null, // No tenemos token en Auth0 (gestionado por Auth0)
+              auth: {
+                provider: "auth0",
                 auth0User: user,
-              })
-            );
+              },
+              timestamp: new Date().toISOString(),
+            };
 
-            // Redireccionar según el rol
-            if (userData.rol === "admin") {
-              router.push("/prueba");
-            } else if (userData.rol === "vendor") {
-              router.push("/vendor");
-            } else {
-              // Usuario común u otro rol
-              router.push("/wellcome");
-            }
+            // Guardar en contexto
+            setAuthData(standardAuthData);
+
+            // Redirección según rol
+            const redirectPath =
+              userData.rol === "admin"
+                ? "/prueba"
+                : userData.rol === "vendor"
+                ? "/vendor"
+                : "/wellcome";
+
+            router.push(redirectPath);
           } else {
-            // Si no se pudo obtener el rol, redirigir a la ruta predeterminada
-            localStorage.removeItem(STORAGE_KEY); // Asegurarse de que no haya ID guardado
-            dispatch(
-              setUserData({
-                user: null,
-                auth0User: user,
-              })
-            );
+            setAuthData(null); // Limpiar contexto si falla
             router.push("/users");
           }
         } catch (error) {
           console.error("Error en la solicitud de verificación:", error);
-          // En caso de error, redirigir a la ruta predeterminada
+          setAuthData(null); // Limpiar contexto en errores
           router.push("/users");
         }
       });
     }
-  }, [isAuthenticated, user, router, dispatch]);
+  }, [isAuthenticated, user, router, setAuthData]);
 
   return (
     <div className="text-center mt-4">
@@ -145,9 +129,7 @@ export default function OAuthButton() {
       <button
         className="transparent flex items-center justify-center mx-auto border-0 hover:opacity-80 transition-opacity cursor-pointer"
         type="button"
-        onClick={() => {
-          loginWithRedirect({ connection: "google-oauth2" });
-        }}
+        onClick={() => loginWithRedirect({ connection: "google-oauth2" })}
       >
         <Image
           src="/google-icon.svg"
