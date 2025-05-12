@@ -211,7 +211,7 @@ export default function Usuarios() {
       title: "¿Asignar rol de vendedor?",
       html: `
         <div class="text-left">
-          <p>Esto cambiará el rol de los usuarios seleccionados a 'vendor'</p>
+          <p>Esto cambiará el rol de los usuarios seleccionados a 'Vendedor'</p>
           ${
             currentUserInSelection
               ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
