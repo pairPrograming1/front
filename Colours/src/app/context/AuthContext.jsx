@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
 
   // Efecto para verificar cambios en el rol y cerrar sesión si es necesario
   useEffect(() => {
-    if (authData?.roleChanged) {
+    if (authData?.user?.rol !== undefined && authData?.roleChanged) {
       // Si el rol ha cambiado, cerrar sesión
       setAuthData(null);
       console.log("Sesión cerrada debido a cambio de rol");
@@ -33,14 +33,16 @@ export function AuthProvider({ children }) {
       // Opcional: redirigir al usuario a la página de login
       // window.location.href = '/login';
     }
-  }, [authData?.role]);
+  }, [authData?.user?.rol, authData?.roleChanged]);
 
-  // Nuevo efecto para loguear los datos cuando cambian
+  // Efecto para loguear los datos cuando cambian
   useEffect(() => {
     console.log("Datos actualizados del usuario:", authData);
 
     if (authData?.token) {
       console.log("Usuario autenticado con token");
+    } else if (authData?.auth?.provider === "auth0") {
+      console.log("Usuario autenticado con Auth0");
     } else if (authData === null) {
       console.log("No hay usuario logueado");
     }

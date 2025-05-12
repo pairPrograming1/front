@@ -52,14 +52,21 @@ export default function LoginForm() {
 
       // Obtener el rol desde la respuesta de verificación
       const userData = verificarResponse.data.usuario;
-      const userRole = userData.rol;
 
-      // Guardar los datos completos de sesión en el contexto
-      setAuthData({
-        ...respuesta.data,
-        userInfo: userData,
-        rol: userRole,
-      });
+      // ESTRUCTURA ESTANDARIZADA PARA EL CONTEXTO
+      const standardAuthData = {
+        user: userData,
+        token: respuesta.data.token || null,
+        auth: {
+          provider: "credentials",
+          // Cualquier información específica adicional del inicio de sesión
+          loginTime: new Date().toISOString(),
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      // Guardar datos en el contexto con formato estandarizado
+      setAuthData(standardAuthData);
 
       Swal.fire({
         icon: "success",
@@ -70,9 +77,9 @@ export default function LoginForm() {
       });
 
       // Redireccionar según el rol
-      if (userRole === "admin") {
+      if (userData.rol === "admin") {
         router.push("/prueba");
-      } else if (userRole === "vendor") {
+      } else if (userData.rol === "vendor") {
         router.push("/vendor");
       } else {
         // Si es un usuario común u otro rol
@@ -98,6 +105,7 @@ export default function LoginForm() {
         text: errorMessage,
       });
       setError(errorMessage);
+      setAuthData(null); // Limpiamos el contexto en caso de error
     } finally {
       setLoading(false);
     }

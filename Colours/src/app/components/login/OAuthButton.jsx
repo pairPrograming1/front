@@ -2,22 +2,18 @@
 
 import Image from "next/image";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useContext } from "react"; // Añade useContext
+import { useEffect, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import { useDispatch } from "react-redux";
-import { setUserData } from "@/lib/slices/profileSlice";
 import apiUrls from "../utils/apiConfig";
-import { AuthContext } from "../../context/AuthContext"; // Importa el contexto
+import { AuthContext } from "../../context/AuthContext";
 
 const API_URL = apiUrls;
-const STORAGE_KEY = "app_session_ref";
 
 export default function OAuthButton() {
   const { loginWithRedirect, isAuthenticated, user } = useAuth0();
   const router = useRouter();
-  const dispatch = useDispatch();
-  const { setAuthData } = useContext(AuthContext); // Accede al contexto
+  const { setAuthData } = useContext(AuthContext);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -87,20 +83,23 @@ export default function OAuthButton() {
             await registerUser();
           }
 
-          // GUARDADO EN CONTEXTO (Aquí la modificación clave)
+          // ESTRUCTURA ESTANDARIZADA PARA EL CONTEXTO
           if (verifyData.usuario) {
             const userData = verifyData.usuario;
-            const combinedAuthData = {
+
+            // Formato estandarizado para el contexto
+            const standardAuthData = {
               user: userData,
-              auth0User: user,
-              timestamp: new Date().toISOString(), // Opcional: marca temporal
+              token: null, // No tenemos token en Auth0 (gestionado por Auth0)
+              auth: {
+                provider: "auth0",
+                auth0User: user,
+              },
+              timestamp: new Date().toISOString(),
             };
 
-            // 1. Guardar en contexto (que automáticamente persiste en localStorage)
-            setAuthData(combinedAuthData);
-
-            // 2. Guardar en Redux (mantén esto si lo necesitas para otras partes)
-            dispatch(setUserData(combinedAuthData));
+            // Guardar en contexto
+            setAuthData(standardAuthData);
 
             // Redirección según rol
             const redirectPath =
@@ -113,7 +112,6 @@ export default function OAuthButton() {
             router.push(redirectPath);
           } else {
             setAuthData(null); // Limpiar contexto si falla
-            dispatch(setUserData({ user: null, auth0User: user }));
             router.push("/users");
           }
         } catch (error) {
@@ -123,7 +121,7 @@ export default function OAuthButton() {
         }
       });
     }
-  }, [isAuthenticated, user, router, dispatch, setAuthData]);
+  }, [isAuthenticated, user, router, setAuthData]);
 
   return (
     <div className="text-center mt-4">
