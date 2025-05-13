@@ -173,14 +173,14 @@ export default function LoginForm() {
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <div className="text-right">
+      {/* <div className="text-right">
         <Link
           href="/forgot-password"
           className="text-[#EDEEF0] hover:text-[#BF8D6B] text-xs transition-colors"
         >
           ¿Olvidaste tu contraseña?
         </Link>
-      </div>
+      </div> */}
 
       <button
         type="submit"
