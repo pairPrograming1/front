@@ -50,8 +50,21 @@ export default function LoginForm() {
         throw new Error("No se pudo verificar la información del usuario");
       }
 
-      // Obtener el rol desde la respuesta de verificación
+      // Obtener el usuario desde la respuesta de verificación
       const userData = verificarResponse.data.usuario;
+
+      // Validar si la cuenta está activa
+      if (userData.isActive === false) {
+        Swal.fire({
+          icon: "error",
+          title: "Cuenta inactiva",
+          text: "Tu cuenta ha sido desactivada. Por favor contacta con soporte para más información.",
+          confirmButtonColor: "#BF8D6B",
+        });
+        setLoading(false);
+        setAuthData(null); // Limpiar contexto en caso de cuenta inactiva
+        return;
+      }
 
       // ESTRUCTURA ESTANDARIZADA PARA EL CONTEXTO
       const standardAuthData = {
@@ -68,6 +81,7 @@ export default function LoginForm() {
       // Guardar datos en el contexto con formato estandarizado
       setAuthData(standardAuthData);
 
+      // Mostrar mensaje de éxito solo si la cuenta está activa
       Swal.fire({
         icon: "success",
         title: "Inicio de sesión exitoso",

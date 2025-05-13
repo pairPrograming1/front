@@ -17,12 +17,8 @@ export default function OAuthButton() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      Swal.fire({
-        title: "¡Inicio de sesión exitoso!",
-        text: `Bienvenido, ${user.name}`,
-        icon: "success",
-        confirmButtonText: "Continuar",
-      }).then(async () => {
+      // Primero verificamos la cuenta antes de mostrar cualquier mensaje de éxito
+      const processAuth = async () => {
         try {
           const verifyResponse = await fetch(`${API_URL}/api/users/verificar`, {
             method: "POST",
@@ -87,6 +83,18 @@ export default function OAuthButton() {
           if (verifyData.usuario) {
             const userData = verifyData.usuario;
 
+            // Validar si la cuenta está activa
+            if (userData.isActive === false) {
+              Swal.fire({
+                icon: "error",
+                title: "Cuenta inactiva",
+                text: "Tu cuenta ha sido desactivada. Por favor contacta con soporte para más información.",
+                confirmButtonColor: "#BF8D6B",
+              });
+              setAuthData(null); // Limpiar contexto en caso de cuenta inactiva
+              return;
+            }
+
             // Formato estandarizado para el contexto
             const standardAuthData = {
               user: userData,
@@ -101,15 +109,23 @@ export default function OAuthButton() {
             // Guardar en contexto
             setAuthData(standardAuthData);
 
-            // Redirección según rol
-            const redirectPath =
-              userData.rol === "admin"
-                ? "/prueba"
-                : userData.rol === "vendor"
-                ? "/vendor"
-                : "/wellcome";
+            // Mostrar mensaje de éxito SOLO si la cuenta está activa
+            Swal.fire({
+              title: "¡Inicio de sesión exitoso!",
+              text: `Bienvenido, ${user.name}`,
+              icon: "success",
+              confirmButtonText: "Continuar",
+            }).then(() => {
+              // Redirección según rol
+              const redirectPath =
+                userData.rol === "admin"
+                  ? "/prueba"
+                  : userData.rol === "vendor"
+                  ? "/vendor"
+                  : "/wellcome";
 
-            router.push(redirectPath);
+              router.push(redirectPath);
+            });
           } else {
             setAuthData(null); // Limpiar contexto si falla
             router.push("/users");
@@ -119,7 +135,9 @@ export default function OAuthButton() {
           setAuthData(null); // Limpiar contexto en errores
           router.push("/users");
         }
-      });
+      };
+
+      processAuth();
     }
   }, [isAuthenticated, user, router, setAuthData]);
 
