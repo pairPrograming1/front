@@ -1,20 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { useDispatch, useSelector } from "react-redux";
-import { setUserData, selectUser } from "@/lib/slices/profileSlice";
+import { AuthContext } from "../../context/AuthContext"; // Update this path as needed
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
-// Clave para localStorage con nombre poco obvio
-const STORAGE_KEY = "app_session_ref";
 // URL base de la API centralizada
 const API_URL = apiUrls;
 
 export default function ProfilePage() {
-  const dispatch = useDispatch();
-  const userFromRedux = useSelector(selectUser);
+  const { authData, setAuthData } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,25 +19,39 @@ export default function ProfilePage() {
     address: "",
     email: "",
     whatsapp: "",
-    dni: "", // Añadido campo DNI
-    usuario: "", // Añadido campo usuario
+    dni: "",
+    usuario: "",
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        // Obtener el ID del usuario desde localStorage
-        const userId = localStorage.getItem(STORAGE_KEY);
+        // Verificar si tenemos datos de autenticación
+        if (!authData || !authData.user) {
+          setLoading(false);
+          return;
+        }
+
+        // Obtener el ID del usuario desde el contexto de autenticación
+        const userId = authData.user.id || authData.user._id;
 
         if (!userId) {
           setLoading(false);
-          return; // Si no hay ID, simplemente terminamos la carga
+          return;
         }
 
         // Hacer la petición con Axios usando la constante API_URL
         const response = await axios.get(
-          `${API_URL}/api/users/perfil/${userId}`
+          `${API_URL}/api/users/perfil/${userId}`,
+          {
+            headers: {
+              // Incluir token de autorización si está disponible
+              ...(authData.token && {
+                Authorization: `Bearer ${authData.token}`,
+              }),
+            },
+          }
         );
         const userData = response.data;
         console.log("Datos del perfil:", userData);
@@ -54,8 +64,8 @@ export default function ProfilePage() {
             address: userData.direccion || "",
             email: userData.email || "",
             whatsapp: userData.whatsapp || "",
-            dni: userData.dni || "", // Añadido campo DNI
-            usuario: userData.usuario || "", // Añadido campo usuario
+            dni: userData.dni || "",
+            usuario: userData.usuario || "",
           });
         }
       } catch (err) {
@@ -70,7 +80,7 @@ export default function ProfilePage() {
     };
 
     fetchUserProfile();
-  }, []);
+  }, [authData]);
 
   // Validar el formulario
   const validateForm = () => {
@@ -117,7 +127,7 @@ export default function ProfilePage() {
       return;
     }
 
-    // Para DNI, solo permitir números y letras M o F al final (como en el componente usuario-editar-modal)
+    // Para DNI, solo permitir números y letras M o F al final
     if (name === "dni") {
       const validatedValue = value.replace(/[^0-9MFmf]/g, "");
       setFormData((prev) => ({
@@ -152,9 +162,22 @@ export default function ProfilePage() {
     setSubmitting(true);
 
     try {
-      const userId = localStorage.getItem(STORAGE_KEY);
+      // Verificar si tenemos datos de autenticación
+      if (!authData || !authData.user) {
+        setSubmitting(false);
+        setErrors({
+          general: "No hay sesión activa. Por favor, inicia sesión nuevamente.",
+        });
+        return;
+      }
+
+      const userId = authData.user.id || authData.user._id;
+
       if (!userId) {
         setSubmitting(false);
+        setErrors({
+          general: "No se pudo determinar el ID del usuario.",
+        });
         return;
       }
 
@@ -165,8 +188,8 @@ export default function ProfilePage() {
         direccion: formData.address,
         email: formData.email,
         whatsapp: formData.whatsapp,
-        dni: formData.dni, // Añadido campo DNI
-        usuario: formData.usuario, // Añadido campo usuario
+        dni: formData.dni,
+        usuario: formData.usuario,
       };
 
       // URL exacta para la solicitud PUT
@@ -180,8 +203,8 @@ export default function ProfilePage() {
         headers: {
           "Content-Type": "application/json",
           // Incluir token de autorización si está disponible
-          ...(localStorage.getItem("token") && {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          ...(authData.token && {
+            Authorization: `Bearer ${authData.token}`,
           }),
         },
         body: JSON.stringify(dataToSend),
@@ -203,10 +226,10 @@ export default function ProfilePage() {
       const responseData = await response.json();
       console.log("Respuesta fetch exitosa:", responseData);
 
-      // Actualizar el estado global en Redux
-      if (userFromRedux) {
+      // Actualizar el estado global en AuthContext
+      if (authData && authData.user) {
         const updatedUser = {
-          ...userFromRedux,
+          ...authData.user,
           nombre: formData.nombre,
           apellido: formData.apellido,
           direccion: formData.address,
@@ -216,12 +239,10 @@ export default function ProfilePage() {
           usuario: formData.usuario,
         };
 
-        dispatch(
-          setUserData({
-            user: updatedUser,
-            auth0User: userFromRedux.auth0User,
-          })
-        );
+        setAuthData({
+          ...authData,
+          user: updatedUser,
+        });
       }
 
       // Mostrar mensaje de éxito con SweetAlert
