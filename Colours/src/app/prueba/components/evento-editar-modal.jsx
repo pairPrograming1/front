@@ -141,10 +141,6 @@ export default function EventoEditarModal({
     setError(null);
 
     try {
-      if (!formData.salonId) {
-        throw new Error("Por favor seleccione un salón válido");
-      }
-
       if (!evento?.id) {
         throw new Error(
           "El ID del evento no está definido. No se puede actualizar el evento."
@@ -155,7 +151,9 @@ export default function EventoEditarModal({
         ...formData,
         fecha: new Date(formData.fecha).toISOString(),
         salonNombre:
-          salones.find((salon) => salon.Id === formData.salonId)?.nombre || "",
+          salones.find((salon) => salon.Id === formData.salonId)?.nombre ||
+          evento.salon ||
+          "", // Mantener el salón asignado si no se selecciona uno nuevo
       };
 
       const response = await fetch(`${API_URL}/api/evento/${evento.id}`, {
@@ -267,7 +265,6 @@ export default function EventoEditarModal({
                       className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors appearance-none"
                       value={formData.salonId}
                       onChange={handleChange}
-                      required
                     >
                       <option value="">Seleccionar Salón</option>
                       {salones.map((salon) => (
