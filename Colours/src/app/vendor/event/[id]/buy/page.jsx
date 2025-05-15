@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 export default function BuyTicketsPage({ params }) {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const [tickets, setTickets] = useState([])
   const [formData, setFormData] = useState({
     name: "",
     dni: "",
@@ -23,12 +22,6 @@ export default function BuyTicketsPage({ params }) {
     if (idMatch && idMatch[1]) {
       setEventId(idMatch[1])
     }
-
-    setTickets([
-      { id: 1, name: "Nombre del Graduado" },
-      { id: 2, name: "Nombre del Graduado" },
-      { id: 3, name: "Nombre del Graduado" },
-    ])
   }, [])
 
   const handleInputChange = (e) => {
@@ -103,28 +96,53 @@ export default function BuyTicketsPage({ params }) {
         </div>
 
         <div className="space-y-3">
-          {tickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="flex justify-between items-center border border-[#b3964c] rounded-md p-3 w-full"
-            >
-              <div className="text-white">
-                <p className="font-medium">{ticket.name}</p>
+          <div className="border border-[#b3964c] rounded-md p-3 w-full">
+            <div className="text-white mb-2">
+              <p className="font-medium">Nombre del Graduado</p>
+            </div>
+
+            {/* Mostrar los datos del formulario antes del botón de vender */}
+            {isFormValid() && (
+              <div className="bg-[#12151f]/40 p-2 rounded-md mb-3 text-sm text-white">
+                <div className="flex flex-col space-y-2">
+                  <div className="grid grid-cols-2 gap-x-2">
+                    <div>
+                      <p className="text-gray-400">Comprador:</p>
+                      <p className="truncate">{formData.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">DNI:</p>
+                      <p className="truncate">{formData.dni}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2">
+                    <div>
+                      <p className="text-gray-400">WhatsApp:</p>
+                      <p className="truncate">{formData.whatsapp}</p>
+                    </div>
+                    <div className="mt-2 sm:mt-0">
+                      <p className="text-gray-400">Email:</p>
+                      <p className="truncate">{formData.email}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+            )}
+
+            <div className="flex justify-end">
               <button
                 onClick={handleSell}
                 disabled={!isFormValid()}
                 className={`px-3 py-1 ${
                   isFormValid() ? "bg-[#b3964c] hover:bg-[#9a7f41]" : "bg-gray-600 cursor-not-allowed"
-                } text-black font-medium rounded-md transition-colors ml-auto`}
+                } text-black font-medium rounded-md transition-colors`}
               >
                 Vender
               </button>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </main>
   )
 }
-
