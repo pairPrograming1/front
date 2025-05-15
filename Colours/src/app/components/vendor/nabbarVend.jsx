@@ -58,7 +58,7 @@ export default function Navbar() {
       </div>
       <Link
         href="/"
-        className="text-xl font-bold absolute left-1/2 transform -translate-x-1/2"
+        className="text-xl font-bold   left-1/2 transform -translate-x-1/2"
       >
         XEVENT
       </Link>

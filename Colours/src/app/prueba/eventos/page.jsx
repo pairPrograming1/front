@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
 import {
   Search,
   Plus,
@@ -17,60 +17,61 @@ import {
   Clock,
   Users,
   ListFilter,
-} from "lucide-react";
-import Header from "../components/header";
-import EventoModal from "../components/evento-modal";
-import EventoEditarModal from "../components/evento-editar-modal";
-import Swal from "sweetalert2";
-import apiUrls from "@/app/components/utils/apiConfig";
+} from "lucide-react"
+import Header from "../components/header"
+import EventoModal from "../components/evento-modal"
+import EventoEditarModal from "../components/evento-editar-modal"
+import Swal from "sweetalert2"
+import apiUrls from "@/app/components/utils/apiConfig"
+import EntradasModal from "../components/entradas-modal"
 
-const API_URL = apiUrls;
+const API_URL = apiUrls
 
 export default function Eventos() {
-  const [isClient, setIsClient] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [eventos, setEventos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState("active"); // Options: "active", "inactive", "all"
-  const [selectedEventos, setSelectedEventos] = useState([]);
-  const [eventoEditar, setEventoEditar] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedEvento, setExpandedEvento] = useState(null);
+  const [isClient, setIsClient] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [eventos, setEventos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterMode, setFilterMode] = useState("active") // Options: "active", "inactive", "all"
+  const [selectedEventos, setSelectedEventos] = useState([])
+  const [eventoEditar, setEventoEditar] = useState(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [expandedEvento, setExpandedEvento] = useState(null)
+  const [showEntradasModal, setShowEntradasModal] = useState(false)
+  const [eventoEntradas, setEventoEntradas] = useState(null)
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 10
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (isClient) {
-      fetchEventos();
+      fetchEventos()
     }
-  }, [filterMode, isClient]);
+  }, [filterMode, isClient])
 
   const removeAccents = (str) => {
-    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
-  };
+    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || ""
+  }
 
   const fetchEventos = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       const response = await fetch(
-        `${API_URL}/api/evento?activo=${
-          filterMode !== "all" ? filterMode === "active" : ""
-        }`
-      );
+        `${API_URL}/api/evento?activo=${filterMode !== "all" ? filterMode === "active" : ""}`,
+      )
 
       if (!response.ok) {
-        throw new Error("Error al cargar los eventos");
+        throw new Error("Error al cargar los eventos")
       }
 
-      const resultData = await response.json();
+      const resultData = await response.json()
 
       if (resultData.success && Array.isArray(resultData.data)) {
         const mappedEventos = resultData.data.map((evento) => ({
@@ -82,83 +83,75 @@ export default function Eventos() {
           capacidad: evento.capacidad,
           activo: evento.activo,
           salon: evento.salonNombre || "Sin salón asignado", // Cambiado para mostrar el nombre
-        }));
+        }))
 
-        setEventos(mappedEventos);
+        setEventos(mappedEventos)
       } else {
-        setEventos([]);
-        throw new Error("Formato de respuesta incorrecto");
+        setEventos([])
+        throw new Error("Formato de respuesta incorrecto")
       }
 
-      setError(null);
+      setError(null)
     } catch (err) {
-      setError(
-        "No se pudieron cargar los eventos. Por favor intente nuevamente."
-      );
+      setError("No se pudieron cargar los eventos. Por favor intente nuevamente.")
       Swal.fire({
         icon: "error",
         title: "Error al cargar eventos",
         text: err.message || "Hubo un problema al cargar los eventos",
-      });
-      setEventos([]);
+      })
+      setEventos([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
+    setSearchTerm(e.target.value)
+    setCurrentPage(1)
+  }
 
   const formatDateTime = (dateString) => {
     try {
-      const date = new Date(dateString);
+      const date = new Date(dateString)
       return date.toLocaleString("es-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      });
+      })
     } catch (e) {
-      return dateString || "Fecha no disponible";
+      return dateString || "Fecha no disponible"
     }
-  };
+  }
 
   const eventosFiltrados = eventos.filter((evento) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
+    const searchText = removeAccents(searchTerm.toLowerCase())
     return (
       removeAccents(evento.nombre?.toLowerCase()).includes(searchText) ||
       removeAccents(evento.salon?.toLowerCase()).includes(searchText) ||
-      formatDateTime(evento.fecha)
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
+      formatDateTime(evento.fecha).toLowerCase().includes(searchTerm.toLowerCase()) ||
       (evento.duracion?.toString() || "").includes(searchTerm) ||
       (evento.capacidad?.toString() || "").includes(searchTerm)
-    );
-  });
+    )
+  })
 
   const toggleEventoSelection = (id) => {
-    setSelectedEventos((prev) =>
-      prev.includes(id)
-        ? prev.filter((eventoId) => eventoId !== id)
-        : [...prev, id]
-    );
-  };
+    setSelectedEventos((prev) => (prev.includes(id) ? prev.filter((eventoId) => eventoId !== id) : [...prev, id]))
+  }
 
   const toggleAllSelection = () => {
     if (selectedEventos.length === currentItems.length) {
-      setSelectedEventos([]);
+      setSelectedEventos([])
     } else {
-      setSelectedEventos(currentItems.map((evento) => evento.id));
+      setSelectedEventos(currentItems.map((evento) => evento.id))
     }
-  };
+  }
 
   const handleEventoAdded = async (eventoData) => {
     try {
       if (!eventoData.nombre) {
-        throw new Error("El campo 'nombre' es obligatorio.");
+        throw new Error("El campo 'nombre' es obligatorio.")
       }
       const response = await fetch(`${API_URL}/api/evento`, {
         method: "POST",
@@ -166,35 +159,35 @@ export default function Eventos() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(eventoData),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Error al agregar el evento");
+        throw new Error("Error al agregar el evento")
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       Swal.fire({
         title: "¡Éxito!",
         text: result.message || "El evento ha sido agregado correctamente",
         icon: "success",
-      });
+      })
 
-      fetchEventos();
-      setShowModal(false);
+      fetchEventos()
+      setShowModal(false)
     } catch (err) {
       Swal.fire({
         title: "Error",
         text: err.message || "No se pudo agregar el evento.",
         icon: "error",
-      });
+      })
     }
-  };
+  }
 
   const handleEventoUpdated = async (id, eventoData) => {
     try {
       if (!id) {
-        throw new Error("El ID del evento no es válido.");
+        throw new Error("El ID del evento no es válido.")
       }
 
       const response = await fetch(`${API_URL}/api/evento/${id}`, {
@@ -203,82 +196,82 @@ export default function Eventos() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(eventoData),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Error al actualizar el evento");
+        throw new Error("Error al actualizar el evento")
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       Swal.fire({
         title: "¡Éxito!",
         text: result.message || "El evento ha sido actualizado correctamente",
         icon: "success",
-      });
+      })
 
-      fetchEventos();
-      setShowEditModal(false);
+      fetchEventos()
+      setShowEditModal(false)
     } catch (err) {
-      fetchEventos();
+      fetchEventos()
     }
-  };
+  }
 
   const handleLogicalDelete = async (id) => {
     try {
       const response = await fetch(`${API_URL}/api/evento/${id}`, {
         method: "PATCH",
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Error al desactivar el evento");
+        throw new Error("Error al desactivar el evento")
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       Swal.fire({
         title: "¡Completado!",
         text: result.message || "El evento ha sido desactivado correctamente",
         icon: "success",
-      });
+      })
 
-      fetchEventos();
+      fetchEventos()
     } catch (err) {
       Swal.fire({
         title: "Error",
         text: "No se pudo desactivar el evento.",
         icon: "error",
-      });
+      })
     }
-  };
+  }
 
   const handlePhysicalDelete = async (id) => {
     try {
       const response = await fetch(`${API_URL}/api/evento/${id}`, {
         method: "DELETE",
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Error al eliminar el evento");
+        throw new Error("Error al eliminar el evento")
       }
 
-      const result = await response.json();
+      const result = await response.json()
 
       Swal.fire({
         title: "¡Eliminado!",
         text: result.message || "El evento ha sido eliminado permanentemente",
         icon: "success",
-      });
+      })
 
-      fetchEventos();
+      fetchEventos()
     } catch (err) {
       Swal.fire({
         title: "Error",
         text: "No se pudo eliminar el evento.",
         icon: "error",
-      });
+      })
     }
-  };
+  }
 
   const bulkLogicalDelete = async () => {
     if (selectedEventos.length === 0) {
@@ -286,8 +279,8 @@ export default function Eventos() {
         icon: "warning",
         title: "Ningún evento seleccionado",
         text: "Por favor selecciona al menos un evento para desactivar",
-      });
-      return;
+      })
+      return
     }
 
     const result = await Swal.fire({
@@ -299,7 +292,7 @@ export default function Eventos() {
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, desactivar (${selectedEventos.length})`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       try {
@@ -309,9 +302,9 @@ export default function Eventos() {
           allowOutsideClick: false,
           allowEscapeKey: false,
           didOpen: () => {
-            Swal.showLoading();
+            Swal.showLoading()
           },
-        });
+        })
 
         const updatePromises = selectedEventos.map((id) =>
           fetch(`${API_URL}/api/evento/${id}`, {
@@ -319,31 +312,31 @@ export default function Eventos() {
             headers: {
               "Content-Type": "application/json",
             },
-          })
-        );
+          }),
+        )
 
-        await Promise.all(updatePromises);
+        await Promise.all(updatePromises)
 
         Swal.fire({
           title: "¡Completado!",
           text: "Los eventos seleccionados han sido desactivados",
           icon: "success",
           confirmButtonText: "OK",
-        });
+        })
 
-        fetchEventos();
-        setSelectedEventos([]);
+        fetchEventos()
+        setSelectedEventos([])
       } catch (err) {
-        console.error("Error al desactivar eventos:", err);
+        console.error("Error al desactivar eventos:", err)
         Swal.fire({
           title: "Error",
           text: "No se pudieron desactivar los eventos seleccionados.",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        })
       }
     }
-  };
+  }
 
   const bulkPhysicalDelete = async () => {
     if (selectedEventos.length === 0) {
@@ -351,8 +344,8 @@ export default function Eventos() {
         icon: "warning",
         title: "Ningún evento seleccionado",
         text: "Por favor selecciona al menos un evento para eliminar",
-      });
-      return;
+      })
+      return
     }
 
     const result = await Swal.fire({
@@ -364,7 +357,7 @@ export default function Eventos() {
       cancelButtonColor: "#3085d6",
       confirmButtonText: `Sí, eliminar (${selectedEventos.length})`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       const secondConfirm = await Swal.fire({
@@ -381,9 +374,9 @@ export default function Eventos() {
         cancelButtonColor: "#3085d6",
         confirmButtonText: "Sí, eliminar definitivamente",
         cancelButtonText: "Cancelar",
-      });
+      })
 
-      if (!secondConfirm.isConfirmed) return;
+      if (!secondConfirm.isConfirmed) return
 
       try {
         Swal.fire({
@@ -392,41 +385,41 @@ export default function Eventos() {
           allowOutsideClick: false,
           allowEscapeKey: false,
           didOpen: () => {
-            Swal.showLoading();
+            Swal.showLoading()
           },
-        });
+        })
 
         const deletePromises = selectedEventos.map((id) =>
           fetch(`${API_URL}/api/evento/${id}`, {
             method: "DELETE",
-          })
-        );
+          }),
+        )
 
-        await Promise.all(deletePromises);
+        await Promise.all(deletePromises)
 
         Swal.fire({
           title: "¡Eliminados!",
           text: "Los eventos seleccionados han sido eliminados permanentemente",
           icon: "success",
           confirmButtonText: "OK",
-        });
+        })
 
-        fetchEventos();
-        setSelectedEventos([]);
+        fetchEventos()
+        setSelectedEventos([])
       } catch (err) {
-        console.error("Error al eliminar eventos:", err);
+        console.error("Error al eliminar eventos:", err)
         Swal.fire({
           title: "Error",
           text: "No se pudieron eliminar los eventos seleccionados.",
           icon: "error",
           confirmButtonText: "OK",
-        });
+        })
       }
     }
-  };
+  }
 
   const handleEventoToggleActive = async (id, currentActiveState) => {
-    const action = currentActiveState ? "desactivar" : "activar";
+    const action = currentActiveState ? "desactivar" : "activar"
 
     const result = await Swal.fire({
       title: `¿${currentActiveState ? "Desactivar" : "Activar"} evento?`,
@@ -437,7 +430,7 @@ export default function Eventos() {
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${action}`,
       cancelButtonText: "Cancelar",
-    });
+    })
 
     if (result.isConfirmed) {
       try {
@@ -447,10 +440,10 @@ export default function Eventos() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ activo: !currentActiveState }),
-        });
+        })
 
         if (!response.ok) {
-          throw new Error(`Error al ${action} el evento`);
+          throw new Error(`Error al ${action} el evento`)
         }
 
         Swal.fire({
@@ -460,21 +453,21 @@ export default function Eventos() {
           confirmButtonText: "OK",
           timer: 2000,
           showConfirmButton: false,
-        });
+        })
 
-        fetchEventos();
+        fetchEventos()
       } catch (err) {
-        console.error(`Error al ${action} evento:`, err);
+        console.error(`Error al ${action} evento:`, err)
         Swal.fire({
           title: "Error",
           text: `No se pudo ${action} el evento.`,
           icon: "error",
           confirmButtonText: "OK",
-        });
-        setError(`No se pudo ${action} el evento.`);
+        })
+        setError(`No se pudo ${action} el evento.`)
       }
     }
-  };
+  }
 
   const handleEditEvento = (evento) => {
     if (!evento?.id) {
@@ -482,20 +475,30 @@ export default function Eventos() {
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",
         icon: "error",
-      });
-      return;
+      })
+      return
     }
-    setEventoEditar(evento);
-    setShowEditModal(true);
-  };
+    setEventoEditar(evento)
+    setShowEditModal(true)
+  }
 
-  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
-  const currentItems = eventosFiltrados.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handleAddEntradas = (evento) => {
+    if (!evento?.id) {
+      Swal.fire({
+        title: "Error",
+        text: "El evento seleccionado no tiene un ID válido.",
+        icon: "error",
+      })
+      return
+    }
+    setEventoEntradas(evento)
+    setShowEntradasModal(true)
+  }
 
-  if (!isClient) return null;
+  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage)
+  const currentItems = eventosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  if (!isClient) return null
 
   if (loading) {
     return (
@@ -505,7 +508,7 @@ export default function Eventos() {
           <p>Cargando eventos...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -560,17 +563,11 @@ export default function Eventos() {
         <div className="flex flex-col md:flex-row gap-4">
           {selectedEventos.length > 0 && (
             <>
-              <button
-                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
-                onClick={bulkLogicalDelete}
-              >
+              <button className="btn btn-warning flex items-center gap-2 w-full md:w-auto" onClick={bulkLogicalDelete}>
                 <Archive className="h-4 w-4" />
                 Desactivar {selectedEventos.length}
               </button>
-              <button
-                className="btn btn-error flex items-center gap-2 w-full md:w-auto"
-                onClick={bulkPhysicalDelete}
-              >
+              <button className="btn btn-error flex items-center gap-2 w-full md:w-auto" onClick={bulkPhysicalDelete}>
                 <Trash2 className="h-4 w-4" />
                 Eliminar {selectedEventos.length}
               </button>
@@ -587,11 +584,7 @@ export default function Eventos() {
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
       {/* Tabla de eventos */}
       <div className="overflow-x-auto">
@@ -603,10 +596,7 @@ export default function Eventos() {
                 <th className="w-10">
                   <input
                     type="checkbox"
-                    checked={
-                      selectedEventos.length === currentItems.length &&
-                      currentItems.length > 0
-                    }
+                    checked={selectedEventos.length === currentItems.length && currentItems.length > 0}
                     onChange={toggleAllSelection}
                   />
                 </th>
@@ -623,10 +613,7 @@ export default function Eventos() {
             <tbody>
               {currentItems.length > 0 ? (
                 currentItems.map((evento) => (
-                  <tr
-                    key={evento.id}
-                    className={!evento.activo ? "opacity-70 bg-gray-50" : ""}
-                  >
+                  <tr key={evento.id} className={!evento.activo ? "opacity-70 bg-gray-50" : ""}>
                     <td>
                       <input
                         type="checkbox"
@@ -641,11 +628,7 @@ export default function Eventos() {
                     <td>{evento.duracion || "N/A"} minutos</td>
                     <td>{evento.capacidad || "Sin límite"}</td>
                     <td>
-                      <span
-                        className={`badge ${
-                          evento.activo ? "badge-success" : "badge-error"
-                        }`}
-                      >
+                      <span className={`badge ${evento.activo ? "badge-success" : "badge-error"}`}>
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
@@ -659,6 +642,13 @@ export default function Eventos() {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
+                          <button
+                            className="btn btn-sm btn-outline btn-info p-1"
+                            onClick={() => handleAddEntradas(evento)}
+                            title="Agregar Entradas"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
                           {evento.activo ? (
                             <button
                               className="btn btn-sm btn-outline btn-warning p-1"
@@ -670,12 +660,7 @@ export default function Eventos() {
                           ) : (
                             <button
                               className="btn btn-sm btn-outline btn-success p-1"
-                              onClick={() =>
-                                handleEventoToggleActive(
-                                  evento.id,
-                                  evento.activo
-                                )
-                              }
+                              onClick={() => handleEventoToggleActive(evento.id, evento.activo)}
                               title="Activar"
                             >
                               <Power className="h-4 w-4" />
@@ -697,8 +682,7 @@ export default function Eventos() {
                 <tr>
                   <td colSpan="8" className="text-center py-10">
                     <p className="text-gray-500">
-                      No se encontraron eventos que coincidan con los criterios
-                      de búsqueda
+                      No se encontraron eventos que coincidan con los criterios de búsqueda
                     </p>
                   </td>
                 </tr>
@@ -711,10 +695,7 @@ export default function Eventos() {
         <div className="md:hidden space-y-4">
           {currentItems.length > 0 ? (
             currentItems.map((evento) => (
-              <div
-                key={evento.id}
-                className="border border-black rounded-lg p-4"
-              >
+              <div key={evento.id} className="border rounded-lg shadow-sm overflow-hidden mb-3">
                 <div className="p-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -726,35 +707,21 @@ export default function Eventos() {
                           className="mr-1"
                         />
                         <div>
-                          <div className="font-medium text-lg">
-                            {evento.nombre}
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {evento.salon}
-                          </div>
+                          <div className="font-medium text-lg">{evento.nombre}</div>
+                          <div className="text-sm text-gray-500 mt-1">{evento.salon}</div>
                         </div>
                       </div>
                       <div className="mt-2 flex items-center text-sm text-gray-600">
                         <Calendar className="h-4 w-4 mr-1" />
-                        <span className="truncate">
-                          {formatDateTime(evento.fecha)}
-                        </span>
+                        <span className="truncate">{formatDateTime(evento.fecha)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span
-                        className={`badge ${
-                          evento.activo ? "badge-success" : "badge-error"
-                        } mb-2`}
-                      >
+                      <span className={`badge ${evento.activo ? "badge-success" : "badge-error"} mb-2`}>
                         {evento.activo ? "Activo" : "Inactivo"}
                       </span>
                       <button
-                        onClick={() =>
-                          setExpandedEvento(
-                            expandedEvento === evento.id ? null : evento.id
-                          )
-                        }
+                        onClick={() => setExpandedEvento(expandedEvento === evento.id ? null : evento.id)}
                         className="text-gray-500 flex items-center gap-1"
                       >
                         {expandedEvento === evento.id ? (
@@ -777,32 +744,31 @@ export default function Eventos() {
                       <div className="grid grid-cols-1 gap-2">
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-gray-500 text-sm">
-                            Duración:
-                          </span>
-                          <span className="ml-2">
-                            {evento.duracion || "N/A"} minutos
-                          </span>
+                          <span className="text-gray-500 text-sm">Duración:</span>
+                          <span className="ml-2">{evento.duracion || "N/A"} minutos</span>
                         </div>
                         <div className="flex items-center">
                           <Users className="h-4 w-4 text-gray-500 mr-2" />
-                          <span className="text-gray-500 text-sm">
-                            Capacidad:
-                          </span>
-                          <span className="ml-2">
-                            {evento.capacidad || "Sin límite"}
-                          </span>
+                          <span className="text-gray-500 text-sm">Capacidad:</span>
+                          <span className="ml-2">{evento.capacidad || "Sin límite"}</span>
                         </div>
                       </div>
 
                       <div className="flex justify-between pt-3 mt-2 border-t">
-                        <div className="grid grid-cols-3 gap-2 w-full">
+                        <div className="grid grid-cols-4 gap-2 w-full">
                           <button
                             className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
                             onClick={() => handleEditEvento(evento)}
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             <span className="text-xs">Editar</span>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline btn-info flex items-center justify-center"
+                            onClick={() => handleAddEntradas(evento)}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Entradas</span>
                           </button>
                           {evento.activo ? (
                             <button
@@ -815,12 +781,7 @@ export default function Eventos() {
                           ) : (
                             <button
                               className="btn btn-sm btn-outline btn-success flex items-center justify-center"
-                              onClick={() =>
-                                handleEventoToggleActive(
-                                  evento.id,
-                                  evento.activo
-                                )
-                              }
+                              onClick={() => handleEventoToggleActive(evento.id, evento.activo)}
                             >
                               <Power className="h-4 w-4 mr-1" />
                               <span className="text-xs">Activar</span>
@@ -842,10 +803,7 @@ export default function Eventos() {
             ))
           ) : (
             <div className="text-center py-10 border rounded-lg">
-              <p className="text-gray-500">
-                No se encontraron eventos que coincidan con los criterios de
-                búsqueda
-              </p>
+              <p className="text-gray-500">No se encontraron eventos que coincidan con los criterios de búsqueda</p>
             </div>
           )}
         </div>
@@ -855,51 +813,36 @@ export default function Eventos() {
       {totalPages > 1 && (
         <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
           {currentPage > 1 && (
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage(currentPage - 1)}>
               <ChevronRight className="h-4 w-4 rotate-180" />
             </button>
           )}
           {[...Array(totalPages)].map((_, index) => {
             // Show limited page numbers on mobile
-            if (
-              index === 0 ||
-              index === totalPages - 1 ||
-              (index >= currentPage - 2 && index <= currentPage + 0)
-            ) {
+            if (index === 0 || index === totalPages - 1 || (index >= currentPage - 2 && index <= currentPage + 0)) {
               return (
                 <button
                   key={index}
-                  className={`btn btn-sm ${
-                    currentPage === index + 1 ? "btn-primary" : "btn-outline"
-                  }`}
+                  className={`btn btn-sm ${currentPage === index + 1 ? "btn-primary" : "btn-outline"}`}
                   onClick={() => setCurrentPage(index + 1)}
                 >
                   {index + 1}
                 </button>
-              );
+              )
             } else if (
               (index === currentPage - 3 && currentPage > 3) ||
               (index === currentPage + 1 && currentPage < totalPages - 2)
             ) {
               return (
-                <span
-                  key={index}
-                  className="flex items-center justify-center px-2"
-                >
+                <span key={index} className="flex items-center justify-center px-2">
                   ...
                 </span>
-              );
+              )
             }
-            return null;
+            return null
           })}
           {currentPage < totalPages && (
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
+            <button className="btn btn-sm btn-outline" onClick={() => setCurrentPage(currentPage + 1)}>
               <ChevronRight className="h-4 w-4" />
             </button>
           )}
@@ -907,23 +850,27 @@ export default function Eventos() {
       )}
 
       {/* Modales */}
-      {showModal && (
-        <EventoModal
-          onClose={() => setShowModal(false)}
-          onEventoAdded={handleEventoAdded}
-        />
-      )}
+      {showModal && <EventoModal onClose={() => setShowModal(false)} onEventoAdded={handleEventoAdded} />}
 
       {showEditModal && eventoEditar && (
         <EventoEditarModal
           evento={eventoEditar}
           onClose={() => {
-            setShowEditModal(false);
-            setEventoEditar(null);
+            setShowEditModal(false)
+            setEventoEditar(null)
           }}
           onEventoUpdated={handleEventoUpdated}
         />
       )}
+      {showEntradasModal && eventoEntradas && (
+        <EntradasModal
+          evento={eventoEntradas}
+          onClose={() => {
+            setShowEntradasModal(false)
+            setEventoEntradas(null)
+          }}
+        />
+      )}
     </div>
-  );
+  )
 }
