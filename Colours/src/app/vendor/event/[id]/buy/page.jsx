@@ -33,6 +33,9 @@ export default function BuyTicketsPage({ params }) {
   }
 
   const handleSell = () => {
+    // Guardar los datos del comprador en localStorage antes de redirigir
+    localStorage.setItem("buyerData", JSON.stringify(formData))
+
     // Redirigir a la página de selección de tickets
     router.push(`/vendor/event/tickets/${eventId}`)
   }

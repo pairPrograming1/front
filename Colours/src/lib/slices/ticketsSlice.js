@@ -2,21 +2,11 @@ import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
   eventId: null,
-  tickets: {
-    adults: 0,
-    children: 0,
-    freeAdults: 0,
-    freeChildren: 0,
-  },
+  tickets: {}, // Cantidad de tickets seleccionados por ID
+  ticketData: {}, // Datos completos de los tickets (incluyendo precio)
   prices: {
-    adults: 65000,
-    children: 32500,
-    freeAdults: 0,
-    freeChildren: 0,
-    serviceCharge: 2600,
+    serviceCharge: 10, // Cargo de servicio fijo
   },
-  paymentMethod: "mercadopago",
-  hasTickets: false,
 }
 
 export const ticketsSlice = createSlice({
@@ -26,64 +16,64 @@ export const ticketsSlice = createSlice({
     setEventId: (state, action) => {
       state.eventId = action.payload
     },
-    updateTicketCount: (state, action) => {
-      const { type, count } = action.payload
-      state.tickets[type] = Math.max(0, count)
+    setTicketData: (state, action) => {
+      // Guardar los datos completos de los tickets
+      const ticketsArray = action.payload
+      const ticketsMap = {}
+
+      ticketsArray.forEach((ticket) => {
+        ticketsMap[ticket.id] = ticket
+      })
+
+      state.ticketData = ticketsMap
     },
     incrementTicket: (state, action) => {
-      const type = action.payload
-      state.tickets[type] += 1
+      const ticketId = action.payload
+      state.tickets[ticketId] = (state.tickets[ticketId] || 0) + 1
     },
     decrementTicket: (state, action) => {
-      const type = action.payload
-      if (state.tickets[type] > 0) {
-        state.tickets[type] -= 1
+      const ticketId = action.payload
+      if (state.tickets[ticketId] > 0) {
+        state.tickets[ticketId] -= 1
       }
     },
-    setPaymentMethod: (state, action) => {
-      state.paymentMethod = action.payload
-    },
-    completePayment: (state) => {
-      state.hasTickets = true
-    },
     resetTickets: (state) => {
-      state.tickets = initialState.tickets
-      state.hasTickets = false
+      state.tickets = {}
     },
   },
 })
 
-// Selectors
+// Acciones
+export const { setEventId, setTicketData, incrementTicket, decrementTicket, resetTickets } = ticketsSlice.actions
+
+// Selectores
 export const selectEventId = (state) => state.tickets.eventId
 export const selectTickets = (state) => state.tickets.tickets
+export const selectTicketData = (state) => state.tickets.ticketData
 export const selectPrices = (state) => state.tickets.prices
-export const selectPaymentMethod = (state) => state.tickets.paymentMethod
-export const selectHasTickets = (state) => state.tickets.hasTickets
 
-// Calculate derived data
+// Selector para calcular el subtotal
 export const selectSubtotal = (state) => {
-  const { tickets, prices } = state.tickets
-  return (
-    tickets.adults * prices.adults +
-    tickets.children * prices.children +
-    tickets.freeAdults * prices.freeAdults +
-    tickets.freeChildren * prices.freeChildren
-  )
+  let subtotal = 0
+
+  // Usar los precios reales de cada ticket
+  Object.entries(state.tickets.tickets).forEach(([ticketId, quantity]) => {
+    const ticketInfo = state.tickets.ticketData[ticketId]
+    if (ticketInfo) {
+      // Convertir el precio a número y multiplicar por la cantidad
+      const price = Number.parseFloat(ticketInfo.precio)
+      subtotal += quantity * price
+    }
+  })
+
+  return subtotal
 }
 
+// Selector para calcular el total
 export const selectTotal = (state) => {
-  return selectSubtotal(state) + state.tickets.prices.serviceCharge
+  const subtotal = selectSubtotal(state)
+  return subtotal + state.tickets.prices.serviceCharge
 }
-
-export const {
-  setEventId,
-  updateTicketCount,
-  incrementTicket,
-  decrementTicket,
-  setPaymentMethod,
-  completePayment,
-  resetTickets,
-} = ticketsSlice.actions
 
 export default ticketsSlice.reducer
 
