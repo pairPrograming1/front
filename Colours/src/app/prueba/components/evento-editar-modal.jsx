@@ -43,7 +43,6 @@ export default function EventoEditarModal({
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
   const [activeTab, setActiveTab] = useState("info"); // Para alternar entre "info" e "imagenes"
-  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (evento) {
@@ -64,7 +63,6 @@ export default function EventoEditarModal({
       // Si el evento tiene una imagen, seleccionarla
       if (evento.image) {
         setSelectedImage(evento.image);
-        setImageError(false); // Reset error state
       }
     }
   }, [evento]);
@@ -166,15 +164,10 @@ export default function EventoEditarModal({
   // Función para seleccionar una imagen de la galería
   const selectImage = (url) => {
     setSelectedImage(url);
-    setImageError(false); // Reset error state when selecting a new image
     setFormData((prev) => ({
       ...prev,
       image: url,
     }));
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
   };
 
   const handleChange = (e) => {
@@ -195,12 +188,6 @@ export default function EventoEditarModal({
         ...formData,
         [name]: value,
       });
-
-      // Reset image error when URL changes
-      if (name === "image") {
-        setImageError(false);
-        setSelectedImage(value);
-      }
     }
   };
 
@@ -273,32 +260,6 @@ export default function EventoEditarModal({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Render image preview component
-  const ImagePreview = ({ url, className = "" }) => {
-    if (!url) return null;
-
-    return (
-      <div className={`relative ${className}`}>
-        <div className="w-full rounded-lg overflow-hidden border border-yellow-600 bg-gray-800">
-          <img
-            src={url}
-            alt="Vista previa"
-            className="w-full h-40 object-contain"
-            onError={handleImageError}
-          />
-          {imageError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-800/80 text-yellow-500">
-              <div className="text-center p-4">
-                <Image className="h-8 w-8 mx-auto mb-2 opacity-70" />
-                <p className="text-sm">Error al cargar la imagen</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
       <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
@@ -316,23 +277,6 @@ export default function EventoEditarModal({
         {error && (
           <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-4 text-sm">
             {error}
-          </div>
-        )}
-
-        {/* Display Current Image Preview At The Top */}
-        {formData.image && (
-          <div className="mb-6">
-            <div className="text-sm font-medium text-white mb-2 flex justify-between items-center">
-              <span>Imagen Actual</span>
-              <button
-                type="button"
-                onClick={() => setActiveTab("imagenes")}
-                className="text-xs text-yellow-500 hover:text-yellow-300 flex items-center"
-              >
-                <Image className="h-3 w-3 mr-1" /> Cambiar Imagen
-              </button>
-            </div>
-            <ImagePreview url={formData.image} />
           </div>
         )}
 
@@ -520,7 +464,7 @@ export default function EventoEditarModal({
               </div>
             </div>
 
-            {/* Campo de URL de imagen - ahora se mueve abajo ya que la previsualización se muestra arriba */}
+            {/* Campo de URL de imagen - ahora muestra la imagen seleccionada si hay una */}
             <div>
               <label className="block text-sm font-medium mb-1 text-white flex justify-between">
                 <span>URL de la Imagen</span>
@@ -543,6 +487,27 @@ export default function EventoEditarModal({
                 />
                 <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
               </div>
+              {/* Mostrar la URL actual de la imagen */}
+              {formData.image && (
+                <div className="mt-2">
+                  <div className="text-xs text-yellow-500 mb-1">
+                    URL actual de la imagen:
+                  </div>
+                  <div className="bg-gray-700 p-2 rounded-lg border border-yellow-600 text-white text-xs break-all">
+                    {formData.image}
+                  </div>
+                  <img
+                    src={formData.image}
+                    alt="Vista previa"
+                    className="h-20 rounded-lg border border-yellow-600 mt-2"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/placeholder-image.jpg";
+                      e.target.alt = "Error al cargar la imagen";
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             <div>
@@ -589,13 +554,15 @@ export default function EventoEditarModal({
               </button>
             </div>
 
-            {/* Mostrar la imagen actual seleccionada */}
+            {/* Mostrar la URL actual de la imagen en la pestaña de imágenes */}
             {formData.image && (
-              <div className="mb-4">
+              <div className="bg-gray-700 p-3 rounded-lg border border-yellow-600 mb-4">
                 <div className="text-sm text-yellow-500 mb-1">
-                  Imagen actual seleccionada:
+                  URL actual de la imagen:
                 </div>
-                <ImagePreview url={formData.image} />
+                <div className="text-white text-xs break-all">
+                  {formData.image}
+                </div>
               </div>
             )}
 
