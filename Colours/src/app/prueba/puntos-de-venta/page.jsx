@@ -19,6 +19,7 @@ import PuntoModal from "../components/punto-modal";
 import EditarModal from "../components/editar-modal";
 import EdicionCompleta from "../components/edicion-completa";
 import Header from "../components/header";
+import UploadImageModal from "../components/upload-image-modal"; // Importar el modal
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
@@ -38,6 +39,7 @@ export default function PuntosDeVenta() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedPunto, setExpandedPunto] = useState(null);
   const [selectedPuntos, setSelectedPuntos] = useState([]);
+  const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
 
   const itemsPerPage = 10;
 
@@ -527,6 +529,13 @@ export default function PuntosDeVenta() {
             <Plus className="h-4 w-4" />
             Agregar punto
           </button>
+          <button
+            className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
+            onClick={() => setShowUploadModal(true)} // Abre el modal de carga de imágenes
+          >
+            <Plus className="h-4 w-4" />
+            Cargar imágenes
+          </button>
         </div>
       </div>
 
@@ -846,6 +855,13 @@ export default function PuntosDeVenta() {
             setShowEdicionCompleta(false);
             setSelectedPunto(null);
           }}
+        />
+      )}
+
+      {showUploadModal && (
+        <UploadImageModal
+          onClose={() => setShowUploadModal(false)}
+          API_URL={`${API_URL}/api/upload/image`}
         />
       )}
     </div>
