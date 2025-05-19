@@ -1018,7 +1018,7 @@ export default function Eventos() {
       {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative">
+          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Info className="h-5 w-5 text-yellow-400" /> Detalle del Evento
@@ -1034,89 +1034,107 @@ export default function Eventos() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {loadingDetail ? (
-              <div className="text-center py-8 text-gray-300">
-                Cargando detalle...
-              </div>
-            ) : eventoDetalle?.error ? (
-              <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
-                {eventoDetalle.error}
-              </div>
-            ) : eventoDetalle ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
-                <div className="space-y-4">
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Nombre
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {eventoDetalle.nombre}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Descripción
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {eventoDetalle.descripcion}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Salón
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {eventoDetalle.salonNombre || eventoDetalle.salon}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Fecha
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {eventoDetalle.fecha}
-                    </div>
-                  </div>
+            <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
+              {loadingDetail ? (
+                <div className="text-center py-8 text-gray-300">
+                  Cargando detalle...
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Duración
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {eventoDetalle.duracion} minutos
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Capacidad
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {eventoDetalle.capacidad}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Estado
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      <span
-                        className={`badge ${
-                          eventoDetalle.activo ? "badge-success" : "badge-error"
-                        }`}
-                      >
-                        {eventoDetalle.activo ? "Activo" : "Inactivo"}
+              ) : eventoDetalle?.error ? (
+                <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                  {eventoDetalle.error}
+                </div>
+              ) : eventoDetalle ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+                  <div className="space-y-4">
+                    {/* Imagen del evento */}
+                    {(eventoDetalle.image || eventoDetalle.imagen) && (
+                      <div>
+                        <span className="block text-sm text-yellow-400 mb-1">
+                          Imagen
+                        </span>
+                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
+                          <img
+                            src={eventoDetalle.image || eventoDetalle.imagen}
+                            alt="Imagen del evento"
+                            className="max-h-48 rounded shadow"
+                            style={{ maxWidth: "100%", objectFit: "contain" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Nombre
                       </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {eventoDetalle.nombre}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Descripción
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {eventoDetalle.descripcion}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Salón
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {eventoDetalle.salonNombre || eventoDetalle.salon}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Fecha
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {eventoDetalle.fecha}
+                      </div>
                     </div>
                   </div>
-                  {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                  <div className="space-y-4">
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Duración
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {eventoDetalle.duracion} minutos
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Capacidad
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {eventoDetalle.capacidad}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Estado
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        <span
+                          className={`badge ${
+                            eventoDetalle.activo ? "badge-success" : "badge-error"
+                          }`}
+                        >
+                          {eventoDetalle.activo ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-gray-300">
-                No hay información para mostrar.
-              </div>
-            )}
+              ) : (
+                <div className="text-gray-300">
+                  No hay información para mostrar.
+                </div>
+              )}
+            </div>
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => {

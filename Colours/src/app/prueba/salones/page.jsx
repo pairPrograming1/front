@@ -73,6 +73,7 @@ export default function Salones() {
       }
 
       const data = await response.json();
+      console.log("fetchSalones data:", data); // <-- Mostrar datos por consola
       let salonesData = [];
 
       // Handle different response formats
@@ -975,7 +976,7 @@ export default function Salones() {
       {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative">
+          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Info className="h-5 w-5 text-yellow-400" /> Detalle del Salón
@@ -991,94 +992,112 @@ export default function Salones() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            {loadingDetail ? (
-              <div className="text-center py-8 text-gray-300">
-                Cargando detalle...
-              </div>
-            ) : salonDetalle?.error ? (
-              <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
-                {salonDetalle.error}
-              </div>
-            ) : salonDetalle ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
-                <div className="space-y-4">
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Salón
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {salonDetalle.salon || salonDetalle.nombre}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      CUIT
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {salonDetalle.cuit}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Contacto
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {salonDetalle.contacto || salonDetalle.nombre}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Email
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {salonDetalle.email}
-                    </div>
-                  </div>
+            <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
+              {loadingDetail ? (
+                <div className="text-center py-8 text-gray-300">
+                  Cargando detalle...
                 </div>
-                <div className="space-y-4">
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      WhatsApp
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {salonDetalle.whatsapp}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Capacidad
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      {salonDetalle.capacidad}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-sm text-yellow-400 mb-1">
-                      Estado
-                    </span>
-                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                      <span
-                        className={`badge ${
-                          salonDetalle.isActive ||
-                          salonDetalle.estatus ||
-                          salonDetalle.activo
-                            ? "badge-success"
-                            : "badge-error"
-                        }`}
-                      >
-                        {(salonDetalle.isActive ?? salonDetalle.estatus ??
-                          salonDetalle.activo)
-                          ? "Activo"
-                          : "Inactivo"}
+              ) : salonDetalle?.error ? (
+                <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                  {salonDetalle.error}
+                </div>
+              ) : salonDetalle ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+                  <div className="space-y-4">
+                    {/* Imagen del salón */}
+                    {(salonDetalle.image || salonDetalle.imagen) && (
+                      <div>
+                        <span className="block text-sm text-yellow-400 mb-1">
+                          Imagen
+                        </span>
+                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
+                          <img
+                            src={salonDetalle.image || salonDetalle.imagen}
+                            alt="Imagen del salón"
+                            className="max-h-48 rounded shadow"
+                            style={{ maxWidth: "100%", objectFit: "contain" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Salón
                       </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {salonDetalle.salon || salonDetalle.nombre}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        CUIT
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {salonDetalle.cuit}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Contacto
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {salonDetalle.contacto || salonDetalle.nombre}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Email
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {salonDetalle.email}
+                      </div>
                     </div>
                   </div>
-                  {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                  <div className="space-y-4">
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        WhatsApp
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {salonDetalle.whatsapp}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Capacidad
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        {salonDetalle.capacidad}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Estado
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        <span
+                          className={`badge ${
+                            salonDetalle.isActive ||
+                            salonDetalle.estatus ||
+                            salonDetalle.activo
+                              ? "badge-success"
+                              : "badge-error"
+                          }`}
+                        >
+                          {(salonDetalle.isActive ?? salonDetalle.estatus ??
+                            salonDetalle.activo)
+                            ? "Activo"
+                            : "Inactivo"}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-gray-300">No hay información para mostrar.</div>
-            )}
+              ) : (
+                <div className="text-gray-300">No hay información para mostrar.</div>
+              )}
+            </div>
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => {
