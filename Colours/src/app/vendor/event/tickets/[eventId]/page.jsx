@@ -116,7 +116,7 @@ export default function TicketPurchasePage() {
   useEffect(() => {
     setMounted(true)
   }, [])
-
+  console.log(eventData)
   // Renderizamos un esqueleto básico durante la hidratación o carga
   if (!mounted || loading) {
     return (
@@ -167,7 +167,7 @@ export default function TicketPurchasePage() {
         {/* Imagen del evento */}
         <div className="rounded-lg overflow-hidden mb-4 border border-[#BF8D6B]">
           <Image
-            src={eventData?.imagen || "/placeholder.svg?height=400&width=600"}
+            src={eventData?.image || "/placeholder.svg?height=400&width=600"}
             alt={eventData?.nombre || "Evento"}
             width={600}
             height={400}

@@ -2,15 +2,17 @@
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import apiUrls from "@/app/components/utils/apiConfig"
+import { ImageOff } from "lucide-react"
 
 export default function EventDetailPage({ params }) {
-  const API_URL= apiUrls
+  const API_URL = apiUrls
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [eventId, setEventId] = useState("")
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [imageError, setImageError] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -27,13 +29,14 @@ export default function EventDetailPage({ params }) {
     if (eventId) {
       fetchEventDetails()
     }
+    
   }, [eventId])
 
   const fetchEventDetails = async () => {
     try {
       setLoading(true)
       const response = await fetch(`${API_URL}/api/evento/${eventId}`)
-
+      
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`)
       }
@@ -42,9 +45,12 @@ export default function EventDetailPage({ params }) {
 
       if (result.success && result.data) {
         setEvent(result.data)
+        
       } else {
         throw new Error("No se pudo obtener la información del evento")
       }
+      
+     
     } catch (err) {
       console.error("Error fetching event details:", err)
       setError(err.message || "Error al cargar los detalles del evento")
@@ -74,7 +80,10 @@ export default function EventDetailPage({ params }) {
     return (
       <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-4">
         <div className="w-full max-w-md bg-[#1E2330]/80 p-6 rounded-xl shadow-lg text-white">
-          <p>Cargando...</p>
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="w-12 h-12 border-t-2 border-[#c28b5b] rounded-full animate-spin"></div>
+            <p>Cargando detalles del evento...</p>
+          </div>
         </div>
       </main>
     )
@@ -117,13 +126,25 @@ export default function EventDetailPage({ params }) {
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-4">
       <div className="w-full max-w-md bg-[#1E2330]/80 p-6 rounded-xl shadow-lg text-white">
-        <div className="mb-4 relative rounded-lg overflow-hidden">
-          <img
-            src="/event-performance.jpg"
-            alt={event.nombre}
-            className="w-full h-auto rounded-lg"
-            style={{ maxHeight: "200px", objectFit: "cover" }}
-          />
+        <div className="mb-4 relative rounded-lg overflow-hidden shadow-md">
+          {imageError ? (
+            <div className="w-full h-48 bg-gray-800 flex items-center justify-center">
+              <div className="flex flex-col items-center text-gray-400">
+                <ImageOff className="w-12 h-12 mb-2" />
+                <p className="text-sm">Imagen no disponible</p>
+              </div>
+            </div>
+          ) : (
+            <div className="relative w-full h-48 bg-gray-800">
+              <img
+                src={event.image || "/placeholder.svg"}
+                alt={event.nombre}
+                className="w-full h-full object-cover transition-opacity duration-300"
+                onError={() => setImageError(true)}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            </div>
+          )}
         </div>
 
         <h1 className="text-2xl font-bold mb-1">{event.nombre}</h1>
@@ -134,7 +155,10 @@ export default function EventDetailPage({ params }) {
         </p>
 
         <div className="space-y-4 mb-6">
-          <p className="text-sm">{event.descripcion}</p>
+          <div className="bg-[#262b3a] p-4 rounded-lg">
+            <h2 className="text-lg font-semibold mb-2">Descripción</h2>
+            <p className="text-sm text-gray-300">{event.descripcion}</p>
+          </div>
         </div>
 
         <button
