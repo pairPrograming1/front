@@ -167,7 +167,7 @@ export default function TicketPurchasePage() {
         {/* Imagen del evento */}
         <div className="rounded-lg overflow-hidden mb-4 border border-[#BF8D6B]">
           <Image
-            src={eventData?.image || "/placeholder.svg?height=400&width=600"}
+            src={eventData?.image || "No hay imagen disponible"}
             alt={eventData?.nombre || "Evento"}
             width={600}
             height={400}
