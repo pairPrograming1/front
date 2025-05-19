@@ -17,6 +17,8 @@ import {
   Clock,
   Users,
   ListFilter,
+  Info,
+  X,
 } from "lucide-react";
 import Header from "../components/header";
 import EventoModal from "../components/evento-modal";
@@ -45,6 +47,9 @@ export default function Eventos() {
   const [showEntradasModal, setShowEntradasModal] = useState(false);
   const [eventoEntradas, setEventoEntradas] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [eventoDetalle, setEventoDetalle] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -507,6 +512,23 @@ export default function Eventos() {
     setShowEntradasModal(true);
   };
 
+  // Obtener detalle por GET /api/evento/:id
+  const handleShowDetail = async (eventoId) => {
+    setLoadingDetail(true);
+    setShowDetailModal(true);
+    try {
+      const response = await fetch(`${API_URL}/api/evento/${eventoId}`);
+      if (!response.ok)
+        throw new Error("Error al obtener el detalle del evento");
+      const result = await response.json();
+      setEventoDetalle(result.data || result); // Ajusta según tu backend
+    } catch (err) {
+      setEventoDetalle({ error: err.message });
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
   const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
   const currentItems = eventosFiltrados.slice(
     (currentPage - 1) * itemsPerPage,
@@ -686,6 +708,13 @@ export default function Eventos() {
                           </button>
                           <button
                             className="btn btn-sm btn-outline btn-info p-1"
+                            onClick={() => handleShowDetail(evento.id)}
+                            title="Detalle"
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline btn-info p-1"
                             onClick={() => handleAddEntradas(evento)}
                             title="Agregar Entradas"
                           >
@@ -828,13 +857,20 @@ export default function Eventos() {
                       </div>
 
                       <div className="flex justify-between pt-3 mt-2 border-t">
-                        <div className="grid grid-cols-4 gap-2 w-full">
+                        <div className="grid grid-cols-5 gap-2 w-full">
                           <button
                             className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
                             onClick={() => handleEditEvento(evento)}
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             <span className="text-xs">Editar</span>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline btn-info flex items-center justify-center"
+                            onClick={() => handleShowDetail(evento.id)}
+                          >
+                            <Info className="h-4 w-4 mr-1" />
+                            <span className="text-xs">Detalle</span>
                           </button>
                           <button
                             className="btn btn-sm btn-outline btn-info flex items-center justify-center"
@@ -977,6 +1013,123 @@ export default function Eventos() {
           onClose={() => setShowUploadModal(false)}
           API_URL={`${API_URL}/api/upload/image`}
         />
+      )}
+
+      {/* Modal de Detalle */}
+      {showDetailModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Info className="h-5 w-5 text-yellow-400" /> Detalle del Evento
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setEventoDetalle(null);
+                }}
+                className="text-yellow-500 hover:text-yellow-300 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {loadingDetail ? (
+              <div className="text-center py-8 text-gray-300">
+                Cargando detalle...
+              </div>
+            ) : eventoDetalle?.error ? (
+              <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                {eventoDetalle.error}
+              </div>
+            ) : eventoDetalle ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+                <div className="space-y-4">
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Nombre
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      {eventoDetalle.nombre}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Descripción
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      {eventoDetalle.descripcion}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Salón
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      {eventoDetalle.salonNombre || eventoDetalle.salon}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Fecha
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      {eventoDetalle.fecha}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Duración
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      {eventoDetalle.duracion} minutos
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Capacidad
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      {eventoDetalle.capacidad}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="block text-sm text-yellow-400 mb-1">
+                      Estado
+                    </span>
+                    <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <span
+                        className={`badge ${
+                          eventoDetalle.activo ? "badge-success" : "badge-error"
+                        }`}
+                      >
+                        {eventoDetalle.activo ? "Activo" : "Inactivo"}
+                      </span>
+                    </div>
+                  </div>
+                  {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-300">
+                No hay información para mostrar.
+              </div>
+            )}
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setEventoDetalle(null);
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
