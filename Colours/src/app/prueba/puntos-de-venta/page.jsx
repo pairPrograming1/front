@@ -14,11 +14,14 @@ import {
   ChevronDown,
   ChevronUp,
   ListFilter,
+  Info,
+  X,
 } from "lucide-react";
 import PuntoModal from "../components/punto-modal";
 import EditarModal from "../components/editar-modal";
 import EdicionCompleta from "../components/edicion-completa";
 import Header from "../components/header";
+import UploadImageModal from "../components/upload-image-modal"; // Importar el modal
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
@@ -38,6 +41,10 @@ export default function PuntosDeVenta() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedPunto, setExpandedPunto] = useState(null);
   const [selectedPuntos, setSelectedPuntos] = useState([]);
+  const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [puntoDetalle, setPuntoDetalle] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -445,6 +452,23 @@ export default function PuntosDeVenta() {
     );
   }
 
+  // Obtener detalle por GET /api/puntodeventa/:id
+  const handleShowDetail = async (puntoId) => {
+    setLoadingDetail(true);
+    setShowDetailModal(true);
+    try {
+      const response = await fetch(`${API_URL}/api/puntodeventa/${puntoId}`);
+      if (!response.ok)
+        throw new Error("Error al obtener el detalle del punto de venta");
+      const result = await response.json();
+      setPuntoDetalle(result.data || result);
+    } catch (err) {
+      setPuntoDetalle({ error: err.message });
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6">
       <Header title="Puntos de Venta" />
@@ -527,6 +551,13 @@ export default function PuntosDeVenta() {
             <Plus className="h-4 w-4" />
             Agregar punto
           </button>
+          <button
+            className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
+            onClick={() => setShowUploadModal(true)} // Abre el modal de carga de imágenes
+          >
+            <Plus className="h-4 w-4" />
+            Cargar imágenes
+          </button>
         </div>
       </div>
 
@@ -593,6 +624,17 @@ export default function PuntosDeVenta() {
                   </td>
                   <td>
                     <div className="flex gap-2">
+                      <button
+                        className="btn btn-sm btn-outline btn-info p-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShowDetail(punto.id);
+                        }}
+                        title="Detalle"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button>
+
                       <button
                         className="btn btn-sm btn-outline btn-primary p-1"
                         onClick={(e) => {
@@ -722,7 +764,17 @@ export default function PuntosDeVenta() {
                   </div>
 
                   <div className="flex justify-between pt-3 mt-2 border-t">
-                    <div className="grid grid-cols-3 gap-2 w-full">
+                    <div className="grid grid-cols-4 gap-2 w-full">
+                      <button
+                        className="btn btn-sm btn-outline btn-info flex items-center justify-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShowDetail(punto.id);
+                        }}
+                      >
+                        <Info className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Detalle</span>
+                      </button>
                       <button
                         className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
                         onClick={(e) => {
@@ -847,6 +899,118 @@ export default function PuntosDeVenta() {
             setSelectedPunto(null);
           }}
         />
+      )}
+
+      {showUploadModal && (
+        <UploadImageModal
+          onClose={() => setShowUploadModal(false)}
+          API_URL={`${API_URL}/api/upload/image`}
+        />
+      )}
+
+      {/* Modal de Detalle */}
+      {showDetailModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                <Info className="h-5 w-5 text-yellow-400" /> Detalle del Punto de Venta
+              </h2>
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setPuntoDetalle(null);
+                }}
+                className="text-yellow-500 hover:text-yellow-300 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
+              {loadingDetail ? (
+                <div className="text-center py-8 text-gray-300">Cargando detalle...</div>
+              ) : puntoDetalle?.error ? (
+                <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                  {puntoDetalle.error}
+                </div>
+              ) : puntoDetalle ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+                  <div className="space-y-4">
+                    {/* Imagen del punto de venta */}
+                    {(puntoDetalle.image || puntoDetalle.imagen) && (
+                      <div>
+                        <span className="block text-sm text-yellow-400 mb-1">
+                          Imagen
+                        </span>
+                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
+                          <img
+                            src={puntoDetalle.image || puntoDetalle.imagen}
+                            alt="Imagen del punto de venta"
+                            className="max-h-48 rounded shadow"
+                            style={{ maxWidth: "100%", objectFit: "contain" }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Razón Social</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.razon}</div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Nombre</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.nombre}</div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Dirección</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.direccion}</div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">CUIT</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.cuit}</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Email</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.email}</div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Teléfono</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.telefono}</div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Tipo</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">{puntoDetalle.es_online ? "Online" : "Físico"}</div>
+                    </div>
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">Estado</span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                        <span className={`badge ${puntoDetalle.isActive ? "badge-success" : "badge-error"}`}>
+                          {puntoDetalle.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-300">No hay información para mostrar.</div>
+              )}
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  setPuntoDetalle(null);
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
