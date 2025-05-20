@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import apiUrls from "@/app/components/utils/apiConfig"
@@ -15,6 +14,7 @@ import {
   selectSubtotal,
   selectTotal,
 } from "@/lib/slices/ticketsSlice"
+import OrdenCompraModal from "@/app/components/entradas/ordenCompraModal"
 
 // Definir API_URL una sola vez
 const API_URL = apiUrls
@@ -27,6 +27,10 @@ export default function TicketPurchasePage() {
   const [eventData, setEventData] = useState(null)
   const [ticketTypes, setTicketTypes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showSummary, setShowSummary] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [orderSuccess, setOrderSuccess] = useState(false)
+  const [orderError, setOrderError] = useState(null)
 
   // Redux
   const dispatch = useDispatch()
@@ -98,25 +102,81 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Proceder al pago
-  const proceedToPayment = () => {
-    // Guardar la selección de tickets junto con los datos del comprador
-    const purchaseData = {
-      buyer: buyerData,
-      tickets: tickets,
-      total: total,
-    }
-    localStorage.setItem("purchaseData", JSON.stringify(purchaseData))
+  // Preparar los datos para la orden
+  const prepareOrderData = () => {
+    if (!buyerData) return null
 
-    // Redirigir a la página de pago
-    const eventId = pathname ? pathname.split("/").pop() : null
-    router.push(`/vendor/event/payment/${eventId}`)
+    // Crear el array de detalles con los tickets seleccionados
+    const detalles = Object.entries(tickets)
+      .filter(([_, cantidad]) => cantidad > 0)
+      .map(([entradaId, cantidad]) => {
+        const ticketInfo = ticketTypes.find((t) => t.id === entradaId)
+        return {
+          entradaId,
+          cantidad,
+          precio_unitario: Number.parseFloat(ticketInfo?.precio || 0),
+        }
+      })
+
+    return {
+      estado: "pendiente",
+      dni_cliente: buyerData.dni,
+      nombre_cliente: buyerData.name,
+      email_cliente: buyerData.email,
+      telefono_cliente: buyerData.whatsapp,
+      detalles,
+    }
+  }
+
+  // Enviar la orden al API
+  const submitOrder = async () => {
+    const orderData = prepareOrderData()
+    if (!orderData) return
+
+    setIsSubmitting(true)
+    setOrderError(null)
+
+    try {
+      const response = await fetch(`${API_URL}/api/order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setOrderSuccess(true)
+        // Guardar la respuesta de la orden si es necesario
+        localStorage.setItem("orderResponse", JSON.stringify(data))
+      } else {
+        setOrderError(data.message || "Error al procesar la orden")
+      }
+    } catch (error) {
+      console.error("Error submitting order:", error)
+      setOrderError("Error de conexión al procesar la orden")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Proceder a la orden de compra
+  const proceedToOrder = () => {
+    setShowSummary(true)
+    submitOrder()
+  }
+
+  // Cerrar el modal
+  const closeSummary = () => {
+    setShowSummary(false)
   }
 
   useEffect(() => {
     setMounted(true)
   }, [])
-  console.log(eventData)
+
   // Renderizamos un esqueleto básico durante la hidratación o carga
   if (!mounted || loading) {
     return (
@@ -135,6 +195,20 @@ export default function TicketPurchasePage() {
       </div>
     )
   }
+
+  // Obtener los tickets seleccionados para mostrar en el resumen
+  const selectedTickets = Object.entries(tickets)
+    .filter(([_, count]) => count > 0)
+    .map(([id, count]) => {
+      const ticketInfo = ticketTypes.find((t) => t.id === id)
+      return {
+        id,
+        tipo: ticketInfo?.tipo_entrada || "Entrada",
+        precio: Number.parseFloat(ticketInfo?.precio || 0),
+        cantidad: count,
+        subtotal: Number.parseFloat(ticketInfo?.precio || 0) * count,
+      }
+    })
 
   return (
     <div className="flex min-h-full w-full flex-col items-center p-4">
@@ -166,12 +240,10 @@ export default function TicketPurchasePage() {
 
         {/* Imagen del evento */}
         <div className="rounded-lg overflow-hidden mb-4 border border-[#BF8D6B]">
-          <Image
-            src={eventData?.image || "No hay imagen disponible"}
+          <img
+            src={eventData?.image || "/placeholder.svg?height=300&width=400&query=event"}
             alt={eventData?.nombre || "Evento"}
-            width={600}
-            height={400}
-            className="w-full object-cover"
+            className="w-full h-48 object-cover"
           />
         </div>
 
@@ -245,20 +317,53 @@ export default function TicketPurchasePage() {
 
         {/* Botón de pago */}
         <button
-          onClick={proceedToPayment}
-          disabled={Object.values(tickets).every((count) => count === 0)}
+          onClick={proceedToOrder}
+          disabled={Object.values(tickets).every((count) => count === 0) || isSubmitting}
           className={`w-full rounded-md py-3 font-medium text-white mb-4 ${
-            Object.values(tickets).every((count) => count === 0) ? "bg-gray-600 cursor-not-allowed" : "bg-[#BF8D6B]"
+            Object.values(tickets).every((count) => count === 0) || isSubmitting
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-[#BF8D6B]"
           }`}
         >
-          Elegir medio de pago
+          {isSubmitting ? (
+            <span className="flex items-center justify-center">
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Procesando...
+            </span>
+          ) : (
+            "Orden de compra"
+          )}
         </button>
       </div>
+
+      {/* Modal de resumen de compra como componente separado */}
+      <OrdenCompraModal
+        isOpen={showSummary}
+        onClose={closeSummary}
+        buyerData={buyerData}
+        eventData={eventData}
+        selectedTickets={selectedTickets}
+        subtotal={subtotal}
+        serviceCharge={prices.serviceCharge}
+        total={total}
+        orderSuccess={orderSuccess}
+        orderError={orderError}
+      />
     </div>
   )
 }
-
-
 
 
 
