@@ -29,6 +29,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
   const [activeTab, setActiveTab] = useState("info"); // Para alternar entre "info" e "imagenes"
+  const [capacidadError, setCapacidadError] = useState(""); // Nuevo estado para error de capacidad
 
   useEffect(() => {
     const fetchSalones = async () => {
@@ -131,21 +132,36 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const handleChange = (e) => {
     const { name, value, type } = e.target;
 
+    let newValue;
     if (type === "number") {
-      setFormData({
-        ...formData,
-        [name]: Number.parseInt(value) || 0,
-      });
+      newValue = Number.parseInt(value) || 0;
     } else if (type === "checkbox") {
-      setFormData({
-        ...formData,
-        [name]: e.target.checked,
-      });
+      newValue = e.target.checked;
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+      newValue = value;
+    }
+
+    setFormData({
+      ...formData,
+      [name]: newValue,
+    });
+
+    // Validar capacidad al cambiar el campo
+    if (name === "capacidad" || name === "salonId") {
+      let capacidad = name === "capacidad" ? newValue : formData.capacidad;
+      let salonId = name === "salonId" ? newValue : formData.salonId;
+      const selectedSalon = salones.find((salon) => salon.Id === salonId);
+      if (
+        selectedSalon &&
+        selectedSalon.capacidad &&
+        capacidad > selectedSalon.capacidad
+      ) {
+        setCapacidadError(
+          `La capacidad del evento (${capacidad}) supera la capacidad máxima del salón (${selectedSalon.capacidad}).`
+        );
+      } else {
+        setCapacidadError("");
+      }
     }
   };
 
@@ -171,6 +187,19 @@ export default function EventoModal({ onClose, onEventoAdded }) {
         text: "Debe seleccionar un salón válido.",
       });
       return;
+    }
+
+    // Validar que la capacidad del evento no supere la del salón (sin SweetAlert)
+    if (
+      selectedSalon.capacidad &&
+      formData.capacidad > selectedSalon.capacidad
+    ) {
+      setCapacidadError(
+        `La capacidad del evento (${formData.capacidad}) supera la capacidad máxima del salón (${selectedSalon.capacidad}).`
+      );
+      return;
+    } else {
+      setCapacidadError("");
     }
 
     // Enviar tanto el ID como el nombre del salón
@@ -365,6 +394,11 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                 />
                 <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
               </div>
+              {capacidadError && (
+                <div className="text-xs text-red-400 mt-1">
+                  {capacidadError}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center">

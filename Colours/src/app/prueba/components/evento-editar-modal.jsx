@@ -335,7 +335,39 @@ export default function EventoEditarModal({
     }
   };
 
+  // Al hacer click en editar, muestra confirmación antes de cargar los datos en el formulario de edición
+  const handleEditarEntrada = async (entrada) => {
+    const result = await Swal.fire({
+      title: "¿Editar entrada?",
+      text: "¿Seguro que deseas editar esta entrada?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    });
+    if (result.isConfirmed) {
+      setEditandoEntradaId(entrada.id || entrada._id);
+      setEntradaEdit({
+        tipo: entrada.tipo_entrada || entrada.tipo || "",
+        precio: entrada.precio || "",
+        cantidad: entrada.cantidad || "",
+        estatus: entrada.estatus || "",
+      });
+    }
+  };
+
   const handleEliminarEntrada = async (entradaId) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar entrada?",
+      text: "Esta acción no se puede deshacer. ¿Deseas continuar?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    });
+    if (!result.isConfirmed) return;
     setLoadingEntradas(true);
     setErrorEntradas(null);
     try {
@@ -346,54 +378,6 @@ export default function EventoEditarModal({
       fetchEntradas();
     } catch (err) {
       setErrorEntradas(err.message || "Error al eliminar entrada");
-    } finally {
-      setLoadingEntradas(false);
-    }
-  };
-
-  // Al hacer click en editar, carga los datos en el formulario de edición
-  const handleEditarEntrada = (entrada) => {
-    setEditandoEntradaId(entrada.id || entrada._id);
-    setEntradaEdit({
-      tipo: entrada.tipo_entrada || entrada.tipo || "",
-      precio: entrada.precio || "",
-      cantidad: entrada.cantidad || "",
-      estatus: entrada.estatus || "",
-    });
-  };
-
-  // Maneja cambios en el formulario de edición
-  const handleEntradaEditChange = (e) => {
-    const { name, value } = e.target;
-    setEntradaEdit((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // PUT para actualizar la entrada
-  const handleActualizarEntrada = async (e) => {
-    e.preventDefault();
-    setLoadingEntradas(true);
-    setErrorEntradas(null);
-    try {
-      const body = {
-        tipo_entrada: entradaEdit.tipo,
-        precio: Number(entradaEdit.precio),
-        cantidad: Number(entradaEdit.cantidad),
-        estatus: entradaEdit.estatus,
-      };
-      const res = await fetch(`${API_URL}/api/entrada/${editandoEntradaId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("No se pudo actualizar la entrada");
-      setEditandoEntradaId(null);
-      setEntradaEdit({ tipo: "", precio: "", cantidad: "", estatus: "" });
-      fetchEntradas();
-    } catch (err) {
-      setErrorEntradas(err.message || "Error al actualizar entrada");
     } finally {
       setLoadingEntradas(false);
     }
