@@ -11,6 +11,8 @@ import {
   Image,
   RefreshCw,
   Loader,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
@@ -42,7 +44,23 @@ export default function EventoEditarModal({
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
-  const [activeTab, setActiveTab] = useState("info"); // Para alternar entre "info" e "imagenes"
+  // Estados para la pestaña de entradas
+  const [activeTab, setActiveTab] = useState("info"); // info | imagenes | entradas
+  const [entradas, setEntradas] = useState([]);
+  const [loadingEntradas, setLoadingEntradas] = useState(false);
+  const [errorEntradas, setErrorEntradas] = useState(null);
+  const [nuevaEntrada, setNuevaEntrada] = useState({
+    tipo: "",
+    precio: "",
+    cantidad: "",
+  });
+  const [editandoEntradaId, setEditandoEntradaId] = useState(null);
+  const [entradaEdit, setEntradaEdit] = useState({
+    tipo: "",
+    precio: "",
+    cantidad: "",
+    estatus: "",
+  });
 
   useEffect(() => {
     if (evento) {
@@ -260,6 +278,127 @@ export default function EventoEditarModal({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  // Obtener entradas cuando se selecciona la pestaña "entradas"
+  useEffect(() => {
+    if (activeTab === "entradas" && evento?.id) {
+      fetchEntradas();
+    }
+    // eslint-disable-next-line
+  }, [activeTab, evento?.id]);
+
+  const fetchEntradas = async () => {
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const res = await fetch(`${API_URL}/api/entrada/${evento.id}`);
+      if (!res.ok) throw new Error("No se pudieron obtener las entradas");
+      const data = await res.json();
+      setEntradas(Array.isArray(data) ? data : data.data || []);
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al obtener entradas");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
+  const handleNuevaEntradaChange = (e) => {
+    const { name, value } = e.target;
+    setNuevaEntrada((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAgregarEntrada = async (e) => {
+    e.preventDefault();
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const body = {
+        ...nuevaEntrada,
+        eventoId: evento.id,
+        precio: Number(nuevaEntrada.precio),
+        cantidad: Number(nuevaEntrada.cantidad),
+      };
+      const res = await fetch(`${API_URL}/api/entrada/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("No se pudo agregar la entrada");
+      setNuevaEntrada({ tipo: "", precio: "", cantidad: "" });
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al agregar entrada");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
+  const handleEliminarEntrada = async (entradaId) => {
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const res = await fetch(`${API_URL}/api/entrada/${entradaId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("No se pudo eliminar la entrada");
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al eliminar entrada");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
+  // Al hacer click en editar, carga los datos en el formulario de edición
+  const handleEditarEntrada = (entrada) => {
+    setEditandoEntradaId(entrada.id || entrada._id);
+    setEntradaEdit({
+      tipo: entrada.tipo_entrada || entrada.tipo || "",
+      precio: entrada.precio || "",
+      cantidad: entrada.cantidad || "",
+      estatus: entrada.estatus || "",
+    });
+  };
+
+  // Maneja cambios en el formulario de edición
+  const handleEntradaEditChange = (e) => {
+    const { name, value } = e.target;
+    setEntradaEdit((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // PUT para actualizar la entrada
+  const handleActualizarEntrada = async (e) => {
+    e.preventDefault();
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const body = {
+        tipo_entrada: entradaEdit.tipo,
+        precio: Number(entradaEdit.precio),
+        cantidad: Number(entradaEdit.cantidad),
+        estatus: entradaEdit.estatus,
+      };
+      const res = await fetch(`${API_URL}/api/entrada/${editandoEntradaId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("No se pudo actualizar la entrada");
+      setEditandoEntradaId(null);
+      setEntradaEdit({ tipo: "", precio: "", cantidad: "", estatus: "" });
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al actualizar entrada");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
       <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
@@ -280,7 +419,7 @@ export default function EventoEditarModal({
           </div>
         )}
 
-        {/* Pestañas para cambiar entre formulario e imágenes */}
+        {/* Pestañas para cambiar entre formulario, imágenes y entradas */}
         <div className="flex border-b border-gray-700 mb-4">
           <button
             onClick={() => setActiveTab("info")}
@@ -302,6 +441,17 @@ export default function EventoEditarModal({
           >
             <Image className="h-4 w-4 mr-1" />
             Seleccionar Imagen
+          </button>
+          <button
+            onClick={() => setActiveTab("entradas")}
+            className={`py-2 px-4 text-sm font-medium flex items-center ${
+              activeTab === "entradas"
+                ? "text-yellow-500 border-b-2 border-yellow-500"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <Users className="h-4 w-4 mr-1" />
+            Entradas
           </button>
         </div>
 
@@ -466,27 +616,6 @@ export default function EventoEditarModal({
 
             {/* Campo de URL de imagen - ahora muestra la imagen seleccionada si hay una */}
             <div>
-              <label className="block text-sm font-medium mb-1 text-white flex justify-between">
-                <span>URL de la Imagen</span>
-                <button
-                  type="button"
-                  className="text-xs text-yellow-500 hover:text-yellow-300"
-                  onClick={() => setActiveTab("imagenes")}
-                >
-                  Seleccionar de la galería
-                </button>
-              </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  name="image"
-                  placeholder="https://example.com/imagen.jpg"
-                  className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-yellow-500 transition-colors"
-                  value={formData.image}
-                  onChange={handleChange}
-                />
-                <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 h-5 w-5" />
-              </div>
               {/* Mostrar la URL actual de la imagen */}
               {formData.image && (
                 <div className="mt-2">
@@ -539,7 +668,7 @@ export default function EventoEditarModal({
               )}
             </button>
           </form>
-        ) : (
+        ) : activeTab === "imagenes" ? (
           // Vista de selección de imágenes
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -626,6 +755,161 @@ export default function EventoEditarModal({
               >
                 <Check className="h-4 w-4" />
                 <span>Usar imagen seleccionada</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Sección de Entradas
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-white mb-2">
+              Entradas del Evento
+            </h3>
+            {errorEntradas && (
+              <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-2 rounded text-sm mb-2">
+                {errorEntradas}
+              </div>
+            )}
+            {loadingEntradas ? (
+              <div className="py-8 text-center text-yellow-500">
+                <Loader className="animate-spin h-8 w-8 mx-auto mb-2" />
+                <p>Cargando entradas...</p>
+              </div>
+            ) : (
+              <>
+                {entradas.length > 0 ? (
+                  <div className="w-full">
+                    <table className="w-full text-xs sm:text-sm text-left text-gray-300 mb-4">
+                      <thead>
+                        <tr className="bg-gray-700 text-yellow-500">
+                          <th className="px-2 sm:px-3 py-2">Tipo</th>
+                          <th className="px-2 sm:px-3 py-2">Precio</th>
+                          <th className="px-2 sm:px-3 py-2">Cantidad</th>
+                          <th className="px-2 sm:px-3 py-2">Estatus</th>
+                          <th className="px-2 sm:px-3 py-2">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {entradas.map((entrada) =>
+                          editandoEntradaId === (entrada.id || entrada._id) ? (
+                            <tr
+                              key={entrada.id || entrada._id}
+                              className="border-b border-gray-700 bg-gray-900"
+                            >
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  name="tipo"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  value={entradaEdit.tipo}
+                                  onChange={handleEntradaEditChange}
+                                  required
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number"
+                                  name="precio"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  value={entradaEdit.precio}
+                                  onChange={handleEntradaEditChange}
+                                  min="0"
+                                  required
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="number"
+                                  name="cantidad"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  value={entradaEdit.cantidad}
+                                  onChange={handleEntradaEditChange}
+                                  min="1"
+                                  required
+                                />
+                              </td>
+                              <td className="px-3 py-2">
+                                <input
+                                  type="text"
+                                  name="estatus"
+                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
+                                  value={entradaEdit.estatus}
+                                  onChange={handleEntradaEditChange}
+                                />
+                              </td>
+                              <td className="px-3 py-2 flex gap-1">
+                                <button
+                                  className="bg-green-700 hover:bg-green-600 text-white rounded px-2 py-1 text-xs"
+                                  onClick={handleActualizarEntrada}
+                                  disabled={loadingEntradas}
+                                  title="Guardar"
+                                >
+                                  Guardar
+                                </button>
+                                <button
+                                  className="bg-gray-600 hover:bg-gray-500 text-white rounded px-2 py-1 text-xs"
+                                  onClick={() => setEditandoEntradaId(null)}
+                                  type="button"
+                                  title="Cancelar"
+                                >
+                                  Cancelar
+                                </button>
+                              </td>
+                            </tr>
+                          ) : (
+                            <tr
+                              key={entrada.id || entrada._id}
+                              className="border-b border-gray-700"
+                            >
+                              <td className="px-3 py-2">
+                                {entrada.tipo_entrada || entrada.tipo}
+                              </td>
+                              <td className="px-3 py-2">${entrada.precio}</td>
+                              <td className="px-3 py-2">{entrada.cantidad}</td>
+                              <td className="px-3 py-2">
+                                {entrada.estatus || "-"}
+                              </td>
+                              <td className="px-3 py-2 flex gap-1">
+                                <button
+                                  className="text-blue-500 hover:text-blue-300"
+                                  title="Editar entrada"
+                                  onClick={() => handleEditarEntrada(entrada)}
+                                  type="button"
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  className="text-red-500 hover:text-red-300"
+                                  title="Eliminar entrada"
+                                  onClick={() =>
+                                    handleEliminarEntrada(
+                                      entrada.id || entrada._id
+                                    )
+                                  }
+                                  type="button"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="py-4 text-center text-gray-400 border border-dashed border-gray-600 rounded-lg">
+                    No hay entradas para este evento.
+                  </div>
+                )}
+              </>
+            )}
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => setActiveTab("info")}
+                className="px-4 py-2 text-yellow-500 hover:text-yellow-300 border border-yellow-600 rounded-lg transition-colors"
+              >
+                Volver
               </button>
             </div>
           </div>

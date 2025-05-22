@@ -50,6 +50,8 @@ export default function Eventos() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [eventoDetalle, setEventoDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [entradasDetalle, setEntradasDetalle] = useState([]);
+  const [loadingEntradas, setLoadingEntradas] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -516,16 +518,31 @@ export default function Eventos() {
   const handleShowDetail = async (eventoId) => {
     setLoadingDetail(true);
     setShowDetailModal(true);
+    setEntradasDetalle([]);
     try {
       const response = await fetch(`${API_URL}/api/evento/${eventoId}`);
       if (!response.ok)
         throw new Error("Error al obtener el detalle del evento");
       const result = await response.json();
       setEventoDetalle(result.data || result); // Ajusta según tu backend
+
+      // Obtener entradas del evento
+      setLoadingEntradas(true);
+      const entradasRes = await fetch(`${API_URL}/api/entrada/${eventoId}`);
+      if (entradasRes.ok) {
+        const entradasData = await entradasRes.json();
+        setEntradasDetalle(
+          Array.isArray(entradasData.data) ? entradasData.data : []
+        );
+      } else {
+        setEntradasDetalle([]);
+      }
     } catch (err) {
       setEventoDetalle({ error: err.message });
+      setEntradasDetalle([]);
     } finally {
       setLoadingDetail(false);
+      setLoadingEntradas(false);
     }
   };
 
@@ -1027,6 +1044,7 @@ export default function Eventos() {
                 onClick={() => {
                   setShowDetailModal(false);
                   setEventoDetalle(null);
+                  setEntradasDetalle([]);
                 }}
                 className="text-yellow-500 hover:text-yellow-300 transition-colors"
                 aria-label="Cerrar"
@@ -1119,14 +1137,64 @@ export default function Eventos() {
                       <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
                         <span
                           className={`badge ${
-                            eventoDetalle.activo ? "badge-success" : "badge-error"
+                            eventoDetalle.activo
+                              ? "badge-success"
+                              : "badge-error"
                           }`}
                         >
                           {eventoDetalle.activo ? "Activo" : "Inactivo"}
                         </span>
                       </div>
                     </div>
-                    {/* Puedes agregar más campos aquí si tu backend los retorna */}
+                    {/* Sección de Entradas */}
+                    <div>
+                      <span className="block text-sm text-yellow-400 mb-1">
+                        Entradas
+                      </span>
+                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 max-h-40 overflow-y-auto">
+                        {loadingEntradas ? (
+                          <span className="text-gray-300">
+                            Cargando entradas...
+                          </span>
+                        ) : entradasDetalle.length === 0 ? (
+                          <span className="text-gray-400">
+                            No hay entradas para este evento.
+                          </span>
+                        ) : (
+                          <ul className="list-disc pl-4 space-y-2">
+                            {entradasDetalle.map((entrada, idx) => (
+                              <li
+                                key={entrada.id || idx}
+                                className="text-gray-200"
+                              >
+                                <div>
+                                  <span className="font-semibold">
+                                    Tipo de entrada:
+                                  </span>{" "}
+                                  {entrada.tipo_entrada}
+                                </div>
+                                <div>
+                                  <span className="font-semibold">Precio:</span>{" "}
+                                  ${entrada.precio}
+                                </div>
+                                <div>
+                                  <span className="font-semibold">
+                                    Cantidad:
+                                  </span>{" "}
+                                  {entrada.cantidad}
+                                </div>
+                                <div>
+                                  <span className="font-semibold">
+                                    Estatus:
+                                  </span>{" "}
+                                  {entrada.estatus}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -1140,6 +1208,7 @@ export default function Eventos() {
                 onClick={() => {
                   setShowDetailModal(false);
                   setEventoDetalle(null);
+                  setEntradasDetalle([]);
                 }}
                 className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
               >

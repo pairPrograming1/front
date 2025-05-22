@@ -7,4 +7,4 @@ const apiUrls = {
 export const API_URL_LOCAL = apiUrls.local;
 export const API_URL_PRODUCTION = apiUrls.production;
 
-export default apiUrls.production; // ← Cambia a .local si necesitas desarrollo
+export default apiUrls.local; // ← Cambia a .local si necesitas desarrollo
