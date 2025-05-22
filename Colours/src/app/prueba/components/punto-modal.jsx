@@ -1,8 +1,11 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import apiUrls from "@/app/components/utils/apiConfig";
+
+const API_URL = apiUrls;
 
 export default function PuntoModal({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -17,6 +20,24 @@ export default function PuntoModal({ onClose, onSubmit }) {
 
   const [error, setError] = useState(null);
   const [cuitFormatted, setCuitFormatted] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+  const [usuarios, setUsuarios] = useState([]);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
+
+  useEffect(() => {
+    setLoadingUsuarios(true);
+    fetch(`${API_URL}/api/users/usuarios?`)
+      .then((res) => res.json())
+      .then((data) => {
+        // Filtrar solo usuarios con rol 'vendor'
+        const soloVendors = Array.isArray(data)
+          ? data.filter((usuario) => usuario.rol === "vendor")
+          : [];
+        setUsuarios(soloVendors);
+      })
+      .catch(() => setUsuarios([]))
+      .finally(() => setLoadingUsuarios(false));
+  }, []);
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
@@ -101,7 +122,7 @@ export default function PuntoModal({ onClose, onSubmit }) {
     return cuitPattern.test(cuit);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -162,10 +183,35 @@ export default function PuntoModal({ onClose, onSubmit }) {
       "$1-$2-$3"
     );
 
-    onSubmit({
+    // Llama a onSubmit y espera el punto creado (debe incluir el id)
+    const puntoCreado = await onSubmit({
       ...formData,
       cuit: formattedCUIT,
     });
+
+    // Si hay un usuario seleccionado y el punto fue creado correctamente
+    if (selectedUser && puntoCreado && puntoCreado.id) {
+      try {
+        await fetch(`${API_URL}/api/puntodeventa/addvendedor`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: selectedUser,
+            puntoId: puntoCreado.id,
+          }),
+        });
+        // Opcional: mostrar mensaje de éxito o manejar respuesta
+      } catch (err) {
+        // Opcional: manejar error
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo asociar el vendedor al punto.",
+        });
+      }
+    }
   };
 
   return (
@@ -315,6 +361,30 @@ export default function PuntoModal({ onClose, onSubmit }) {
                 </label>
               </div>
             </div>
+          </div>
+
+          {/* Select de usuarios antes del botón Crear */}
+          <div className="mb-6">
+            <label className="block text-sm text-yellow-400 mb-1">
+              Ver usuarios
+            </label>
+            <select
+              className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              disabled={loadingUsuarios}
+            >
+              <option value="">
+                {loadingUsuarios
+                  ? "Cargando usuarios..."
+                  : "Selecciona un usuario"}
+              </option>
+              {usuarios.map((usuario) => (
+                <option key={usuario.id} value={usuario.id}>
+                  {usuario.nombre}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button
