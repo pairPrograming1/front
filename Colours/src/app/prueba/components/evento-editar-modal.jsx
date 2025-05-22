@@ -783,7 +783,7 @@ export default function EventoEditarModal({
                         <tr className="bg-gray-700 text-yellow-500">
                           <th className="px-2 sm:px-3 py-2">Tipo</th>
                           <th className="px-2 sm:px-3 py-2">Precio</th>
-                          <th className="px-2 sm:px-3 py-2">Cantidad</th>
+
                           <th className="px-2 sm:px-3 py-2">Estatus</th>
                           <th className="px-2 sm:px-3 py-2">Acciones</th>
                         </tr>
@@ -816,17 +816,7 @@ export default function EventoEditarModal({
                                   required
                                 />
                               </td>
-                              <td className="px-3 py-2">
-                                <input
-                                  type="number"
-                                  name="cantidad"
-                                  className="w-full bg-gray-800 border border-yellow-600 rounded-lg p-1 text-white text-xs"
-                                  value={entradaEdit.cantidad}
-                                  onChange={handleEntradaEditChange}
-                                  min="1"
-                                  required
-                                />
-                              </td>
+
                               <td className="px-3 py-2">
                                 <input
                                   type="text"
@@ -864,7 +854,7 @@ export default function EventoEditarModal({
                                 {entrada.tipo_entrada || entrada.tipo}
                               </td>
                               <td className="px-3 py-2">${entrada.precio}</td>
-                              <td className="px-3 py-2">{entrada.cantidad}</td>
+
                               <td className="px-3 py-2">
                                 {entrada.estatus || "-"}
                               </td>
