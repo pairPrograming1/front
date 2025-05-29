@@ -31,6 +31,7 @@ export default function TicketPurchasePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
   const [orderError, setOrderError] = useState(null)
+  const [orderId, setOrderId] = useState(null) // ✅ Nuevo estado para el orderId
 
   // Redux
   const dispatch = useDispatch()
@@ -128,7 +129,7 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Enviar la orden al API
+  // ✅ Enviar la orden al API y ESPERAR la respuesta
   const submitOrder = async () => {
     const orderData = prepareOrderData()
     if (!orderData) return
@@ -137,6 +138,8 @@ export default function TicketPurchasePage() {
     setOrderError(null)
 
     try {
+      console.log("Enviando orden:", orderData)
+
       const response = await fetch(`${API_URL}/api/order`, {
         method: "POST",
         headers: {
@@ -146,11 +149,33 @@ export default function TicketPurchasePage() {
       })
 
       const data = await response.json()
+      console.log("Respuesta del servidor:", data)
 
       if (response.ok) {
         setOrderSuccess(true)
-        // Guardar la respuesta de la orden si es necesario
+
+        // ✅ EXTRAER EL ORDER ID de la respuesta
+        const newOrderId = data.id || data.orderId || data.data?.id || data.data?.orderId
+
+        console.log("Order ID extraído:", newOrderId)
+
+        if (newOrderId) {
+          setOrderId(newOrderId)
+          // Guardar también en localStorage por si acaso
+          localStorage.setItem("currentOrderId", newOrderId)
+        } else {
+          console.warn("No se pudo extraer el orderId de la respuesta:", data)
+          // Generar un ID temporal si no viene en la respuesta
+          const tempId = "TEMP-" + Date.now()
+          setOrderId(tempId)
+          localStorage.setItem("currentOrderId", tempId)
+        }
+
+        // Guardar la respuesta completa
         localStorage.setItem("orderResponse", JSON.stringify(data))
+
+        // ✅ AHORA SÍ abrir el modal con el orderId disponible
+        setShowSummary(true)
       } else {
         setOrderError(data.message || "Error al procesar la orden")
       }
@@ -162,9 +187,9 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Proceder a la orden de compra
+  // ✅ Proceder a la orden de compra - SOLO enviar la orden, no abrir el modal todavía
   const proceedToOrder = () => {
-    setShowSummary(true)
+    // NO abrir el modal aquí, esperar a que termine el POST
     submitOrder()
   }
 
@@ -315,6 +340,15 @@ export default function TicketPurchasePage() {
           <span className="font-bold text-[#202020]">{total.toLocaleString()}$</span>
         </div>
 
+        {/* ✅ DEBUG INFO - temporal para ver qué está pasando */}
+        {orderId && (
+          <div className="mb-4 p-2 bg-green-900/50 border border-green-700 text-green-300 rounded text-sm">
+            <p>
+              <strong>✅ Orden creada:</strong> #{orderId}
+            </p>
+          </div>
+        )}
+
         {/* Botón de pago */}
         <button
           onClick={proceedToOrder}
@@ -340,7 +374,7 @@ export default function TicketPurchasePage() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Procesando...
+              Creando orden...
             </span>
           ) : (
             "Orden de compra"
@@ -348,7 +382,7 @@ export default function TicketPurchasePage() {
         </button>
       </div>
 
-      {/* Modal de resumen de compra como componente separado */}
+      {/* ✅ Modal de resumen - AHORA con orderId disponible */}
       <OrdenCompraModal
         isOpen={showSummary}
         onClose={closeSummary}
@@ -360,10 +394,12 @@ export default function TicketPurchasePage() {
         total={total}
         orderSuccess={orderSuccess}
         orderError={orderError}
+        orderId={orderId} // ✅ AHORA SÍ tiene el ID correcto
       />
     </div>
   )
 }
+
 
 
 
