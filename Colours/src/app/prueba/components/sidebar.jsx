@@ -126,13 +126,13 @@ export default function Sidebar() {
           </li>
           <li onClick={(e) => e.stopPropagation()}>
             <Link
-              href="/prueba/cobros-y-pagos"
+              href="/prueba/ordenes-y-pagos"
               className={`flex flex-col items-center p-3 ${
                 isActive("/prueba/cobros-y-pagos") ? "text-[#C88D6B]" : "text-gray-400 hover:text-[#C88D6B]"
               }`}
             >
               <CreditCard className="h-5 w-5 mb-1" />
-              {!isCollapsed && <span className="text-xs md:text-sm">Cobros y Pagos</span>}
+              {!isCollapsed && <span className="text-xs md:text-sm">Ordenes y Pagos</span>}
             </Link>
           </li>
         </ul>

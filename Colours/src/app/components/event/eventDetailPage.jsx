@@ -137,7 +137,7 @@ export default function EventDetailPage({ params }) {
           ) : (
             <div className="relative w-full h-48 bg-gray-800">
               <img
-                src={event.image || "/placeholder.svg"}
+                src={event.image || "No hay imagen disponible"}
                 alt={event.nombre}
                 className="w-full h-full object-cover transition-opacity duration-300"
                 onError={() => setImageError(true)}
