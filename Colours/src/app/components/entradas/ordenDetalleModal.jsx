@@ -4,12 +4,72 @@ import { useEffect, useRef, useState } from "react"
 import { X, User, Calendar, Tag, CreditCard, FileText, ImageIcon, Download } from "lucide-react"
 import { jsPDF } from "jspdf"
 
+// Componente helper para manejar imágenes con fallback
+const ImageWithFallback = ({ src, alt, className }) => {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+
+  const handleImageLoad = () => {
+    setImageLoading(false)
+    setImageError(false)
+  }
+
+  const handleImageError = () => {
+    console.error("Error cargando imagen:", src)
+    setImageLoading(false)
+    setImageError(true)
+  }
+
+  if (!src || src.trim() === "") {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 bg-gray-100 text-gray-500">
+        <ImageIcon className="h-12 w-12 mb-2" />
+        <p>No hay comprobante disponible</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative">
+      {imageLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#BF8D6B]"></div>
+        </div>
+      )}
+
+      {imageError ? (
+        <div className="flex flex-col items-center justify-center h-64 bg-gray-100 text-gray-500">
+          <ImageIcon className="h-12 w-12 mb-2" />
+          <p>Error al cargar la imagen</p>
+          <p className="text-xs mt-1">URL: {src}</p>
+          <button
+            onClick={() => {
+              setImageError(false)
+              setImageLoading(true)
+            }}
+            className="mt-2 px-3 py-1 bg-[#BF8D6B] text-white rounded text-xs hover:bg-[#A67A5B]"
+          >
+            Reintentar
+          </button>
+        </div>
+      ) : (
+        <img
+          src={src || "/placeholder.svg"}
+          alt={alt}
+          className={className}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          style={{ display: imageLoading ? "none" : "block" }}
+        />
+      )}
+    </div>
+  )
+}
+
 export default function OrdenDetalleModal({ orden, onClose }) {
   const modalRef = useRef(null)
   const [isOpen, setIsOpen] = useState(!!orden) // Controla si el modal está abierto
-
-  // Si no hay orden, no renderizar nada
-  if (!isOpen) return null
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
 
   // Manejar cierre con Escape y click fuera del modal
   useEffect(() => {
@@ -36,6 +96,9 @@ export default function OrdenDetalleModal({ orden, onClose }) {
     }
   }, [onClose])
 
+  // Si no hay orden, no renderizar nada
+  if (!isOpen) return null
+
   const formatFecha = (fecha) => {
     if (!fecha) return "Sin fecha"
     return new Date(fecha).toLocaleDateString("es-ES", {
@@ -58,8 +121,10 @@ export default function OrdenDetalleModal({ orden, onClose }) {
     return "Sin evento"
   }
 
-  // Función para descargar PDF
+  // Función para descargar PDF con imagen
   const downloadPDF = async () => {
+    setIsGeneratingPDF(true)
+
     try {
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -168,6 +233,99 @@ export default function OrdenDetalleModal({ orden, onClose }) {
           yPosition += 6
           pdf.text(`Descripción: ${orden.pago.descripcion}`, 20, yPosition)
         }
+
+        // ✅ AGREGAR IMAGEN DEL COMPROBANTE AL PDF
+        if (orden.pago.imagen && orden.pago.imagen.trim() !== "") {
+          yPosition += 15
+
+          pdf.setFont("helvetica", "bold")
+          pdf.setFontSize(12)
+          pdf.text("COMPROBANTE DE PAGO", 20, yPosition)
+          yPosition += 10
+
+          try {
+            // Método alternativo para cargar la imagen y evitar problemas de CORS
+            const response = await fetch(orden.pago.imagen, { mode: "cors" })
+
+            if (!response.ok) {
+              throw new Error(`Error al cargar la imagen: ${response.status}`)
+            }
+
+            const blob = await response.blob()
+            const imageUrl = URL.createObjectURL(blob)
+
+            // Crear una nueva imagen para cargar desde el blob
+            const img = new Image()
+
+            // Promesa para cargar la imagen
+            const loadImage = new Promise((resolve, reject) => {
+              img.onload = () => resolve(img)
+              img.onerror = () => reject(new Error("No se pudo cargar la imagen"))
+              img.src = imageUrl
+            })
+
+            // Esperar a que la imagen se cargue
+            const loadedImg = await loadImage
+
+            // Crear canvas para convertir la imagen
+            const canvas = document.createElement("canvas")
+            const ctx = canvas.getContext("2d")
+
+            // Calcular dimensiones para el PDF (máximo 170mm de ancho)
+            const maxWidth = 170
+            const maxHeight = 100
+            let { width, height } = loadedImg
+
+            // Redimensionar manteniendo proporción
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width
+              width = maxWidth
+            }
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height
+              height = maxHeight
+            }
+
+            // Configurar canvas
+            canvas.width = width * 2 // Mayor resolución
+            canvas.height = height * 2
+            ctx.scale(2, 2)
+
+            // Dibujar imagen en canvas
+            ctx.drawImage(loadedImg, 0, 0, width, height)
+
+            // Convertir a base64
+            const imgData = canvas.toDataURL("image/jpeg", 0.8)
+
+            // Verificar si necesitamos una nueva página
+            if (yPosition + height > 270) {
+              pdf.addPage()
+              yPosition = 20
+              pdf.setFont("helvetica", "bold")
+              pdf.setFontSize(12)
+              pdf.text("COMPROBANTE DE PAGO (continuación)", 20, yPosition)
+              yPosition += 10
+            }
+
+            // Agregar imagen al PDF
+            pdf.addImage(imgData, "JPEG", 20, yPosition, width, height)
+            yPosition += height + 10
+
+            // Liberar el objeto URL
+            URL.revokeObjectURL(imageUrl)
+
+            console.log("✅ Imagen agregada al PDF correctamente")
+          } catch (imageError) {
+            console.error("❌ Error al cargar imagen para PDF:", imageError)
+
+            // Si falla la imagen, agregar texto indicativo
+            pdf.setFont("helvetica", "italic")
+            pdf.setFontSize(10)
+            pdf.text("⚠️ No se pudo cargar el comprobante de pago en el PDF", 20, yPosition)
+            pdf.text(`URL: ${orden.pago.imagen.substring(0, 60)}...`, 20, yPosition + 5)
+            yPosition += 15
+          }
+        }
       } else {
         pdf.setFont("helvetica", "bold")
         pdf.setFontSize(14)
@@ -193,221 +351,236 @@ export default function OrdenDetalleModal({ orden, onClose }) {
       pdf.save(fileName)
     } catch (error) {
       console.error("Error generando PDF:", error)
-      alert("Error al generar el PDF")
+      alert("Error al generar el PDF: " + error.message)
+    } finally {
+      setIsGeneratingPDF(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div
-        ref={modalRef}
-        className="bg-gray-800 rounded-lg border-2 border-[#BF8D6B] overflow-hidden flex flex-col w-full max-w-4xl h-full max-h-[90vh]"
-      >
-        {/* Header Sticky */}
-        <div className="sticky top-0 z-10 bg-gray-800 p-4 sm:p-6 pb-2 border-b border-gray-700 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-white">Detalle de Orden</h2>
-            <p className="text-sm text-gray-300">#{orden.id}</p>
+    isOpen && (
+      <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div
+          ref={modalRef}
+          className="bg-gray-800 rounded-lg border-2 border-[#BF8D6B] overflow-hidden flex flex-col w-full max-w-4xl h-full max-h-[90vh]"
+        >
+          {/* Header Sticky */}
+          <div className="sticky top-0 z-10 bg-gray-800 p-4 sm:p-6 pb-2 border-b border-gray-700 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Detalle de Orden</h2>
+              <p className="text-sm text-gray-300">#{orden.id}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Botón Descargar PDF */}
+              <button
+                onClick={downloadPDF}
+                disabled={isGeneratingPDF}
+                className={`px-3 py-2 ${
+                  isGeneratingPDF ? "bg-gray-500 cursor-not-allowed" : "bg-[#BF8D6B] hover:bg-[#A67A5B]"
+                } text-white rounded-lg transition-colors flex items-center gap-1`}
+                title="Descargar PDF"
+              >
+                {isGeneratingPDF ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                    <span className="hidden sm:inline">Generando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    <span className="hidden sm:inline">PDF</span>
+                  </>
+                )}
+              </button>
+              {/* Botón Cerrar */}
+              <button
+                onClick={() => {
+                  onClose()
+                  setIsOpen(false)
+                }}
+                className="text-[#BF8D6B] hover:text-[#A67A5B] transition-colors p-1"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Botón Descargar PDF */}
-            <button
-              onClick={downloadPDF}
-              className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#A67A5B] text-white rounded-lg transition-colors flex items-center gap-1"
-              title="Descargar PDF"
-            >
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">PDF</span>
-            </button>
-            {/* Botón Cerrar */}
-            <button
-              onClick={() => {
-                onClose()
-                setIsOpen(false)
-              }}
-              className="text-[#BF8D6B] hover:text-[#A67A5B] transition-colors p-1"
-              aria-label="Cerrar"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
 
-        {/* Contenido Scrolleable */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-4">
-          <div className="grid grid-cols-1 gap-6">
-            {/* Información de la Orden */}
-            <div className="bg-white text-black p-6 rounded-lg">
-              <div className="mb-4 border-b pb-3">
-                <div className="flex items-center mb-2">
-                  <User className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                  <h3 className="font-semibold">Datos del Cliente</h3>
+          {/* Contenido Scrolleable */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-4">
+            <div className="grid grid-cols-1 gap-6">
+              {/* Información de la Orden */}
+              <div className="bg-white text-black p-6 rounded-lg">
+                <div className="mb-4 border-b pb-3">
+                  <div className="flex items-center mb-2">
+                    <User className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                    <h3 className="font-semibold">Datos del Cliente</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-600">Nombre:</p>
+                      <p className="font-medium">{orden.nombre_cliente}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">DNI:</p>
+                      <p className="font-medium">{orden.dni_cliente}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Teléfono:</p>
+                      <p className="font-medium">{orden.telefono_cliente}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Email:</p>
+                      <p className="font-medium truncate">{orden.email_cliente}</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="text-gray-600">Nombre:</p>
-                    <p className="font-medium">{orden.nombre_cliente}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">DNI:</p>
-                    <p className="font-medium">{orden.dni_cliente}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Teléfono:</p>
-                    <p className="font-medium">{orden.telefono_cliente}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Email:</p>
-                    <p className="font-medium truncate">{orden.email_cliente}</p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="mb-4 border-b pb-3">
-                <div className="flex items-center mb-2">
-                  <Calendar className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                  <h3 className="font-semibold">Información del Evento</h3>
-                </div>
-                <div className="text-sm">
-                  <p className="font-medium text-lg">{getEventoNombre()}</p>
-                  <p className="text-gray-600 mt-1">
-                    <strong>Fecha de creación:</strong> {formatFecha(orden.fecha_creacion)}
-                  </p>
-                  {orden.fecha_pago && (
-                    <p className="text-gray-600">
-                      <strong>Fecha de pago:</strong> {formatFecha(orden.fecha_pago)}
+                <div className="mb-4 border-b pb-3">
+                  <div className="flex items-center mb-2">
+                    <Calendar className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                    <h3 className="font-semibold">Información del Evento</h3>
+                  </div>
+                  <div className="text-sm">
+                    <p className="font-medium text-lg">{getEventoNombre()}</p>
+                    <p className="text-gray-600 mt-1">
+                      <strong>Fecha de creación:</strong> {formatFecha(orden.fecha_creacion)}
                     </p>
-                  )}
+                    {orden.fecha_pago && (
+                      <p className="text-gray-600">
+                        <strong>Fecha de pago:</strong> {formatFecha(orden.fecha_pago)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-4 border-b pb-3">
+                  <div className="flex items-center mb-2">
+                    <Tag className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                    <h3 className="font-semibold">Entradas</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {orden.DetalleDeOrdens?.map((detalle, index) => (
+                      <div key={detalle.id} className="bg-gray-50 p-3 rounded border">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="font-medium">{detalle.Entrada?.tipo_entrada}</p>
+                            <p className="text-sm text-gray-600">
+                              Cantidad: {detalle.cantidad} × {formatMonto(detalle.precio_unitario)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold">{formatMonto(detalle.total)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center mb-2">
+                    <FileText className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                    <h3 className="font-semibold">Resumen</h3>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total</span>
+                      <span>{formatMonto(orden.total)}</span>
+                    </div>
+                    <div className="mt-2">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          orden.pago
+                            ? "bg-green-100 text-green-800"
+                            : orden.estado === "pendiente"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {orden.pago ? "Pagado" : orden.estado}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mb-4 border-b pb-3">
-                <div className="flex items-center mb-2">
-                  <Tag className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                  <h3 className="font-semibold">Entradas</h3>
+              {/* Información del Pago */}
+              <div className="bg-white text-black p-6 rounded-lg">
+                <div className="flex items-center mb-4">
+                  <CreditCard className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                  <h3 className="font-semibold">Información del Pago</h3>
                 </div>
-                <div className="space-y-2">
-                  {orden.DetalleDeOrdens?.map((detalle, index) => (
-                    <div key={detalle.id} className="bg-gray-50 p-3 rounded border">
-                      <div className="flex justify-between items-center">
+
+                {orden.pago ? (
+                  <div className="space-y-4">
+                    <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         <div>
-                          <p className="font-medium">{detalle.Entrada?.tipo_entrada}</p>
-                          <p className="text-sm text-gray-600">
-                            Cantidad: {detalle.cantidad} × {formatMonto(detalle.precio_unitario)}
+                          <p className="text-gray-600">Estado:</p>
+                          <p className="font-medium text-green-700">{orden.pago.estatus}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Referencia:</p>
+                          <p className="font-medium">{orden.pago.referencia}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Monto:</p>
+                          <p className="font-medium">{formatMonto(orden.pago.monto)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Total:</p>
+                          <p className="font-bold text-lg">{formatMonto(orden.pago.total)}</p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-gray-600">Fecha de pago:</p>
+                          <p className="font-medium">{formatFecha(orden.pago.fecha_pago)}</p>
+                        </div>
+                        {orden.pago.descripcion && (
+                          <div className="sm:col-span-2">
+                            <p className="text-gray-600">Descripción:</p>
+                            <p className="font-medium">{orden.pago.descripcion}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Comprobante de Pago */}
+                    {orden.pago.imagen && (
+                      <div>
+                        <div className="flex items-center mb-2">
+                          <ImageIcon className="h-4 w-4 mr-2 text-[#BF8D6B]" />
+                          <h4 className="font-medium">Comprobante de Pago</h4>
+                        </div>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <ImageWithFallback
+                            src={orden.pago.imagen || "/placeholder.svg"}
+                            alt="Comprobante de pago"
+                            className="w-full h-64 object-contain bg-gray-50"
+                          />
+                        </div>
+                        {/* Debug info - remover en producción */}
+                        <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                          <p>
+                            <strong>URL:</strong> {orden.pago.imagen}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold">{formatMonto(detalle.total)}</p>
-                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center mb-2">
-                  <FileText className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                  <h3 className="font-semibold">Resumen</h3>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>{formatMonto(orden.total)}</span>
+                    )}
                   </div>
-                  <div className="mt-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        orden.pago
-                          ? "bg-green-100 text-green-800"
-                          : orden.estado === "pendiente"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {orden.pago ? "Pagado" : orden.estado}
-                    </span>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center">
+                    <CreditCard className="h-12 w-12 mx-auto mb-2 text-yellow-500" />
+                    <p className="text-yellow-700 font-medium">Pago Pendiente</p>
+                    <p className="text-yellow-600 text-sm mt-1">Esta orden aún no ha sido pagada</p>
                   </div>
-                </div>
+                )}
               </div>
-            </div>
-
-            {/* Información del Pago */}
-            <div className="bg-white text-black p-6 rounded-lg">
-              <div className="flex items-center mb-4">
-                <CreditCard className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                <h3 className="font-semibold">Información del Pago</h3>
-              </div>
-
-              {orden.pago ? (
-                <div className="space-y-4">
-                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <p className="text-gray-600">Estado:</p>
-                        <p className="font-medium text-green-700">{orden.pago.estatus}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Referencia:</p>
-                        <p className="font-medium">{orden.pago.referencia}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Monto:</p>
-                        <p className="font-medium">{formatMonto(orden.pago.monto)}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Total:</p>
-                        <p className="font-bold text-lg">{formatMonto(orden.pago.total)}</p>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <p className="text-gray-600">Fecha de pago:</p>
-                        <p className="font-medium">{formatFecha(orden.pago.fecha_pago)}</p>
-                      </div>
-                      {orden.pago.descripcion && (
-                        <div className="sm:col-span-2">
-                          <p className="text-gray-600">Descripción:</p>
-                          <p className="font-medium">{orden.pago.descripcion}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Comprobante de Pago */}
-                  {orden.pago.imagen && (
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <ImageIcon className="h-4 w-4 mr-2 text-[#BF8D6B]" />
-                        <h4 className="font-medium">Comprobante de Pago</h4>
-                      </div>
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <img
-                          src={orden.pago.imagen || "/placeholder.svg"}
-                          alt="Comprobante de pago"
-                          className="w-full h-64 object-contain bg-gray-50"
-                          onError={(e) => {
-                            e.target.style.display = "none"
-                            e.target.nextSibling.style.display = "block"
-                          }}
-                        />
-                        <div className="hidden p-4 text-center text-gray-500">
-                          <ImageIcon className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                          <p>No se pudo cargar la imagen</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg text-center">
-                  <CreditCard className="h-12 w-12 mx-auto mb-2 text-yellow-500" />
-                  <p className="text-yellow-700 font-medium">Pago Pendiente</p>
-                  <p className="text-yellow-600 text-sm mt-1">Esta orden aún no ha sido pagada</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    )
   )
 }
+
