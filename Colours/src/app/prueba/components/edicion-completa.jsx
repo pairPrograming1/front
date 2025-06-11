@@ -13,6 +13,10 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
   const [errorSalones, setErrorSalones] = useState(null);
   const [salones, setSalones] = useState([]);
   const [validationError, setValidationError] = useState(null);
+  const [usuarios, setUsuarios] = useState([]);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
+  const [errorUsuarios, setErrorUsuarios] = useState(null);
+
   const [data, setData] = useState({
     razon: punto?.razon || "",
     nombre: punto?.nombre || "",
@@ -64,6 +68,57 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
       });
     }
   }, [punto]);
+
+  // Cargar salones
+  const fetchSalones = async () => {
+    try {
+      setLoadingSalones(true);
+      const response = await fetch(`${API_URL}/api/salon?limit=100`);
+      if (!response.ok) {
+        throw new Error(`Error al obtener salones: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        const salonesActivos = result.data.filter(
+          (salon) => salon.estatus === true
+        );
+        setSalones(salonesActivos);
+      } else {
+        throw new Error(result.message || "Error al obtener los salones");
+      }
+    } catch (err) {
+      console.error("Error fetching salones:", err);
+      setErrorSalones(err.message);
+    } finally {
+      setLoadingSalones(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalones();
+  }, []);
+
+  // Cargar usuarios vendedores
+  useEffect(() => {
+    const fetchUsuarios = async () => {
+      setLoadingUsuarios(true);
+      try {
+        const res = await fetch(`${API_URL}/api/users/usuarios?`);
+        const data = await res.json();
+        // Filtrar solo usuarios con rol 'vendor'
+        const soloVendedores = Array.isArray(data)
+          ? data.filter((u) => u.rol === "vendor")
+          : [];
+        setUsuarios(soloVendedores);
+      } catch (err) {
+        setErrorUsuarios("Error al cargar usuarios");
+      } finally {
+        setLoadingUsuarios(false);
+      }
+    };
+    fetchUsuarios();
+  }, []);
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
@@ -148,35 +203,6 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
     }
     return digits;
   };
-
-  const fetchSalones = async () => {
-    try {
-      setLoadingSalones(true);
-      const response = await fetch(`${API_URL}/api/salon?limit=100`);
-      if (!response.ok) {
-        throw new Error(`Error al obtener salones: ${response.status}`);
-      }
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        const salonesActivos = result.data.filter(
-          (salon) => salon.estatus === true
-        );
-        setSalones(salonesActivos);
-      } else {
-        throw new Error(result.message || "Error al obtener los salones");
-      }
-    } catch (err) {
-      console.error("Error fetching salones:", err);
-      setErrorSalones(err.message);
-    } finally {
-      setLoadingSalones(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSalones();
-  }, []);
 
   const validateForm = () => {
     const requiredFields = ["razon", "nombre", "direccion", "cuit", "email"];
@@ -522,40 +548,77 @@ export default function ColourRosarioModal({ punto, onClose, onUpdate }) {
                         <h3 className="text-lg font-semibold text-yellow-500 mb-4">
                           Vendedores asignados
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {data.vendedoresAsignados &&
-                          data.vendedoresAsignados.length > 0 ? (
-                            data.vendedoresAsignados.map((vendedor, index) => (
-                              <div
-                                key={index}
-                                className="bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden"
-                              >
-                                <div className="p-4 h-32">
-                                  <div className="space-y-1 text-white">
-                                    <p className="font-medium">
-                                      {vendedor.nombre}
-                                    </p>
-                                    <p className="text-xs text-gray-300">
-                                      Teléfono: {vendedor.telefono}
-                                    </p>
-                                    <p className="text-xs text-gray-300">
-                                      Email: {vendedor.email}
-                                    </p>
-                                    <p className="text-xs text-gray-300">
-                                      WhatsApp: {vendedor.whatsapp}
-                                    </p>
+                        {loadingUsuarios ? (
+                          <div className="text-yellow-400 mb-4">
+                            Cargando usuarios...
+                          </div>
+                        ) : errorUsuarios ? (
+                          <div className="text-red-400 mb-4">
+                            {errorUsuarios}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {usuarios.length > 0 ? (
+                              usuarios.map((vendedor) => {
+                                const isSelected =
+                                  data.vendedoresAsignados.some(
+                                    (v) => v.id === vendedor.id
+                                  );
+                                return (
+                                  <div
+                                    key={vendedor.id}
+                                    className={`bg-gray-700 border border-yellow-600 rounded-lg overflow-hidden cursor-pointer ${
+                                      isSelected
+                                        ? "bg-yellow-700/20 border-yellow-500"
+                                        : ""
+                                    }`}
+                                    onClick={() => {
+                                      setData((prev) => ({
+                                        ...prev,
+                                        vendedoresAsignados: isSelected
+                                          ? prev.vendedoresAsignados.filter(
+                                              (v) => v.id !== vendedor.id
+                                            )
+                                          : [
+                                              ...prev.vendedoresAsignados,
+                                              vendedor,
+                                            ],
+                                      }));
+                                    }}
+                                  >
+                                    <div className="p-4 h-32">
+                                      <div className="space-y-1 text-white">
+                                        <p className="font-medium">
+                                          {vendedor.nombre}
+                                        </p>
+                                        <p className="text-xs text-gray-300">
+                                          Teléfono: {vendedor.telefono}
+                                        </p>
+                                        <p className="text-xs text-gray-300">
+                                          Email: {vendedor.email}
+                                        </p>
+                                        <p className="text-xs text-gray-300">
+                                          WhatsApp: {vendedor.whatsapp}
+                                        </p>
+                                        {isSelected && (
+                                          <span className="text-green-400 text-xs mt-1 block">
+                                            Seleccionado
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
+                                );
+                              })
+                            ) : (
+                              <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
+                                <p className="text-gray-400">
+                                  No hay vendedores disponibles
+                                </p>
                               </div>
-                            ))
-                          ) : (
-                            <div className="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 h-32 flex items-center justify-center bg-gray-700 rounded-lg border border-yellow-600">
-                              <p className="text-gray-400">
-                                No hay vendedores asignados
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
