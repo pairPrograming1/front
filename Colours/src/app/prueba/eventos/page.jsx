@@ -29,132 +29,6 @@ import apiUrls from "@/app/components/utils/apiConfig";
 import EntradasModal from "../components/entradas-modal";
 import UploadImageModal from "../components/upload-image-modal";
 
-// --- Modal Contrato ---
-function ContratoModal({ evento, onClose, onContratoSaved, API_URL }) {
-  const [numeroContrato, setNumeroContrato] = useState("");
-  const [fechaContrato, setFechaContrato] = useState("");
-  const [montoContrato, setMontoContrato] = useState("");
-  const [pdf, setPdf] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Si quieres precargar datos existentes, puedes hacer un fetch aquí
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!pdf) {
-      setError("Debes seleccionar un PDF");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("numeroContrato", numeroContrato);
-      formData.append("fechaContrato", fechaContrato);
-      formData.append("montoContrato", montoContrato);
-      formData.append("pdf", pdf);
-
-      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Error al guardar contrato");
-      onContratoSaved && onContratoSaved();
-      onClose();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-md shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <FileText className="h-5 w-5 text-yellow-400" />
-            Contrato para:{" "}
-            <span className="text-yellow-300">{evento.nombre}</span>
-          </h2>
-          <button
-            className="text-yellow-500 hover:text-yellow-300 transition-colors"
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 overflow-y-auto"
-          style={{ maxHeight: "60vh" }}
-        >
-          <div>
-            <label className="block text-sm font-medium text-yellow-400 mb-1">
-              Número de Contrato
-            </label>
-            <input
-              type="text"
-              className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
-              value={numeroContrato}
-              onChange={(e) => setNumeroContrato(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-yellow-400 mb-1">
-              Fecha de Contrato
-            </label>
-            <input
-              type="date"
-              className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
-              value={fechaContrato}
-              onChange={(e) => setFechaContrato(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-yellow-400 mb-1">
-              Monto
-            </label>
-            <input
-              type="number"
-              className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
-              value={montoContrato}
-              onChange={(e) => setMontoContrato(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-yellow-400 mb-1">
-              Archivo PDF
-            </label>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setPdf(e.target.files[0])}
-              required
-              className="file-input file-input-bordered w-full bg-gray-700 text-white border-yellow-600"
-            />
-            {pdf && <span className="text-xs text-gray-200">{pdf.name}</span>}
-          </div>
-          {error && <div className="text-red-400 text-sm">{error}</div>}
-          <button
-            type="submit"
-            className="btn btn-primary w-full"
-            disabled={loading}
-          >
-            {loading ? "Guardando..." : "Guardar Contrato"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-// --- Fin Modal Contrato ---
-
 const API_URL = apiUrls;
 
 export default function Eventos() {
@@ -179,10 +53,6 @@ export default function Eventos() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [entradasDetalle, setEntradasDetalle] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
-
-  // Estado para el modal de contrato
-  const [showContratoModal, setShowContratoModal] = useState(false);
-  const [eventoContrato, setEventoContrato] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -645,12 +515,6 @@ export default function Eventos() {
     setShowEntradasModal(true);
   };
 
-  // Modal Contrato
-  const handleContrato = (evento) => {
-    setEventoContrato(evento);
-    setShowContratoModal(true);
-  };
-
   // Obtener detalle por GET /api/evento/:id
   const handleShowDetail = async (eventoId) => {
     setLoadingDetail(true);
@@ -873,13 +737,6 @@ export default function Eventos() {
                           >
                             <Plus className="h-4 w-4" />
                           </button>
-                          <button
-                            className="btn btn-sm btn-outline btn-secondary p-1"
-                            onClick={() => handleContrato(evento)}
-                            title="Contrato"
-                          >
-                            <FileText className="h-4 w-4" />
-                          </button>
                           {evento.activo ? (
                             <button
                               className="btn btn-sm btn-outline btn-warning p-1"
@@ -1039,13 +896,6 @@ export default function Eventos() {
                             <Plus className="h-4 w-4 mr-1" />
                             <span className="text-xs">Entradas</span>
                           </button>
-                          <button
-                            className="btn btn-sm btn-outline btn-secondary flex items-center justify-center"
-                            onClick={() => handleContrato(evento)}
-                          >
-                            <FileText className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Contrato</span>
-                          </button>
                           {evento.activo ? (
                             <button
                               className="btn btn-sm btn-outline btn-warning flex items-center justify-center"
@@ -1178,19 +1028,6 @@ export default function Eventos() {
         <UploadImageModal
           onClose={() => setShowUploadModal(false)}
           API_URL={`${API_URL}/api/upload/image`}
-        />
-      )}
-
-      {/* Modal Contrato */}
-      {showContratoModal && eventoContrato && (
-        <ContratoModal
-          evento={eventoContrato}
-          onClose={() => {
-            setShowContratoModal(false);
-            setEventoContrato(null);
-          }}
-          onContratoSaved={fetchEventos}
-          API_URL={API_URL}
         />
       )}
 
