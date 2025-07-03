@@ -431,13 +431,15 @@ export default function EventoEditarModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">Editar Evento</h2>
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-2 sm:p-4 md:p-6 w-full max-w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[95vh] overflow-y-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700 z-10">
+          <h2 className="text-lg sm:text-xl font-semibold text-white">
+            Editar Evento
+          </h2>
           <button
             onClick={onClose}
-            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            className="text-yellow-500 hover:text-yellow-300 transition-colors mt-2 sm:mt-0"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
@@ -451,23 +453,23 @@ export default function EventoEditarModal({
         )}
 
         {/* Pestañas para cambiar entre formulario, imágenes y entradas */}
-        <div className="flex border-b border-gray-700 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           <button
             onClick={() => setActiveTab("info")}
-            className={`py-2 px-4 text-sm font-medium ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "info"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             Información del Evento
           </button>
           <button
             onClick={() => setActiveTab("imagenes")}
-            className={`py-2 px-4 text-sm font-medium flex items-center ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "imagenes"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             <Image className="h-4 w-4 mr-1" />
@@ -475,10 +477,10 @@ export default function EventoEditarModal({
           </button>
           <button
             onClick={() => setActiveTab("entradas")}
-            className={`py-2 px-4 text-sm font-medium flex items-center ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "entradas"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             <Users className="h-4 w-4 mr-1" />
@@ -486,10 +488,10 @@ export default function EventoEditarModal({
           </button>
           <button
             onClick={() => setActiveTab("contrato")}
-            className={`py-2 px-4 text-sm font-medium flex items-center ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "contrato"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             <FileText className="h-4 w-4 mr-1" />
@@ -1000,7 +1002,9 @@ export default function EventoEditarModal({
                   required
                   className="file-input file-input-bordered w-full bg-gray-700 text-white border-yellow-600"
                 />
-                {pdf && <span className="text-xs text-gray-200">{pdf.name}</span>}
+                {pdf && (
+                  <span className="text-xs text-gray-200">{pdf.name}</span>
+                )}
               </div>
               {errorContrato && (
                 <div className="text-red-400 text-sm">{errorContrato}</div>
