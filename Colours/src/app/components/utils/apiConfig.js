@@ -7,5 +7,6 @@ const apiUrls = {
 // Exporta ambas URLs y una por defecto (cambia manualmente aquí)
 export const API_URL_LOCAL = apiUrls.local;
 export const API_URL_PRODUCTION = apiUrls.production;
+export const API_URL_DEVELOP= apiUrls.develop
 
-export default apiUrls.develop; // ← Cambia a .local si necesitas desarrollo
+export default apiUrls.develop; // Aca se cambia a production, develop o local 
