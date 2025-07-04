@@ -8,7 +8,7 @@ import useImageFetcher from "./imageFetcher"
 
 const API_URL = apiUrls
 
-export default function PagoModal({ isOpen, onClose, orderId, total, isInline = false }) {
+export default function PagoModal({ isOpen, onClose, orderId, total, isInline = false, metodoDeCobroId }) {
   const [formData, setFormData] = useState({
     referencia: "",
     descripcion: "",
@@ -146,7 +146,7 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
 
       const paymentData = {
         ordenId: orderId,
-        metodoDeCobroId: null,
+        metodoDeCobroId: metodoDeCobroId ? metodoDeCobroId : null,
         estatus: "completado",
         referencia: formData.referencia,
         descripcion: formData.descripcion,
@@ -156,7 +156,7 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
         fecha_cancelacion: null,
         motivo_cancelacion: null,
       }
-
+      console.log(paymentData, "esto es data de pago ")
       const response = await fetch(`${API_URL}/api/payment/pago`, {
         method: "POST",
         headers: {
