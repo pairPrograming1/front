@@ -874,7 +874,7 @@ export default function Eventos() {
                       </div>
 
                       <div className="flex justify-between pt-3 mt-2 border-t">
-                        <div className="grid grid-cols-6 gap-2 w-full">
+                        <div className="grid grid-cols-2 gap-2 w-full">
                           <button
                             className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
                             onClick={() => handleEditEvento(evento)}
