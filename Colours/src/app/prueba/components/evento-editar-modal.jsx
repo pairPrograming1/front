@@ -67,6 +67,16 @@ export default function EventoEditarModal({
   const [numeroContrato, setNumeroContrato] = useState("");
   const [fechaContrato, setFechaContrato] = useState("");
   const [montoContrato, setMontoContrato] = useState("");
+  const [cantidadGraduados, setCantidadGraduados] = useState("");
+  const [minimoCenas, setMinimoCenas] = useState("");
+  const [minimoBrindis, setMinimoBrindis] = useState("");
+  const [firmantes, setFirmantes] = useState([
+    { nombre: "", apellido: "", telefono: "", mail: "" },
+  ]);
+  const [fechaFirma, setFechaFirma] = useState("");
+  const [vendedor, setVendedor] = useState("");
+  const [observaciones, setObservaciones] = useState("");
+  const [fechaSenia, setFechaSenia] = useState("");
   const [pdf, setPdf] = useState(null);
   const [loadingContrato, setLoadingContrato] = useState(false);
   const [errorContrato, setErrorContrato] = useState(null);
@@ -392,7 +402,24 @@ export default function EventoEditarModal({
     }
   };
 
-  // Manejar envío de contrato
+  // Función para manejar cambios en los firmantes
+  const handleFirmanteChange = (idx, field, value) => {
+    setFirmantes((prev) =>
+      prev.map((f, i) =>
+        i === idx ? { ...f, [field]: value } : f
+      )
+    );
+  };
+
+  const agregarFirmante = () => {
+    setFirmantes((prev) => [...prev, { nombre: "", apellido: "", telefono: "", mail: "" }]);
+  };
+
+  const eliminarFirmante = (idx) => {
+    setFirmantes((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Modifica el handleContratoSubmit para enviar los nuevos campos
   const handleContratoSubmit = async (e) => {
     e.preventDefault();
     if (!pdf) {
@@ -402,15 +429,23 @@ export default function EventoEditarModal({
     setLoadingContrato(true);
     setErrorContrato(null);
     try {
-      const formData = new FormData();
-      formData.append("numeroContrato", numeroContrato);
-      formData.append("fechaContrato", fechaContrato);
-      formData.append("montoContrato", montoContrato);
-      formData.append("pdf", pdf);
+      const formDataContrato = new FormData();
+      formDataContrato.append("numeroContrato", numeroContrato);
+      formDataContrato.append("fechaContrato", fechaContrato);
+      formDataContrato.append("montoContrato", montoContrato);
+      formDataContrato.append("cantidadGraduados", cantidadGraduados);
+      formDataContrato.append("minimoCenas", minimoCenas);
+      formDataContrato.append("minimoBrindis", minimoBrindis);
+      formDataContrato.append("fechaFirma", fechaFirma);
+      formDataContrato.append("vendedor", vendedor);
+      formDataContrato.append("observaciones", observaciones);
+      formDataContrato.append("fechaSenia", fechaSenia);
+      formDataContrato.append("pdf", pdf);
+      formDataContrato.append("firmantes", JSON.stringify(firmantes));
 
       const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
         method: "POST",
-        body: formData,
+        body: formDataContrato,
       });
       if (!res.ok) throw new Error("Error al guardar contrato");
       Swal.fire({
@@ -418,11 +453,7 @@ export default function EventoEditarModal({
         title: "Contrato guardado",
         text: "El contrato se guardó correctamente.",
       });
-      // Limpia los campos si quieres
-      setNumeroContrato("");
-      setFechaContrato("");
-      setMontoContrato("");
-      setPdf(null);
+      // No limpiar los campos para mantener los datos al volver a la pestaña
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -989,6 +1020,145 @@ export default function EventoEditarModal({
                   value={montoContrato}
                   onChange={(e) => setMontoContrato(e.target.value)}
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Cantidad de graduados
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={cantidadGraduados}
+                  onChange={(e) => setCantidadGraduados(e.target.value)}
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Mínimo de cenas
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={minimoCenas}
+                  onChange={(e) => setMinimoCenas(e.target.value)}
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Mínimo de brindis
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={minimoBrindis}
+                  onChange={(e) => setMinimoBrindis(e.target.value)}
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Firmantes
+                </label>
+                {firmantes.map((f, idx) => (
+                  <div key={idx} className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700">
+                    <div className="flex gap-2 mb-1">
+                      <input
+                        type="text"
+                        placeholder="Apellido*"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.apellido}
+                        onChange={(e) => handleFirmanteChange(idx, "apellido", e.target.value)}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nombre*"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.nombre}
+                        onChange={(e) => handleFirmanteChange(idx, "nombre", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2 mb-1">
+                      <input
+                        type="text"
+                        placeholder="Teléfono"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.telefono}
+                        onChange={(e) => handleFirmanteChange(idx, "telefono", e.target.value)}
+                      />
+                      <input
+                        type="email"
+                        placeholder="Mail"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.mail}
+                        onChange={(e) => handleFirmanteChange(idx, "mail", e.target.value)}
+                      />
+                    </div>
+                    {firmantes.length > 1 && (
+                      <button
+                        type="button"
+                        className="text-xs text-red-400 hover:text-red-200"
+                        onClick={() => eliminarFirmante(idx)}
+                      >
+                        Eliminar firmante
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="text-xs text-yellow-400 hover:text-yellow-200 mt-1"
+                  onClick={agregarFirmante}
+                >
+                  + Agregar firmante
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Fecha de firma
+                </label>
+                <input
+                  type="date"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={fechaFirma}
+                  onChange={(e) => setFechaFirma(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Vendedor
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={vendedor}
+                  onChange={(e) => setVendedor(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Observaciones
+                </label>
+                <textarea
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Fecha de seña
+                </label>
+                <input
+                  type="date"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={fechaSenia}
+                  onChange={(e) => setFechaSenia(e.target.value)}
                 />
               </div>
               <div>
