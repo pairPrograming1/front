@@ -28,8 +28,29 @@ export default function EventoModal({ onClose, onEventoAdded }) {
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
-  const [activeTab, setActiveTab] = useState("info"); // Para alternar entre "info" e "imagenes"
+  const [activeTab, setActiveTab] = useState("info"); // Para alternar entre "info", "imagenes" y "contrato"
   const [capacidadError, setCapacidadError] = useState(""); // Nuevo estado para error de capacidad
+
+  // Estado para los datos del contrato
+  const [contrato, setContrato] = useState({
+    cantidadGraduados: "",
+    minCenas: "",
+    minBrindis: "",
+    firmantes: [
+      {
+        nombre: "",
+        apellido: "",
+        telefono: "",
+        mail: "",
+        fechaFirma: "",
+      },
+    ],
+    vendedor: "",
+    observaciones: "",
+    fechaSenia: "",
+    pdf: null,
+    pdfName: "",
+  });
 
   useEffect(() => {
     const fetchSalones = async () => {
@@ -221,6 +242,67 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  // Manejar cambios en el formulario de contrato
+  const handleContratoChange = (e) => {
+    const { name, value } = e.target;
+    setContrato((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Manejar cambios en los firmantes
+  const handleFirmanteChange = (idx, e) => {
+    const { name, value } = e.target;
+    setContrato((prev) => {
+      const updated = [...prev.firmantes];
+      updated[idx][name] = value;
+      return { ...prev, firmantes: updated };
+    });
+  };
+
+  // Agregar nuevo firmante
+  const addFirmante = () => {
+    setContrato((prev) => ({
+      ...prev,
+      firmantes: [
+        ...prev.firmantes,
+        { nombre: "", apellido: "", telefono: "", mail: "", fechaFirma: "" },
+      ],
+    }));
+  };
+
+  // Eliminar firmante
+  const removeFirmante = (idx) => {
+    setContrato((prev) => {
+      const updated = prev.firmantes.filter((_, i) => i !== idx);
+      return { ...prev, firmantes: updated };
+    });
+  };
+
+  // Manejar carga de PDF
+  const handlePdfChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "application/pdf") {
+      setContrato((prev) => ({
+        ...prev,
+        pdf: file,
+        pdfName: file.name,
+      }));
+    } else {
+      setContrato((prev) => ({
+        ...prev,
+        pdf: null,
+        pdfName: "",
+      }));
+      Swal.fire({
+        icon: "error",
+        title: "Archivo inválido",
+        text: "Solo se permite cargar archivos PDF.",
+      });
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
       <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
@@ -241,7 +323,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           </div>
         )}
 
-        {/* Pestañas para cambiar entre formulario e imágenes */}
+        {/* Pestañas para cambiar entre formulario, imágenes y contrato */}
         <div className="flex border-b border-gray-700 mb-4">
           <button
             onClick={() => setActiveTab("info")}
@@ -263,6 +345,16 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           >
             <Image className="h-4 w-4 mr-1" />
             Seleccionar Imagen
+          </button>
+          <button
+            onClick={() => setActiveTab("contrato")}
+            className={`py-2 px-4 text-sm font-medium ${
+              activeTab === "contrato"
+                ? "text-yellow-500 border-b-2 border-yellow-500"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Detalle de contrato
           </button>
         </div>
 
@@ -494,7 +586,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               </button>
             </div>
           </form>
-        ) : (
+        ) : activeTab === "imagenes" ? (
           // Vista de selección de imágenes
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -572,6 +664,176 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               </button>
             </div>
           </div>
+        ) : (
+          // Formulario de Detalle de contrato
+          <form className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Cantidad de graduados
+              </label>
+              <input
+                type="number"
+                name="cantidadGraduados"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.cantidadGraduados}
+                onChange={handleContratoChange}
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Mínimo de cenas
+              </label>
+              <input
+                type="number"
+                name="minCenas"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.minCenas}
+                onChange={handleContratoChange}
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Mínimo de brindis
+              </label>
+              <input
+                type="number"
+                name="minBrindis"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.minBrindis}
+                onChange={handleContratoChange}
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Firmantes
+              </label>
+              {contrato.firmantes.map((firmante, idx) => (
+                <div
+                  key={idx}
+                  className="mb-2 p-2 border border-yellow-600 rounded-lg bg-gray-700"
+                >
+                  <div className="flex gap-2 mb-1">
+                    <input
+                      type="text"
+                      name="apellido"
+                      placeholder="Apellido*"
+                      className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2 text-white"
+                      value={firmante.apellido}
+                      onChange={(e) => handleFirmanteChange(idx, e)}
+                      required
+                    />
+                    <input
+                      type="text"
+                      name="nombre"
+                      placeholder="Nombre*"
+                      className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2 text-white"
+                      value={firmante.nombre}
+                      onChange={(e) => handleFirmanteChange(idx, e)}
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2 mb-1">
+                    <input
+                      type="tel"
+                      name="telefono"
+                      placeholder="Teléfono"
+                      className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2 text-white"
+                      value={firmante.telefono}
+                      onChange={(e) => handleFirmanteChange(idx, e)}
+                    />
+                    <input
+                      type="email"
+                      name="mail"
+                      placeholder="Mail"
+                      className="flex-1 bg-gray-800 border border-yellow-600 rounded-lg p-2 text-white"
+                      value={firmante.mail}
+                      onChange={(e) => handleFirmanteChange(idx, e)}
+                    />
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="date"
+                      name="fechaFirma"
+                      className="bg-gray-800 border border-yellow-600 rounded-lg p-2 text-white"
+                      value={firmante.fechaFirma}
+                      onChange={(e) => handleFirmanteChange(idx, e)}
+                    />
+                    {contrato.firmantes.length > 1 && (
+                      <button
+                        type="button"
+                        className="text-xs text-red-400 ml-2"
+                        onClick={() => removeFirmante(idx)}
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="mt-1 text-xs text-yellow-500 hover:text-yellow-300"
+                onClick={addFirmante}
+              >
+                + Agregar firmante
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Vendedor
+              </label>
+              <input
+                type="text"
+                name="vendedor"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.vendedor}
+                onChange={handleContratoChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Observaciones
+              </label>
+              <textarea
+                name="observaciones"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.observaciones}
+                onChange={handleContratoChange}
+                rows="2"
+              ></textarea>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Fecha de seña
+              </label>
+              <input
+                type="date"
+                name="fechaSenia"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.fechaSenia}
+                onChange={handleContratoChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Cargar PDF del contrato
+              </label>
+              <input
+                type="file"
+                accept="application/pdf"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                onChange={handlePdfChange}
+              />
+              {contrato.pdfName && (
+                <div className="text-xs text-green-400 mt-1">
+                  PDF cargado: {contrato.pdfName}
+                </div>
+              )}
+            </div>
+          </form>
         )}
       </div>
     </div>
