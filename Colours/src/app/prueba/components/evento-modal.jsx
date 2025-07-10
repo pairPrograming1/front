@@ -899,6 +899,55 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                 onChange={handleContratoChange}
               />
             </div>
+            {/* Botón para enviar el contrato */}
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                className="bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg border border-yellow-600 transition-colors flex items-center gap-2"
+                onClick={async () => {
+                  if (!contrato.eventoId) {
+                    Swal.fire({
+                      icon: "warning",
+                      title: "ID de evento requerido",
+                      text: "Por favor, ingrese el ID del evento para asociar el contrato.",
+                    });
+                    return;
+                  }
+                  try {
+                    const res = await fetch(
+                      `${API_URL}/api/evento/${contrato.eventoId}/contrato`,
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(contrato),
+                      }
+                    );
+                    if (!res.ok) {
+                      const errorData = await res.json();
+                      throw new Error(
+                        errorData.message || "Error al guardar el contrato"
+                      );
+                    }
+                    Swal.fire({
+                      icon: "success",
+                      title: "Contrato guardado",
+                      text: "El contrato se ha guardado correctamente.",
+                    });
+                  } catch (err) {
+                    Swal.fire({
+                      icon: "error",
+                      title: "Error",
+                      text: err.message,
+                    });
+                  }
+                }}
+              >
+                <Check className="h-5 w-5" />
+                <span>Guardar contrato</span>
+              </button>
+            </div>
           </form>
         )}
       </div>

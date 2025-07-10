@@ -81,6 +81,10 @@ export default function EventoEditarModal({
   const [loadingContrato, setLoadingContrato] = useState(false);
   const [errorContrato, setErrorContrato] = useState(null);
 
+  // Nuevo: Estado para el ID del contrato y para mostrar datos del contrato
+  const [contratoId, setContratoId] = useState("");
+  const [contratoData, setContratoData] = useState(null);
+
   useEffect(() => {
     if (evento) {
       const eventDate = new Date(evento.fecha);
@@ -405,14 +409,15 @@ export default function EventoEditarModal({
   // Función para manejar cambios en los firmantes
   const handleFirmanteChange = (idx, field, value) => {
     setFirmantes((prev) =>
-      prev.map((f, i) =>
-        i === idx ? { ...f, [field]: value } : f
-      )
+      prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
     );
   };
 
   const agregarFirmante = () => {
-    setFirmantes((prev) => [...prev, { nombre: "", apellido: "", telefono: "", mail: "" }]);
+    setFirmantes((prev) => [
+      ...prev,
+      { nombre: "", apellido: "", telefono: "", mail: "" },
+    ]);
   };
 
   const eliminarFirmante = (idx) => {
@@ -454,6 +459,183 @@ export default function EventoEditarModal({
         text: "El contrato se guardó correctamente.",
       });
       // No limpiar los campos para mantener los datos al volver a la pestaña
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Nuevo: Enviar contrato como JSON (POST) a la ruta indicada
+  const handleContratoJsonSubmit = async () => {
+    setLoadingContrato(true);
+    setErrorContrato(null);
+
+    // Validación básica
+    if (!numeroContrato || !fechaContrato || !montoContrato) {
+      setErrorContrato("Completa los campos obligatorios del contrato.");
+      setLoadingContrato(false);
+      return;
+    }
+
+    try {
+      const contratoJson = {
+        numeroContrato,
+        fechaContrato,
+        montoContrato: parseFloat(montoContrato),
+        cantidadGraduados: parseInt(cantidadGraduados) || 0,
+        minimoCenas: parseInt(minimoCenas) || 0,
+        minimoBrindis: parseInt(minimoBrindis) || 0,
+        firmantes,
+        fechaFirma,
+        vendedor,
+        observaciones,
+        fechaSenia,
+        pdf: "", // Si tienes una URL de PDF, ponla aquí. Si solo es archivo, omite o adapta.
+        eventoId: evento.id,
+      };
+
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(contratoJson),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al guardar contrato");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Contrato guardado",
+        text: "El contrato se guardó correctamente.",
+      });
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Obtener contrato al abrir la pestaña "contrato"
+  useEffect(() => {
+    if (activeTab === "contrato" && evento?.id && contratoId) {
+      fetchContrato();
+    }
+    // eslint-disable-next-line
+  }, [activeTab, evento?.id, contratoId]);
+
+  // Función para obtener el contrato
+  const fetchContrato = async () => {
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`
+      );
+      if (!res.ok) throw new Error("No se pudo obtener el contrato");
+      const data = await res.json();
+      setContratoData(data);
+      // Si quieres poblar los campos del formulario con los datos obtenidos:
+      setNumeroContrato(data.numeroContrato || "");
+      setFechaContrato(data.fechaContrato || "");
+      setMontoContrato(data.montoContrato || "");
+      setCantidadGraduados(data.cantidadGraduados || "");
+      setMinimoCenas(data.minimoCenas || "");
+      setMinimoBrindis(data.minimoBrindis || "");
+      setFirmantes(
+        data.firmantes || [{ nombre: "", apellido: "", telefono: "", mail: "" }]
+      );
+      setFechaFirma(data.fechaFirma || "");
+      setVendedor(data.vendedor || "");
+      setObservaciones(data.observaciones || "");
+      setFechaSenia(data.fechaSenia || "");
+      // No se puede poblar el archivo PDF directamente, pero puedes mostrar la URL si existe
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Eliminar contrato
+  const handleEliminarContrato = async () => {
+    if (!contratoId) {
+      Swal.fire({ icon: "warning", title: "ID de contrato requerido" });
+      return;
+    }
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar contrato?",
+      text: "Esta acción no se puede deshacer.",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirm.isConfirmed) return;
+
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo eliminar el contrato");
+      Swal.fire({ icon: "success", title: "Contrato eliminado" });
+      setContratoData(null);
+      setContratoId("");
+      // Limpia los campos del formulario si lo deseas
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Actualizar contrato (PUT)
+  const handleActualizarContrato = async () => {
+    if (!contratoId) {
+      setErrorContrato("ID de contrato requerido para actualizar.");
+      return;
+    }
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const contratoJson = {
+        numeroContrato,
+        fechaContrato,
+        montoContrato: parseFloat(montoContrato),
+        cantidadGraduados: parseInt(cantidadGraduados) || 0,
+        minimoCenas: parseInt(minimoCenas) || 0,
+        minimoBrindis: parseInt(minimoBrindis) || 0,
+        firmantes,
+        fechaFirma,
+        vendedor,
+        observaciones,
+        fechaSenia,
+        pdf: "", // Si tienes una URL de PDF, ponla aquí.
+        eventoId: evento.id,
+      };
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contratoJson),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al actualizar contrato");
+      }
+      Swal.fire({ icon: "success", title: "Contrato actualizado" });
+      fetchContrato();
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -986,6 +1168,31 @@ export default function EventoEditarModal({
               className="space-y-4 overflow-y-auto"
               style={{ maxHeight: "60vh" }}
             >
+              <div className="flex gap-2 items-end">
+                <input
+                  type="text"
+                  placeholder="ID de contrato"
+                  className="input input-bordered bg-gray-700 text-white border-yellow-600"
+                  value={contratoId}
+                  onChange={(e) => setContratoId(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={fetchContrato}
+                  disabled={loadingContrato || !contratoId}
+                >
+                  Obtener contrato
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleEliminarContrato}
+                  disabled={loadingContrato || !contratoId}
+                >
+                  Eliminar contrato
+                </button>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-yellow-400 mb-1">
                   Número de Contrato
@@ -1063,14 +1270,19 @@ export default function EventoEditarModal({
                   Firmantes
                 </label>
                 {firmantes.map((f, idx) => (
-                  <div key={idx} className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700">
+                  <div
+                    key={idx}
+                    className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700"
+                  >
                     <div className="flex gap-2 mb-1">
                       <input
                         type="text"
                         placeholder="Apellido*"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.apellido}
-                        onChange={(e) => handleFirmanteChange(idx, "apellido", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "apellido", e.target.value)
+                        }
                         required
                       />
                       <input
@@ -1078,7 +1290,9 @@ export default function EventoEditarModal({
                         placeholder="Nombre*"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.nombre}
-                        onChange={(e) => handleFirmanteChange(idx, "nombre", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "nombre", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -1088,14 +1302,18 @@ export default function EventoEditarModal({
                         placeholder="Teléfono"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.telefono}
-                        onChange={(e) => handleFirmanteChange(idx, "telefono", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "telefono", e.target.value)
+                        }
                       />
                       <input
                         type="email"
                         placeholder="Mail"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.mail}
-                        onChange={(e) => handleFirmanteChange(idx, "mail", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "mail", e.target.value)
+                        }
                       />
                     </div>
                     {firmantes.length > 1 && (
@@ -1179,13 +1397,31 @@ export default function EventoEditarModal({
               {errorContrato && (
                 <div className="text-red-400 text-sm">{errorContrato}</div>
               )}
-              <button
-                type="submit"
-                className="btn btn-primary w-full"
-                disabled={loadingContrato}
-              >
-                {loadingContrato ? "Guardando..." : "Guardar Contrato"}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="submit"
+                  className="btn btn-primary w-full"
+                  disabled={loadingContrato}
+                >
+                  {loadingContrato ? "Guardando..." : "Guardar Contrato (PDF)"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary w-full"
+                  disabled={loadingContrato}
+                  onClick={handleContratoJsonSubmit}
+                >
+                  {loadingContrato ? "Enviando..." : "Guardar Contrato (JSON)"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-accent w-full"
+                  disabled={loadingContrato || !contratoId}
+                  onClick={handleActualizarContrato}
+                >
+                  {loadingContrato ? "Actualizando..." : "Actualizar Contrato"}
+                </button>
+              </div>
             </form>
           )
         )}
