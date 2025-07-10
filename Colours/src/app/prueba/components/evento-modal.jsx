@@ -33,23 +33,26 @@ export default function EventoModal({ onClose, onEventoAdded }) {
 
   // Estado para los datos del contrato
   const [contrato, setContrato] = useState({
+    numeroContrato: "",
+    fechaContrato: "",
+    montoContrato: "",
     cantidadGraduados: "",
-    minCenas: "",
-    minBrindis: "",
+    minimoCenas: "",
+    minimoBrindis: "",
     firmantes: [
       {
         nombre: "",
         apellido: "",
         telefono: "",
         mail: "",
-        fechaFirma: "",
       },
     ],
+    fechaFirma: "",
     vendedor: "",
     observaciones: "",
     fechaSenia: "",
-    pdf: null,
-    pdfName: "",
+    pdf: "", // Ahora es una URL, no un archivo
+    eventoId: "",
   });
 
   useEffect(() => {
@@ -267,7 +270,7 @@ export default function EventoModal({ onClose, onEventoAdded }) {
       ...prev,
       firmantes: [
         ...prev.firmantes,
-        { nombre: "", apellido: "", telefono: "", mail: "", fechaFirma: "" },
+        { nombre: "", apellido: "", telefono: "", mail: "" },
       ],
     }));
   };
@@ -280,20 +283,20 @@ export default function EventoModal({ onClose, onEventoAdded }) {
     });
   };
 
-  // Manejar carga de PDF
+  // Manejar carga de PDF (ahora solo URL)
   const handlePdfChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type === "application/pdf") {
+      // Simulación: en un caso real deberías subir el PDF y obtener la URL
+      const fakeUrl = URL.createObjectURL(file);
       setContrato((prev) => ({
         ...prev,
-        pdf: file,
-        pdfName: file.name,
+        pdf: fakeUrl,
       }));
     } else {
       setContrato((prev) => ({
         ...prev,
-        pdf: null,
-        pdfName: "",
+        pdf: "",
       }));
       Swal.fire({
         icon: "error",
@@ -669,6 +672,44 @@ export default function EventoModal({ onClose, onEventoAdded }) {
           <form className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1 text-white">
+                Número de contrato
+              </label>
+              <input
+                type="text"
+                name="numeroContrato"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.numeroContrato}
+                onChange={handleContratoChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Fecha del contrato
+              </label>
+              <input
+                type="date"
+                name="fechaContrato"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.fechaContrato}
+                onChange={handleContratoChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Monto del contrato
+              </label>
+              <input
+                type="number"
+                name="montoContrato"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.montoContrato}
+                onChange={handleContratoChange}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
                 Cantidad de graduados
               </label>
               <input
@@ -686,9 +727,9 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               </label>
               <input
                 type="number"
-                name="minCenas"
+                name="minimoCenas"
                 className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
-                value={contrato.minCenas}
+                value={contrato.minimoCenas}
                 onChange={handleContratoChange}
                 min="0"
               />
@@ -699,9 +740,9 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               </label>
               <input
                 type="number"
-                name="minBrindis"
+                name="minimoBrindis"
                 className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
-                value={contrato.minBrindis}
+                value={contrato.minimoBrindis}
                 onChange={handleContratoChange}
                 min="0"
               />
@@ -753,24 +794,15 @@ export default function EventoModal({ onClose, onEventoAdded }) {
                       onChange={(e) => handleFirmanteChange(idx, e)}
                     />
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="date"
-                      name="fechaFirma"
-                      className="bg-gray-800 border border-yellow-600 rounded-lg p-2 text-white"
-                      value={firmante.fechaFirma}
-                      onChange={(e) => handleFirmanteChange(idx, e)}
-                    />
-                    {contrato.firmantes.length > 1 && (
-                      <button
-                        type="button"
-                        className="text-xs text-red-400 ml-2"
-                        onClick={() => removeFirmante(idx)}
-                      >
-                        Quitar
-                      </button>
-                    )}
-                  </div>
+                  {contrato.firmantes.length > 1 && (
+                    <button
+                      type="button"
+                      className="text-xs text-red-400 ml-2"
+                      onClick={() => removeFirmante(idx)}
+                    >
+                      Quitar
+                    </button>
+                  )}
                 </div>
               ))}
               <button
@@ -780,6 +812,18 @@ export default function EventoModal({ onClose, onEventoAdded }) {
               >
                 + Agregar firmante
               </button>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                Fecha de firma
+              </label>
+              <input
+                type="date"
+                name="fechaFirma"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.fechaFirma}
+                onChange={handleContratoChange}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-white">
@@ -819,19 +863,41 @@ export default function EventoModal({ onClose, onEventoAdded }) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1 text-white">
-                Cargar PDF del contrato
+                URL del PDF del contrato
               </label>
               <input
-                type="file"
-                accept="application/pdf"
+                type="url"
+                name="pdf"
+                placeholder="https://tuservidor.com/contratos/CT-2025-001.pdf"
                 className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
-                onChange={handlePdfChange}
+                value={contrato.pdf}
+                onChange={handleContratoChange}
               />
-              {contrato.pdfName && (
+              {contrato.pdf && (
                 <div className="text-xs text-green-400 mt-1">
-                  PDF cargado: {contrato.pdfName}
+                  PDF cargado:{" "}
+                  <a
+                    href={contrato.pdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    {contrato.pdf}
+                  </a>
                 </div>
               )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 text-white">
+                ID del evento (opcional)
+              </label>
+              <input
+                type="text"
+                name="eventoId"
+                className="w-full bg-gray-700 border border-yellow-600 rounded-lg p-3 text-white"
+                value={contrato.eventoId}
+                onChange={handleContratoChange}
+              />
             </div>
           </form>
         )}
