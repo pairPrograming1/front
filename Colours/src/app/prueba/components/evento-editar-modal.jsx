@@ -1464,13 +1464,6 @@ export default function EventoEditarModal({
               )}
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
-                  type="submit"
-                  className="btn btn-primary w-full"
-                  disabled={loadingContrato}
-                >
-                  {loadingContrato ? "Guardando..." : "Guardar Contrato (PDF)"}
-                </button>
-                <button
                   type="button"
                   className="btn btn-secondary w-full"
                   disabled={loadingContrato}
