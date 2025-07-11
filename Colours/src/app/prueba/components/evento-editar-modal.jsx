@@ -522,6 +522,10 @@ export default function EventoEditarModal({
 
   // Obtener contrato al abrir la pestaña "contrato"
   useEffect(() => {
+    if (activeTab === "contrato" && evento?.id) {
+      console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
+      setContratoId(evento.id); // <-- Agregado: poner el id del evento en el campo de contratoId
+    }
     if (activeTab === "contrato" && evento?.id && contratoId) {
       fetchContrato();
     }
@@ -533,27 +537,30 @@ export default function EventoEditarModal({
     setLoadingContrato(true);
     setErrorContrato(null);
     try {
-      const res = await fetch(
-        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`
-      );
+      console.log("Obteniendo contrato para evento ID:", evento.id);
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`);
       if (!res.ok) throw new Error("No se pudo obtener el contrato");
       const data = await res.json();
-      setContratoData(data);
-      // Si quieres poblar los campos del formulario con los datos obtenidos:
-      setNumeroContrato(data.numeroContrato || "");
-      setFechaContrato(data.fechaContrato || "");
-      setMontoContrato(data.montoContrato || "");
-      setCantidadGraduados(data.cantidadGraduados || "");
-      setMinimoCenas(data.minimoCenas || "");
-      setMinimoBrindis(data.minimoBrindis || "");
+      // Extraer el contrato del array data
+      const contrato = Array.isArray(data.data) ? data.data[0] : data.data;
+      setContratoData(contrato);
+      setNumeroContrato(contrato?.numeroContrato || "");
+      setFechaContrato(contrato?.fechaContrato || "");
+      setMontoContrato(contrato?.montoContrato || "");
+      setCantidadGraduados(contrato?.cantidadGraduados || "");
+      setMinimoCenas(contrato?.minimoCenas || "");
+      setMinimoBrindis(contrato?.minimoBrindis || "");
       setFirmantes(
-        data.firmantes || [{ nombre: "", apellido: "", telefono: "", mail: "" }]
+        contrato?.firmantes || [
+          { nombre: "", apellido: "", telefono: "", mail: "" },
+        ]
       );
-      setFechaFirma(data.fechaFirma || "");
-      setVendedor(data.vendedor || "");
-      setObservaciones(data.observaciones || "");
-      setFechaSenia(data.fechaSenia || "");
-      // No se puede poblar el archivo PDF directamente, pero puedes mostrar la URL si existe
+      setFechaFirma(contrato?.fechaFirma || "");
+      setVendedor(contrato?.vendedor || "");
+      setObservaciones(contrato?.observaciones || "");
+      setFechaSenia(contrato?.fechaSenia || "");
+      setContratoId(contrato?.id || "");
+      // No se puede poblar el archivo PDF directamente
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -1169,13 +1176,13 @@ export default function EventoEditarModal({
               style={{ maxHeight: "60vh" }}
             >
               <div className="flex gap-2 items-end">
-                <input
+                {/* <input
                   type="text"
                   placeholder="ID de contrato"
                   className="input input-bordered bg-gray-700 text-white border-yellow-600"
                   value={contratoId}
                   onChange={(e) => setContratoId(e.target.value)}
-                />
+                /> */}
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -1186,7 +1193,15 @@ export default function EventoEditarModal({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-danger"
+                  className="btn btn-secondary w-full"
+                  disabled={loadingContrato || !contratoId}
+                  onClick={handleActualizarContrato}
+                >
+                  {loadingContrato ? "Actualizando..." : "Actualizar Contrato"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={handleEliminarContrato}
                   disabled={loadingContrato || !contratoId}
                 >
@@ -1411,15 +1426,7 @@ export default function EventoEditarModal({
                   disabled={loadingContrato}
                   onClick={handleContratoJsonSubmit}
                 >
-                  {loadingContrato ? "Enviando..." : "Guardar Contrato (JSON)"}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-accent w-full"
-                  disabled={loadingContrato || !contratoId}
-                  onClick={handleActualizarContrato}
-                >
-                  {loadingContrato ? "Actualizando..." : "Actualizar Contrato"}
+                  {loadingContrato ? "Enviando..." : "Guardar Contrato"}
                 </button>
               </div>
             </form>
