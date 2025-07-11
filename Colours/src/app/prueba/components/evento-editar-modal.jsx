@@ -14,6 +14,7 @@ import {
   Plus,
   Trash2,
   FileText,
+  ChevronDown,
 } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
@@ -33,20 +34,17 @@ export default function EventoEditarModal({
     activo: true,
     salonId: "",
     descripcion: "",
-    image: "", // Campo para URL de imagen
+    image: "",
   });
 
   const [salones, setSalones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchingSalones, setFetchingSalones] = useState(true);
   const [error, setError] = useState(null);
-
-  // Nuevos estados para manejar imágenes
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
-  // Estados para la pestaña de entradas
-  const [activeTab, setActiveTab] = useState("info"); // info | imagenes | entradas
+  const [activeTab, setActiveTab] = useState("info");
   const [entradas, setEntradas] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState(null);
@@ -63,7 +61,7 @@ export default function EventoEditarModal({
     estatus: "",
   });
 
-  // Estado para el contrato
+  // Contrato states
   const [numeroContrato, setNumeroContrato] = useState("");
   const [fechaContrato, setFechaContrato] = useState("");
   const [montoContrato, setMontoContrato] = useState("");
@@ -80,12 +78,8 @@ export default function EventoEditarModal({
   const [pdf, setPdf] = useState(null);
   const [loadingContrato, setLoadingContrato] = useState(false);
   const [errorContrato, setErrorContrato] = useState(null);
-
-  // Nuevo: Estado para el ID del contrato y para mostrar datos del contrato
   const [contratoId, setContratoId] = useState("");
   const [contratoData, setContratoData] = useState(null);
-
-  // Nuevo estado para la URL del PDF subido
   const [pdfUrl, setPdfUrl] = useState("");
 
   useEffect(() => {
@@ -101,10 +95,9 @@ export default function EventoEditarModal({
         activo: evento.activo !== undefined ? evento.activo : true,
         salonId: evento.salonId || "",
         descripcion: evento.descripcion || "",
-        image: evento.image || "", // Inicializar con la URL de la imagen existente
+        image: evento.image || "",
       });
 
-      // Si el evento tiene una imagen, seleccionarla
       if (evento.image) {
         setSelectedImage(evento.image);
       }
@@ -126,7 +119,7 @@ export default function EventoEditarModal({
     const fetchSalones = async () => {
       try {
         setFetchingSalones(true);
-        const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentar el límite para obtener todos los salones
+        const response = await fetch(`${API_URL}/api/salon?limit=100`);
         if (!response.ok) {
           throw new Error("Error al cargar los salones");
         }
@@ -134,7 +127,6 @@ export default function EventoEditarModal({
         const data = await response.json();
         let salonesData = [];
 
-        // Manejar diferentes formatos de respuesta
         if (data.success && Array.isArray(data.data)) {
           salonesData = data.data;
         } else if (Array.isArray(data)) {
@@ -143,7 +135,6 @@ export default function EventoEditarModal({
           salonesData = data.salones;
         }
 
-        // Filtrar solo salones activos
         const activeSalones = salonesData.filter(
           (salon) =>
             salon.estatus === true ||
@@ -151,15 +142,13 @@ export default function EventoEditarModal({
             salon.activo === true
         );
 
-        // Asegurarse de que todos los salones tengan un ID válido
         const validSalones = activeSalones.filter((salon) => {
           return salon.Id || salon.id || salon._id;
         });
 
-        // Mapear los salones para normalizar la estructura
         const normalizedSalones = validSalones.map((salon) => ({
           Id: salon.Id || salon.id || salon._id,
-          nombre: salon.salon || salon.nombre || "Salón sin nombre", // Mostrar el campo 'salon'
+          nombre: salon.salon || salon.nombre || "Salón sin nombre",
           capacidad: salon.capacidad,
         }));
 
@@ -179,11 +168,9 @@ export default function EventoEditarModal({
     };
 
     fetchSalones();
-    // Cargar imágenes al iniciar el componente
     fetchImages();
   }, []);
 
-  // Función para cargar imágenes
   const fetchImages = async () => {
     setLoadingImages(true);
     setError(null);
@@ -205,7 +192,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Función para seleccionar una imagen de la galería
   const selectImage = (url) => {
     setSelectedImage(url);
     setFormData((prev) => ({
@@ -253,7 +239,7 @@ export default function EventoEditarModal({
         salonNombre:
           salones.find((salon) => salon.Id === formData.salonId)?.nombre ||
           evento.salon ||
-          "", // Mantener el salón asignado si no se selecciona uno nuevo
+          "",
       };
 
       const response = await fetch(`${API_URL}/api/evento/${evento.id}`, {
@@ -304,12 +290,10 @@ export default function EventoEditarModal({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Obtener entradas cuando se selecciona la pestaña "entradas"
   useEffect(() => {
     if (activeTab === "entradas" && evento?.id) {
       fetchEntradas();
     }
-    // eslint-disable-next-line
   }, [activeTab, evento?.id]);
 
   const fetchEntradas = async () => {
@@ -361,7 +345,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Al hacer click en editar, muestra confirmación antes de cargar los datos en el formulario de edición
   const handleEditarEntrada = async (entrada) => {
     const result = await Swal.fire({
       title: "¿Editar entrada?",
@@ -383,6 +366,44 @@ export default function EventoEditarModal({
     }
   };
 
+  const handleEntradaEditChange = (e) => {
+    const { name, value } = e.target;
+    setEntradaEdit((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleActualizarEntrada = async () => {
+    if (!editandoEntradaId) return;
+
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const body = {
+        tipo_entrada: entradaEdit.tipo,
+        precio: Number(entradaEdit.precio),
+        cantidad: Number(entradaEdit.cantidad),
+        estatus: entradaEdit.estatus,
+      };
+
+      const res = await fetch(`${API_URL}/api/entrada/${editandoEntradaId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error("No se pudo actualizar la entrada");
+
+      setEditandoEntradaId(null);
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al actualizar entrada");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
   const handleEliminarEntrada = async (entradaId) => {
     const result = await Swal.fire({
       title: "¿Eliminar entrada?",
@@ -394,6 +415,7 @@ export default function EventoEditarModal({
       reverseButtons: true,
     });
     if (!result.isConfirmed) return;
+
     setLoadingEntradas(true);
     setErrorEntradas(null);
     try {
@@ -409,7 +431,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Función para manejar cambios en los firmantes
   const handleFirmanteChange = (idx, field, value) => {
     setFirmantes((prev) =>
       prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
@@ -427,7 +448,6 @@ export default function EventoEditarModal({
     setFirmantes((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // Modifica el handleContratoSubmit para enviar los nuevos campos
   const handleContratoSubmit = async (e) => {
     e.preventDefault();
     if (!pdf) {
@@ -461,7 +481,6 @@ export default function EventoEditarModal({
         title: "Contrato guardado",
         text: "El contrato se guardó correctamente.",
       });
-      // No limpiar los campos para mantener los datos al volver a la pestaña
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -469,12 +488,10 @@ export default function EventoEditarModal({
     }
   };
 
-  // Nuevo: Enviar contrato como JSON (POST) a la ruta indicada
   const handleContratoJsonSubmit = async () => {
     setLoadingContrato(true);
     setErrorContrato(null);
 
-    // Validación básica
     if (!numeroContrato || !fechaContrato || !montoContrato) {
       setErrorContrato("Completa los campos obligatorios del contrato.");
       setLoadingContrato(false);
@@ -494,11 +511,9 @@ export default function EventoEditarModal({
         vendedor,
         observaciones,
         fechaSenia,
-        pdf: pdfUrl || "", // Ahora se envía la URL del PDF subido
+        pdf: pdfUrl || "",
         eventoId: evento.id,
       };
-
-      console.log("Enviando contrato con PDF URL:", pdfUrl); // Opcional: para depuración
 
       const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
         method: "POST",
@@ -525,18 +540,13 @@ export default function EventoEditarModal({
     }
   };
 
-  // Obtener contrato al abrir la pestaña "contrato"
   useEffect(() => {
     if (activeTab === "contrato" && evento?.id) {
       console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
-      setContratoId(evento.id); // <-- Agregado: poner el id del evento en el campo de contratoId
+      setContratoId(evento.id);
     }
-    // Elimina la llamada automática a fetchContrato en el useEffect para evitar el bucle
-    // NO LLAMES a fetchContrato aquí para evitar el bucle
-    // eslint-disable-next-line
   }, [activeTab, evento?.id]);
 
-  // Función para obtener el contrato
   const fetchContrato = async () => {
     setLoadingContrato(true);
     setErrorContrato(null);
@@ -566,7 +576,6 @@ export default function EventoEditarModal({
       }
       if (!res.ok) throw new Error("No se pudo obtener el contrato");
       const data = await res.json();
-      // Extraer el contrato del array data
       const contrato = Array.isArray(data.data) ? data.data[0] : data.data;
       if (!contrato) {
         Swal.fire({
@@ -606,7 +615,6 @@ export default function EventoEditarModal({
       setObservaciones(contrato?.observaciones || "");
       setFechaSenia(contrato?.fechaSenia || "");
       setContratoId(contrato?.id || "");
-      // No se puede poblar el archivo PDF directamente
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -614,7 +622,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Eliminar contrato
   const handleEliminarContrato = async () => {
     if (!contratoId) {
       Swal.fire({ icon: "warning", title: "ID de contrato requerido" });
@@ -643,7 +650,6 @@ export default function EventoEditarModal({
       Swal.fire({ icon: "success", title: "Contrato eliminado" });
       setContratoData(null);
       setContratoId("");
-      // Limpia los campos del formulario si lo deseas
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -651,7 +657,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Actualizar contrato (PUT)
   const handleActualizarContrato = async () => {
     if (!contratoId) {
       setErrorContrato("ID de contrato requerido para actualizar.");
@@ -672,7 +677,7 @@ export default function EventoEditarModal({
         vendedor,
         observaciones,
         fechaSenia,
-        pdf: pdfUrl || "", // Si tienes una URL de PDF, ponla aquí.
+        pdf: pdfUrl || "",
         eventoId: evento.id,
       };
       const res = await fetch(
@@ -718,14 +723,13 @@ export default function EventoEditarModal({
     }
   };
 
-  // Función para subir PDF
   const handlePdfUpload = async (file) => {
     if (!file) return;
     setLoadingContrato(true);
     setErrorContrato(null);
     try {
       const formData = new FormData();
-      formData.append("image", file); // El backend espera el campo "image"
+      formData.append("image", file);
       const res = await fetch(`${API_URL}/api/upload/image`, {
         method: "POST",
         body: formData,
@@ -733,8 +737,8 @@ export default function EventoEditarModal({
       if (!res.ok) throw new Error("Error al subir el PDF");
       const data = await res.json();
       const url = data.url || data.fileUrl || "";
-      setPdfUrl(url); // Ajusta según la respuesta de tu backend
-      console.log("URL del PDF subido:", url); // <-- Aquí el console.log solicitado
+      setPdfUrl(url);
+      console.log("URL del PDF subido:", url);
       Swal.fire({
         icon: "success",
         title: "PDF subido",
@@ -769,7 +773,6 @@ export default function EventoEditarModal({
           </div>
         )}
 
-        {/* Pestañas para cambiar entre formulario, imágenes y entradas */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           <button
             onClick={() => setActiveTab("info")}
@@ -975,30 +978,26 @@ export default function EventoEditarModal({
               </div>
             </div>
 
-            {/* Campo de URL de imagen - ahora muestra la imagen seleccionada si hay una */}
-            <div>
-              {/* Mostrar la URL actual de la imagen */}
-              {formData.image && (
-                <div className="mt-2">
-                  <div className="text-xs text-yellow-500 mb-1">
-                    URL actual de la imagen:
-                  </div>
-                  <div className="bg-gray-700 p-2 rounded-lg border border-yellow-600 text-white text-xs break-all">
-                    {formData.image}
-                  </div>
-                  <img
-                    src={formData.image}
-                    alt="Vista previa"
-                    className="h-20 rounded-lg border border-yellow-600 mt-2"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/placeholder-image.jpg";
-                      e.target.alt = "Error al cargar la imagen";
-                    }}
-                  />
+            {formData.image && (
+              <div className="mt-2">
+                <div className="text-xs text-yellow-500 mb-1">
+                  URL actual de la imagen:
                 </div>
-              )}
-            </div>
+                <div className="bg-gray-700 p-2 rounded-lg border border-yellow-600 text-white text-xs break-all">
+                  {formData.image}
+                </div>
+                <img
+                  src={formData.image}
+                  alt="Vista previa"
+                  className="h-20 rounded-lg border border-yellow-600 mt-2"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/placeholder-image.jpg";
+                    e.target.alt = "Error al cargar la imagen";
+                  }}
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1 text-white">
@@ -1030,7 +1029,6 @@ export default function EventoEditarModal({
             </button>
           </form>
         ) : activeTab === "imagenes" ? (
-          // Vista de selección de imágenes
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-white">
@@ -1044,7 +1042,6 @@ export default function EventoEditarModal({
               </button>
             </div>
 
-            {/* Mostrar la URL actual de la imagen en la pestaña de imágenes */}
             {formData.image && (
               <div className="bg-gray-700 p-3 rounded-lg border border-yellow-600 mb-4">
                 <div className="text-sm text-yellow-500 mb-1">
@@ -1120,7 +1117,6 @@ export default function EventoEditarModal({
             </div>
           </div>
         ) : activeTab === "entradas" ? (
-          // Sección de Entradas
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white mb-2">
               Entradas del Evento
@@ -1144,7 +1140,6 @@ export default function EventoEditarModal({
                         <tr className="bg-gray-700 text-yellow-500">
                           <th className="px-2 sm:px-3 py-2">Tipo</th>
                           <th className="px-2 sm:px-3 py-2">Precio</th>
-
                           <th className="px-2 sm:px-3 py-2">Estatus</th>
                           <th className="px-2 sm:px-3 py-2">Acciones</th>
                         </tr>
@@ -1177,7 +1172,6 @@ export default function EventoEditarModal({
                                   required
                                 />
                               </td>
-
                               <td className="px-3 py-2">
                                 <input
                                   type="text"
@@ -1215,7 +1209,6 @@ export default function EventoEditarModal({
                                 {entrada.tipo_entrada || entrada.tipo}
                               </td>
                               <td className="px-3 py-2">${entrada.precio}</td>
-
                               <td className="px-3 py-2">
                                 {entrada.estatus || "-"}
                               </td>
@@ -1265,7 +1258,6 @@ export default function EventoEditarModal({
             </div>
           </div>
         ) : (
-          // Sección de Contrato
           activeTab === "contrato" && (
             <form
               onSubmit={handleContratoSubmit}
@@ -1273,13 +1265,6 @@ export default function EventoEditarModal({
               style={{ maxHeight: "60vh" }}
             >
               <div className="flex gap-2 items-end">
-                {/* <input
-                  type="text"
-                  placeholder="ID de contrato"
-                  className="input input-bordered bg-gray-700 text-white border-yellow-600"
-                  value={contratoId}
-                  onChange={(e) => setContratoId(e.target.value)}
-                /> */}
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -1541,24 +1526,5 @@ export default function EventoEditarModal({
         )}
       </div>
     </div>
-  );
-}
-
-function ChevronDown(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
   );
 }
