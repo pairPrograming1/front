@@ -81,6 +81,13 @@ export default function EventoEditarModal({
   const [loadingContrato, setLoadingContrato] = useState(false);
   const [errorContrato, setErrorContrato] = useState(null);
 
+  // Nuevo: Estado para el ID del contrato y para mostrar datos del contrato
+  const [contratoId, setContratoId] = useState("");
+  const [contratoData, setContratoData] = useState(null);
+
+  // Nuevo estado para la URL del PDF subido
+  const [pdfUrl, setPdfUrl] = useState("");
+
   useEffect(() => {
     if (evento) {
       const eventDate = new Date(evento.fecha);
@@ -405,14 +412,15 @@ export default function EventoEditarModal({
   // Función para manejar cambios en los firmantes
   const handleFirmanteChange = (idx, field, value) => {
     setFirmantes((prev) =>
-      prev.map((f, i) =>
-        i === idx ? { ...f, [field]: value } : f
-      )
+      prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
     );
   };
 
   const agregarFirmante = () => {
-    setFirmantes((prev) => [...prev, { nombre: "", apellido: "", telefono: "", mail: "" }]);
+    setFirmantes((prev) => [
+      ...prev,
+      { nombre: "", apellido: "", telefono: "", mail: "" },
+    ]);
   };
 
   const eliminarFirmante = (idx) => {
@@ -454,6 +462,221 @@ export default function EventoEditarModal({
         text: "El contrato se guardó correctamente.",
       });
       // No limpiar los campos para mantener los datos al volver a la pestaña
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Nuevo: Enviar contrato como JSON (POST) a la ruta indicada
+  const handleContratoJsonSubmit = async () => {
+    setLoadingContrato(true);
+    setErrorContrato(null);
+
+    // Validación básica
+    if (!numeroContrato || !fechaContrato || !montoContrato) {
+      setErrorContrato("Completa los campos obligatorios del contrato.");
+      setLoadingContrato(false);
+      return;
+    }
+
+    try {
+      const contratoJson = {
+        numeroContrato,
+        fechaContrato,
+        montoContrato: parseFloat(montoContrato),
+        cantidadGraduados: parseInt(cantidadGraduados) || 0,
+        minimoCenas: parseInt(minimoCenas) || 0,
+        minimoBrindis: parseInt(minimoBrindis) || 0,
+        firmantes,
+        fechaFirma,
+        vendedor,
+        observaciones,
+        fechaSenia,
+        pdf: pdfUrl, // Ahora se envía la URL del PDF subido
+        eventoId: evento.id,
+      };
+
+      console.log("Enviando contrato con PDF URL:", pdfUrl); // Opcional: para depuración
+
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(contratoJson),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al guardar contrato");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Contrato guardado",
+        text: "El contrato se guardó correctamente.",
+      });
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Obtener contrato al abrir la pestaña "contrato"
+  useEffect(() => {
+    if (activeTab === "contrato" && evento?.id) {
+      console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
+      setContratoId(evento.id); // <-- Agregado: poner el id del evento en el campo de contratoId
+    }
+    if (activeTab === "contrato" && evento?.id && contratoId) {
+      fetchContrato();
+    }
+    // eslint-disable-next-line
+  }, [activeTab, evento?.id, contratoId]);
+
+  // Función para obtener el contrato
+  const fetchContrato = async () => {
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      console.log("Obteniendo contrato para evento ID:", evento.id);
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`);
+      if (!res.ok) throw new Error("No se pudo obtener el contrato");
+      const data = await res.json();
+      // Extraer el contrato del array data
+      const contrato = Array.isArray(data.data) ? data.data[0] : data.data;
+      setContratoData(contrato);
+      setNumeroContrato(contrato?.numeroContrato || "");
+      setFechaContrato(contrato?.fechaContrato || "");
+      setMontoContrato(contrato?.montoContrato || "");
+      setCantidadGraduados(contrato?.cantidadGraduados || "");
+      setMinimoCenas(contrato?.minimoCenas || "");
+      setMinimoBrindis(contrato?.minimoBrindis || "");
+      setFirmantes(
+        contrato?.firmantes || [
+          { nombre: "", apellido: "", telefono: "", mail: "" },
+        ]
+      );
+      setFechaFirma(contrato?.fechaFirma || "");
+      setVendedor(contrato?.vendedor || "");
+      setObservaciones(contrato?.observaciones || "");
+      setFechaSenia(contrato?.fechaSenia || "");
+      setContratoId(contrato?.id || "");
+      // No se puede poblar el archivo PDF directamente
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Eliminar contrato
+  const handleEliminarContrato = async () => {
+    if (!contratoId) {
+      Swal.fire({ icon: "warning", title: "ID de contrato requerido" });
+      return;
+    }
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar contrato?",
+      text: "Esta acción no se puede deshacer.",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirm.isConfirmed) return;
+
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo eliminar el contrato");
+      Swal.fire({ icon: "success", title: "Contrato eliminado" });
+      setContratoData(null);
+      setContratoId("");
+      // Limpia los campos del formulario si lo deseas
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Actualizar contrato (PUT)
+  const handleActualizarContrato = async () => {
+    if (!contratoId) {
+      setErrorContrato("ID de contrato requerido para actualizar.");
+      return;
+    }
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const contratoJson = {
+        numeroContrato,
+        fechaContrato,
+        montoContrato: parseFloat(montoContrato),
+        cantidadGraduados: parseInt(cantidadGraduados) || 0,
+        minimoCenas: parseInt(minimoCenas) || 0,
+        minimoBrindis: parseInt(minimoBrindis) || 0,
+        firmantes,
+        fechaFirma,
+        vendedor,
+        observaciones,
+        fechaSenia,
+        pdf: "", // Si tienes una URL de PDF, ponla aquí.
+        eventoId: evento.id,
+      };
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contratoJson),
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al actualizar contrato");
+      }
+      Swal.fire({ icon: "success", title: "Contrato actualizado" });
+      fetchContrato();
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Función para subir PDF
+  const handlePdfUpload = async (file) => {
+    if (!file) return;
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", file); // El backend espera el campo "image"
+      const res = await fetch(`${API_URL}/api/upload/image`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Error al subir el PDF");
+      const data = await res.json();
+      const url = data.url || data.fileUrl || "";
+      setPdfUrl(url); // Ajusta según la respuesta de tu backend
+      console.log("URL del PDF subido:", url); // <-- Aquí el console.log solicitado
+      Swal.fire({
+        icon: "success",
+        title: "PDF subido",
+        text: "El archivo PDF se subió correctamente.",
+      });
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -986,6 +1209,39 @@ export default function EventoEditarModal({
               className="space-y-4 overflow-y-auto"
               style={{ maxHeight: "60vh" }}
             >
+              <div className="flex gap-2 items-end">
+                {/* <input
+                  type="text"
+                  placeholder="ID de contrato"
+                  className="input input-bordered bg-gray-700 text-white border-yellow-600"
+                  value={contratoId}
+                  onChange={(e) => setContratoId(e.target.value)}
+                /> */}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={fetchContrato}
+                  disabled={loadingContrato || !contratoId}
+                >
+                  Obtener contrato
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary w-full"
+                  disabled={loadingContrato || !contratoId}
+                  onClick={handleActualizarContrato}
+                >
+                  {loadingContrato ? "Actualizando..." : "Actualizar Contrato"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleEliminarContrato}
+                  disabled={loadingContrato || !contratoId}
+                >
+                  Eliminar contrato
+                </button>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-yellow-400 mb-1">
                   Número de Contrato
@@ -1063,14 +1319,19 @@ export default function EventoEditarModal({
                   Firmantes
                 </label>
                 {firmantes.map((f, idx) => (
-                  <div key={idx} className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700">
+                  <div
+                    key={idx}
+                    className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700"
+                  >
                     <div className="flex gap-2 mb-1">
                       <input
                         type="text"
                         placeholder="Apellido*"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.apellido}
-                        onChange={(e) => handleFirmanteChange(idx, "apellido", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "apellido", e.target.value)
+                        }
                         required
                       />
                       <input
@@ -1078,7 +1339,9 @@ export default function EventoEditarModal({
                         placeholder="Nombre*"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.nombre}
-                        onChange={(e) => handleFirmanteChange(idx, "nombre", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "nombre", e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -1088,14 +1351,18 @@ export default function EventoEditarModal({
                         placeholder="Teléfono"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.telefono}
-                        onChange={(e) => handleFirmanteChange(idx, "telefono", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "telefono", e.target.value)
+                        }
                       />
                       <input
                         type="email"
                         placeholder="Mail"
                         className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
                         value={f.mail}
-                        onChange={(e) => handleFirmanteChange(idx, "mail", e.target.value)}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "mail", e.target.value)
+                        }
                       />
                     </div>
                     {firmantes.length > 1 && (
@@ -1168,24 +1435,50 @@ export default function EventoEditarModal({
                 <input
                   type="file"
                   accept="application/pdf"
-                  onChange={(e) => setPdf(e.target.files[0])}
+                  onChange={(e) => {
+                    setPdf(e.target.files[0]);
+                    handlePdfUpload(e.target.files[0]);
+                  }}
                   required
                   className="file-input file-input-bordered w-full bg-gray-700 text-white border-yellow-600"
                 />
                 {pdf && (
                   <span className="text-xs text-gray-200">{pdf.name}</span>
                 )}
+                {pdfUrl && (
+                  <div className="text-xs text-green-400 mt-1">
+                    PDF subido:{" "}
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {pdfUrl}
+                    </a>
+                  </div>
+                )}
               </div>
               {errorContrato && (
                 <div className="text-red-400 text-sm">{errorContrato}</div>
               )}
-              <button
-                type="submit"
-                className="btn btn-primary w-full"
-                disabled={loadingContrato}
-              >
-                {loadingContrato ? "Guardando..." : "Guardar Contrato"}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="submit"
+                  className="btn btn-primary w-full"
+                  disabled={loadingContrato}
+                >
+                  {loadingContrato ? "Guardando..." : "Guardar Contrato (PDF)"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary w-full"
+                  disabled={loadingContrato}
+                  onClick={handleContratoJsonSubmit}
+                >
+                  {loadingContrato ? "Enviando..." : "Guardar Contrato"}
+                </button>
+              </div>
             </form>
           )
         )}
