@@ -494,7 +494,7 @@ export default function EventoEditarModal({
         vendedor,
         observaciones,
         fechaSenia,
-        pdf: pdfUrl, // Ahora se envía la URL del PDF subido
+        pdf: pdfUrl || "", // Ahora se envía la URL del PDF subido
         eventoId: evento.id,
       };
 
@@ -531,11 +531,10 @@ export default function EventoEditarModal({
       console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
       setContratoId(evento.id); // <-- Agregado: poner el id del evento en el campo de contratoId
     }
-    if (activeTab === "contrato" && evento?.id && contratoId) {
-      fetchContrato();
-    }
+    // Elimina la llamada automática a fetchContrato en el useEffect para evitar el bucle
+    // NO LLAMES a fetchContrato aquí para evitar el bucle
     // eslint-disable-next-line
-  }, [activeTab, evento?.id, contratoId]);
+  }, [activeTab, evento?.id]);
 
   // Función para obtener el contrato
   const fetchContrato = async () => {
@@ -544,10 +543,52 @@ export default function EventoEditarModal({
     try {
       console.log("Obteniendo contrato para evento ID:", evento.id);
       const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`);
+      if (res.status === 400) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sin contrato",
+          text: "No hay ningún contrato registrado para este evento.",
+        });
+        setContratoData(null);
+        setNumeroContrato("");
+        setFechaContrato("");
+        setMontoContrato("");
+        setCantidadGraduados("");
+        setMinimoCenas("");
+        setMinimoBrindis("");
+        setFirmantes([{ nombre: "", apellido: "", telefono: "", mail: "" }]);
+        setFechaFirma("");
+        setVendedor("");
+        setObservaciones("");
+        setFechaSenia("");
+        setContratoId("");
+        return;
+      }
       if (!res.ok) throw new Error("No se pudo obtener el contrato");
       const data = await res.json();
       // Extraer el contrato del array data
       const contrato = Array.isArray(data.data) ? data.data[0] : data.data;
+      if (!contrato) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sin contrato",
+          text: "No hay ningún contrato registrado para este evento.",
+        });
+        setContratoData(null);
+        setNumeroContrato("");
+        setFechaContrato("");
+        setMontoContrato("");
+        setCantidadGraduados("");
+        setMinimoCenas("");
+        setMinimoBrindis("");
+        setFirmantes([{ nombre: "", apellido: "", telefono: "", mail: "" }]);
+        setFechaFirma("");
+        setVendedor("");
+        setObservaciones("");
+        setFechaSenia("");
+        setContratoId("");
+        return;
+      }
       setContratoData(contrato);
       setNumeroContrato(contrato?.numeroContrato || "");
       setFechaContrato(contrato?.fechaContrato || "");
@@ -631,7 +672,7 @@ export default function EventoEditarModal({
         vendedor,
         observaciones,
         fechaSenia,
-        pdf: "", // Si tienes una URL de PDF, ponla aquí.
+        pdf: pdfUrl || "", // Si tienes una URL de PDF, ponla aquí.
         eventoId: evento.id,
       };
       const res = await fetch(
@@ -642,6 +683,28 @@ export default function EventoEditarModal({
           body: JSON.stringify(contratoJson),
         }
       );
+      if (res.status === 400) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sin contrato",
+          text: "No hay ningún contrato registrado para este evento.",
+        });
+        setContratoData(null);
+        setNumeroContrato("");
+        setFechaContrato("");
+        setMontoContrato("");
+        setCantidadGraduados("");
+        setMinimoCenas("");
+        setMinimoBrindis("");
+        setFirmantes([{ nombre: "", apellido: "", telefono: "", mail: "" }]);
+        setFechaFirma("");
+        setVendedor("");
+        setObservaciones("");
+        setFechaSenia("");
+        setContratoId("");
+        setLoadingContrato(false);
+        return;
+      }
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Error al actualizar contrato");
@@ -1445,16 +1508,17 @@ export default function EventoEditarModal({
                 {pdf && (
                   <span className="text-xs text-gray-200">{pdf.name}</span>
                 )}
-                {pdfUrl && (
+                {/* Mostrar la URL del PDF si existe */}
+                {(pdfUrl || contratoData?.pdf) && (
                   <div className="text-xs text-green-400 mt-1">
                     PDF subido:{" "}
                     <a
-                      href={pdfUrl}
+                      href={pdfUrl || contratoData?.pdf}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline"
                     >
-                      {pdfUrl}
+                      {pdfUrl || contratoData?.pdf}
                     </a>
                   </div>
                 )}
