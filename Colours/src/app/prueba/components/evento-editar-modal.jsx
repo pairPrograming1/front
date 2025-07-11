@@ -85,6 +85,9 @@ export default function EventoEditarModal({
   const [contratoId, setContratoId] = useState("");
   const [contratoData, setContratoData] = useState(null);
 
+  // Nuevo estado para la URL del PDF subido
+  const [pdfUrl, setPdfUrl] = useState("");
+
   useEffect(() => {
     if (evento) {
       const eventDate = new Date(evento.fecha);
@@ -491,9 +494,11 @@ export default function EventoEditarModal({
         vendedor,
         observaciones,
         fechaSenia,
-        pdf: "", // Si tienes una URL de PDF, ponla aquí. Si solo es archivo, omite o adapta.
+        pdf: pdfUrl, // Ahora se envía la URL del PDF subido
         eventoId: evento.id,
       };
+
+      console.log("Enviando contrato con PDF URL:", pdfUrl); // Opcional: para depuración
 
       const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
         method: "POST",
@@ -643,6 +648,35 @@ export default function EventoEditarModal({
       }
       Swal.fire({ icon: "success", title: "Contrato actualizado" });
       fetchContrato();
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  // Función para subir PDF
+  const handlePdfUpload = async (file) => {
+    if (!file) return;
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", file); // El backend espera el campo "image"
+      const res = await fetch(`${API_URL}/api/upload/image`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Error al subir el PDF");
+      const data = await res.json();
+      const url = data.url || data.fileUrl || "";
+      setPdfUrl(url); // Ajusta según la respuesta de tu backend
+      console.log("URL del PDF subido:", url); // <-- Aquí el console.log solicitado
+      Swal.fire({
+        icon: "success",
+        title: "PDF subido",
+        text: "El archivo PDF se subió correctamente.",
+      });
     } catch (err) {
       setErrorContrato(err.message);
     } finally {
@@ -1401,12 +1435,28 @@ export default function EventoEditarModal({
                 <input
                   type="file"
                   accept="application/pdf"
-                  onChange={(e) => setPdf(e.target.files[0])}
+                  onChange={(e) => {
+                    setPdf(e.target.files[0]);
+                    handlePdfUpload(e.target.files[0]);
+                  }}
                   required
                   className="file-input file-input-bordered w-full bg-gray-700 text-white border-yellow-600"
                 />
                 {pdf && (
                   <span className="text-xs text-gray-200">{pdf.name}</span>
+                )}
+                {pdfUrl && (
+                  <div className="text-xs text-green-400 mt-1">
+                    PDF subido:{" "}
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {pdfUrl}
+                    </a>
+                  </div>
                 )}
               </div>
               {errorContrato && (
