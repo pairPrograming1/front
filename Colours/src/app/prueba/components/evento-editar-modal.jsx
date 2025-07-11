@@ -1508,7 +1508,7 @@ export default function EventoEditarModal({
                 {pdf && (
                   <span className="text-xs text-gray-200">{pdf.name}</span>
                 )}
-                {/* Mostrar la URL del PDF si existe */}
+
                 {(pdfUrl || contratoData?.pdf) && (
                   <div className="text-xs text-green-400 mt-1">
                     PDF subido:{" "}
