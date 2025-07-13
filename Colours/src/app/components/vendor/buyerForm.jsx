@@ -21,7 +21,7 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
 
   useEffect(() => {
     setMounted(true)
-
+    
     
     const storedRole = localStorage.getItem("b")
     if (storedRole) {

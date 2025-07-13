@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import apiUrls from "@/app/components/utils/apiConfig"
 import { ImageOff } from "lucide-react"
+import useUserRoleFromLocalStorage from "../hook/userRoleFromLocalstorage"
 
 export default function EventDetailPage({ params }) {
   const API_URL = apiUrls
@@ -13,7 +14,7 @@ export default function EventDetailPage({ params }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [imageError, setImageError] = useState(false)
-  const userRole= localStorage.getItem("b")
+  const { userRole }= useUserRoleFromLocalStorage ();
 
   useEffect(() => {
     setMounted(true)
@@ -167,8 +168,9 @@ export default function EventDetailPage({ params }) {
 
         <button
           onClick={() => { 
+            if(userRole){
             const path = userRole === "admin" ? `/prueba/vender/${eventId}/buy` : `/vendor/event/${eventId}/buy`
-                      router.push(path)
+                      router.push(path) }
           }}
           className="w-full py-3 bg-[#c28b5b] text-white rounded-md font-medium hover:bg-[#b37a4a] transition-colors"
         >

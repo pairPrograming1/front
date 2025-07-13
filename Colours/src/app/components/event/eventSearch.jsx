@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import apiUrls from "@/app/components/utils/apiConfig"
+import useUserRoleFromLocalStorage from "../hook/userRoleFromLocalstorage"
 
 const API_URL = apiUrls
 
@@ -26,9 +27,10 @@ export default function EventSearchPage() {
   const [totalPages, setTotalPages] = useState(1)
   const eventsPerPage = 3
 
-  const userRole= localStorage.getItem("b")
+  const {userRole}= useUserRoleFromLocalStorage ()
 
- 
+
+  
 
 
 
