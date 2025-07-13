@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useRef, useState } from "react"
 import { X, User, Calendar, Tag, CreditCard, FileText, ImageIcon, Download } from "lucide-react"
 import { jsPDF } from "jspdf"
@@ -36,7 +35,6 @@ const ImageWithFallback = ({ src, alt, className }) => {
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#BF8D6B]"></div>
         </div>
       )}
-
       {imageError ? (
         <div className="flex flex-col items-center justify-center h-64 bg-gray-100 text-gray-500">
           <ImageIcon className="h-12 w-12 mb-2" />
@@ -124,7 +122,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
   // Función para descargar PDF con imagen
   const downloadPDF = async () => {
     setIsGeneratingPDF(true)
-
     try {
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -149,7 +146,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
       pdf.setFontSize(14)
       pdf.text("DATOS DEL CLIENTE", 20, yPosition)
       yPosition += 10
-
       pdf.setFont("helvetica", "normal")
       pdf.setFontSize(10)
       pdf.text(`Nombre: ${orden.nombre_cliente}`, 20, yPosition)
@@ -164,7 +160,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
       pdf.setFontSize(14)
       pdf.text("INFORMACIÓN DEL EVENTO", 20, yPosition)
       yPosition += 10
-
       pdf.setFont("helvetica", "normal")
       pdf.setFontSize(10)
       pdf.text(`Evento: ${getEventoNombre()}`, 20, yPosition)
@@ -181,7 +176,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
       pdf.setFontSize(14)
       pdf.text("ENTRADAS", 20, yPosition)
       yPosition += 10
-
       // Tabla de entradas
       pdf.setFont("helvetica", "bold")
       pdf.setFontSize(9)
@@ -190,11 +184,9 @@ export default function OrdenDetalleModal({ orden, onClose }) {
       pdf.text("Precio Unit.", 120, yPosition)
       pdf.text("Subtotal", 160, yPosition)
       yPosition += 5
-
       // Línea separadora
       pdf.line(20, yPosition, 190, yPosition)
       yPosition += 5
-
       pdf.setFont("helvetica", "normal")
       orden.DetalleDeOrdens?.forEach((detalle) => {
         pdf.text(detalle.Entrada?.tipo_entrada || "N/A", 20, yPosition)
@@ -203,13 +195,12 @@ export default function OrdenDetalleModal({ orden, onClose }) {
         pdf.text(formatMonto(detalle.total), 160, yPosition)
         yPosition += 6
       })
-
       yPosition += 10
 
-      // Total
+      // Total de la Orden (sin impuestos del pago)
       pdf.setFont("helvetica", "bold")
       pdf.setFontSize(12)
-      pdf.text(`TOTAL: ${formatMonto(orden.total)}`, 20, yPosition)
+      pdf.text(`TOTAL ORDEN: ${formatMonto(orden.total)}`, 20, yPosition)
       yPosition += 15
 
       // Información del Pago
@@ -218,45 +209,40 @@ export default function OrdenDetalleModal({ orden, onClose }) {
         pdf.setFontSize(14)
         pdf.text("INFORMACIÓN DEL PAGO", 20, yPosition)
         yPosition += 10
-
         pdf.setFont("helvetica", "normal")
         pdf.setFontSize(10)
         pdf.text(`Estado: ${orden.pago.estatus}`, 20, yPosition)
         pdf.text(`Referencia: ${orden.pago.referencia}`, 110, yPosition)
         yPosition += 6
-        pdf.text(`Monto: ${formatMonto(orden.pago.monto)}`, 20, yPosition)
-        pdf.text(`Total: ${formatMonto(orden.pago.total)}`, 110, yPosition)
+        pdf.text(`Monto Recibido (Base): ${formatMonto(orden.pago.monto)}`, 20, yPosition) 
+        pdf.text(`Impuestos: ${formatMonto(orden.pago.impuestos)}`, 110, yPosition) 
+        yPosition += 6
+        pdf.text(`Total Pagado: ${formatMonto(orden.pago.total)}`, 20, yPosition) 
         yPosition += 6
         pdf.text(`Fecha de pago: ${formatFecha(orden.pago.fecha_pago)}`, 20, yPosition)
-
         if (orden.pago.descripcion) {
           yPosition += 6
           pdf.text(`Descripción: ${orden.pago.descripcion}`, 20, yPosition)
         }
 
-        // ✅ AGREGAR IMAGEN DEL COMPROBANTE AL PDF
+        //  AGREGAR IMAGEN DEL COMPROBANTE AL PDF
         if (orden.pago.imagen && orden.pago.imagen.trim() !== "") {
           yPosition += 15
-
           pdf.setFont("helvetica", "bold")
           pdf.setFontSize(12)
           pdf.text("COMPROBANTE DE PAGO", 20, yPosition)
           yPosition += 10
-
           try {
             // Método alternativo para cargar la imagen y evitar problemas de CORS
-            const response = await fetch(orden.pago.imagen, { mode: "cors" })
-
+            const response = await fetch(orden.pago.imagen, { crossOrigin: "anonymous" }) 
             if (!response.ok) {
               throw new Error(`Error al cargar la imagen: ${response.status}`)
             }
-
             const blob = await response.blob()
             const imageUrl = URL.createObjectURL(blob)
 
             // Crear una nueva imagen para cargar desde el blob
             const img = new Image()
-
             // Promesa para cargar la imagen
             const loadImage = new Promise((resolve, reject) => {
               img.onload = () => resolve(img)
@@ -313,11 +299,9 @@ export default function OrdenDetalleModal({ orden, onClose }) {
 
             // Liberar el objeto URL
             URL.revokeObjectURL(imageUrl)
-
             console.log("✅ Imagen agregada al PDF correctamente")
           } catch (imageError) {
             console.error("❌ Error al cargar imagen para PDF:", imageError)
-
             // Si falla la imagen, agregar texto indicativo
             pdf.setFont("helvetica", "italic")
             pdf.setFontSize(10)
@@ -405,7 +389,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
               </button>
             </div>
           </div>
-
           {/* Contenido Scrolleable */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-4">
             <div className="grid grid-cols-1 gap-6">
@@ -435,7 +418,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                     </div>
                   </div>
                 </div>
-
                 <div className="mb-4 border-b pb-3">
                   <div className="flex items-center mb-2">
                     <Calendar className="h-5 w-5 mr-2 text-[#BF8D6B]" />
@@ -453,7 +435,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                     )}
                   </div>
                 </div>
-
                 <div className="mb-4 border-b pb-3">
                   <div className="flex items-center mb-2">
                     <Tag className="h-5 w-5 mr-2 text-[#BF8D6B]" />
@@ -477,15 +458,14 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                     ))}
                   </div>
                 </div>
-
                 <div>
                   <div className="flex items-center mb-2">
                     <FileText className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                    <h3 className="font-semibold">Resumen</h3>
+                    <h3 className="font-semibold">Resumen de Orden</h3>
                   </div>
                   <div className="bg-gray-50 p-3 rounded">
                     <div className="flex justify-between font-bold text-lg">
-                      <span>Total</span>
+                      <span>Total de la Orden</span>
                       <span>{formatMonto(orden.total)}</span>
                     </div>
                     <div className="mt-2">
@@ -504,14 +484,12 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                   </div>
                 </div>
               </div>
-
               {/* Información del Pago */}
               <div className="bg-white text-black p-6 rounded-lg">
                 <div className="flex items-center mb-4">
                   <CreditCard className="h-5 w-5 mr-2 text-[#BF8D6B]" />
                   <h3 className="font-semibold">Información del Pago</h3>
                 </div>
-
                 {orden.pago ? (
                   <div className="space-y-4">
                     <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
@@ -525,11 +503,15 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                           <p className="font-medium">{orden.pago.referencia}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Monto:</p>
+                          <p className="text-gray-600">Monto Recibido (Base):</p> 
                           <p className="font-medium">{formatMonto(orden.pago.monto)}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Total:</p>
+                          <p className="text-gray-600">Impuestos:</p> {/* ✅ Nuevo campo */}
+                          <p className="font-medium">{formatMonto(orden.pago.impuestos)}</p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <p className="text-gray-600">Total Pagado:</p> {/* ✅ Etiqueta más clara */}
                           <p className="font-bold text-lg">{formatMonto(orden.pago.total)}</p>
                         </div>
                         <div className="sm:col-span-2">
@@ -544,7 +526,6 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                         )}
                       </div>
                     </div>
-
                     {/* Comprobante de Pago */}
                     {orden.pago.imagen && (
                       <div>
@@ -583,4 +564,3 @@ export default function OrdenDetalleModal({ orden, onClose }) {
     )
   )
 }
-

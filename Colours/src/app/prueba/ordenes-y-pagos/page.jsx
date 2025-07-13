@@ -15,7 +15,7 @@ export default function OrdenesYPagos() {
   const [selectedOrden, setSelectedOrden] = useState(null)
   const [showModal, setShowModal] = useState(false)
 
-  // ✅ NUEVO: Estado para datos del usuario logueado
+
   const [currentUser, setCurrentUser] = useState(null)
 
   // Paginación
@@ -32,7 +32,7 @@ export default function OrdenesYPagos() {
     estado: "",
   })
 
-  // ✅ NUEVO: Obtener datos del usuario logueado desde localStorage
+ 
   useEffect(() => {
     try {
       const authData = localStorage.getItem("authData")
@@ -46,13 +46,13 @@ export default function OrdenesYPagos() {
     }
   }, [])
 
-  // ✅ MODIFICADO: Fetch órdenes con filtro por usuario si es vendor
+  //  Fetch órdenes con filtro por usuario si es vendedor
   const fetchOrdenes = async (page = 1) => {
     try {
       setLoading(true)
       const offset = (page - 1) * limit
 
-      // ✅ NUEVO: Construir URL con filtro de usuario si es vendor
+      // Construir URL con filtro de usuario si es vendedor
       let url = `${API_URL}/api/order/?limit=${limit}&offset=${offset}`
 
       if (currentUser && currentUser.rol === "vendor") {
@@ -76,12 +76,12 @@ export default function OrdenesYPagos() {
     }
   }
 
-  // ✅ MODIFICADO: Fetch pagos con filtro por usuario si es vendor
+  // Fetch pagos con filtro por usuario si es vendedor
   const fetchPagos = async () => {
     try {
       const url = `${API_URL}/api/payment/pago/?limit=1000&offset=0`
 
-      // Si es vendor, solo obtener pagos de sus órdenes
+      // Si es vendedor, solo obtener pagos de sus órdenes
       if (currentUser && currentUser.rol === "vendor") {
         // Primero necesitamos las órdenes del vendor para filtrar los pagos
         const ordenesResponse = await fetch(`${API_URL}/api/order/?userId=${currentUser.id}&limit=1000&offset=0`)
@@ -127,7 +127,7 @@ export default function OrdenesYPagos() {
     return "Sin evento"
   }
 
-  // ✅ NUEVO: Obtener datos del vendedor
+  //  Obtener datos del vendedor
   const getVendedorInfo = (orden) => {
     if (orden.User) {
       return {
@@ -210,7 +210,7 @@ export default function OrdenesYPagos() {
     return { totalEntradas, totalPagado }
   }
 
-  // ✅ MODIFICADO: Descargar CSV con información del vendedor
+  // Descargar CSV con información del vendedor
   const downloadCSV = () => {
     try {
       const ordenesConPago = ordenes.map(getOrdenConPago)
@@ -230,7 +230,7 @@ export default function OrdenesYPagos() {
       csvContent += `Cantidad de Pagos,${pagos.length}\n`
       csvContent += `Fecha de Reporte,${new Date().toLocaleDateString("es-ES")}\n`
 
-      // ✅ NUEVO: Agregar información del usuario que genera el reporte
+      // Agregar información del usuario que genera el reporte
       if (currentUser) {
         csvContent += `Generado por,${currentUser.nombre} (${currentUser.email})\n`
         csvContent += `Rol,${currentUser.rol}\n`
@@ -238,7 +238,7 @@ export default function OrdenesYPagos() {
 
       csvContent += "\n\n"
 
-      // ✅ MODIFICADO: Encabezado de detalles con vendedor
+      // Encabezado de detalles con vendedor
       csvContent += "DETALLE DE ÓRDENES\n"
       csvContent +=
         "Vendedor,Email Vendedor,Cliente,DNI,Email Cliente,Teléfono,Evento,Fecha Creación,Fecha Pago,Monto Orden,Estado,Referencia Pago,Monto Pagado\n"
@@ -292,7 +292,7 @@ export default function OrdenesYPagos() {
 
   const { totalEntradas, totalPagado } = calcularTotales()
 
-  // ✅ MODIFICADO: useEffect que espera a que currentUser esté disponible
+  // useEffect que espera a que currentUser esté disponible
   useEffect(() => {
     if (currentUser !== null) {
       fetchOrdenes(currentPage)
@@ -315,19 +315,7 @@ export default function OrdenesYPagos() {
     <div className="p-6">
       <Header title="Órdenes y Pagos" />
 
-      {/* ✅ NUEVO: Mostrar información del usuario logueado */}
-      {/* {currentUser && (
-        <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
-          <p className="text-blue-300 text-sm">
-            <span className="font-medium">Usuario:</span> {currentUser.nombre} ({currentUser.email}) -
-            <span className="ml-1 px-2 py-1 bg-blue-800 rounded text-xs">{currentUser.rol.toUpperCase()}</span>
-            {currentUser.rol === "vendor" && <span className="ml-2 text-blue-400">• Mostrando solo tus órdenes</span>}
-          </p>
-        </div>
-      )}
-
-      {error && <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-6">{error}</div>} */}
-
+      
       {/* Resumen Total */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4 text-center">
@@ -405,7 +393,7 @@ export default function OrdenesYPagos() {
           <table className="w-full">
             <thead className="bg-gray-700">
               <tr>
-                {/* ✅ MODIFICADO: Cambiar "Orden" por "Vendedor" */}
+              
                 <th className="px-4 py-3 text-left text-white font-medium">Vendedor</th>
                 <th className="px-4 py-3 text-left text-white font-medium">Cliente</th>
                 <th className="px-4 py-3 text-left text-white font-medium">Evento</th>
@@ -425,7 +413,7 @@ export default function OrdenesYPagos() {
                     className="hover:bg-gray-700/50 cursor-pointer transition-colors"
                     onClick={() => handleRowClick(orden)}
                   >
-                    {/* ✅ MODIFICADO: Mostrar datos del vendedor en lugar del ID de orden */}
+                   
                     <td className="px-4 py-3 text-gray-300">
                       <div>
                         <div className="font-medium">{vendedor.nombre}</div>
@@ -472,7 +460,7 @@ export default function OrdenesYPagos() {
                 onClick={() => handleRowClick(orden)}
               >
                 <div className="flex justify-between items-start mb-2">
-                  {/* ✅ MODIFICADO: Mostrar vendedor en lugar de ID de orden */}
+            
                   <div className="text-sm text-gray-400">
                     <div className="font-medium text-white">{vendedor.nombre}</div>
                     <div className="text-xs">{vendedor.email}</div>
