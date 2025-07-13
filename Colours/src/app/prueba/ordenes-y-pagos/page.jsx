@@ -316,7 +316,7 @@ export default function OrdenesYPagos() {
       <Header title="Órdenes y Pagos" />
 
       {/* ✅ NUEVO: Mostrar información del usuario logueado */}
-      {currentUser && (
+      {/* {currentUser && (
         <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
           <p className="text-blue-300 text-sm">
             <span className="font-medium">Usuario:</span> {currentUser.nombre} ({currentUser.email}) -
@@ -326,7 +326,7 @@ export default function OrdenesYPagos() {
         </div>
       )}
 
-      {error && <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-6">{error}</div>}
+      {error && <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-6">{error}</div>} */}
 
       {/* Resumen Total */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
