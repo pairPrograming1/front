@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useRef } from "react"
 import { X, CreditCard, Check, AlertCircle, Camera, FileImage } from "lucide-react"
 import Swal from "sweetalert2"
@@ -8,7 +7,16 @@ import useImageFetcher from "./imageFetcher"
 
 const API_URL = apiUrls
 
-export default function PagoModal({ isOpen, onClose, orderId, total, isInline = false, metodoDeCobroId }) {
+export default function PagoModal({
+  isOpen,
+  onClose,
+  orderId,
+  total,
+  isInline = false,
+  metodoDeCobroId,
+  // ✅ NUEVO PROP AGREGADO
+  onPaymentSuccess,
+}) {
   const [formData, setFormData] = useState({
     referencia: "",
     descripcion: "",
@@ -19,7 +27,6 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [previewImage, setPreviewImage] = useState(null)
-
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
 
@@ -35,17 +42,14 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
     })
   }
 
-  // ✅ FUNCIÓN CORREGIDA - ASEGURAR QUE SIEMPRE SEA STRING
+  // FUNCIÓN CORREGIDA - ASEGURAR QUE SIEMPRE SEA STRING
   const handleImageUpload = async (file) => {
     try {
       const previewUrl = URL.createObjectURL(file)
       setPreviewImage(previewUrl)
-
       const imageResult = await uploadImage(file)
-
-      // ✅ EXTRAER LA URL COMO STRING
+      // EXTRAER LA URL COMO STRING
       let imageUrl = ""
-
       if (typeof imageResult === "string") {
         imageUrl = imageResult
       } else if (typeof imageResult === "object" && imageResult !== null) {
@@ -53,18 +57,15 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
         imageUrl =
           imageResult.url || imageResult.secure_url || imageResult.data?.url || imageResult.data?.secure_url || ""
       }
-
-      // ✅ ASEGURAR QUE SEA STRING VÁLIDO
+      // ASEGURAR QUE SEA STRING VÁLIDO
       if (!imageUrl || typeof imageUrl !== "string") {
         throw new Error("No se pudo obtener la URL de la imagen")
       }
-
-      // ✅ GUARDAR SOLO EL STRING DE LA URL
+      // GUARDAR SOLO EL STRING DE LA URL
       setFormData({
         ...formData,
         imagen: imageUrl, // SIEMPRE STRING
       })
-
       setError(null)
       return imageUrl
     } catch (error) {
@@ -90,7 +91,6 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
     try {
       const previewUrl = URL.createObjectURL(file)
       setPreviewImage(previewUrl)
-
       await handleImageUpload(file)
       setError(null)
     } catch (error) {
@@ -118,7 +118,6 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!formData.referencia.trim()) {
       setError("La referencia es obligatoria")
       return
@@ -138,7 +137,7 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
     setError(null)
 
     try {
-      // ✅ ASEGURAR QUE IMAGEN SEA STRING O NULL
+      // ASEGURAR QUE IMAGEN SEA STRING O NULL
       const imagenFinal =
         formData.imagen && typeof formData.imagen === "string" && formData.imagen.trim() !== ""
           ? formData.imagen.trim()
@@ -151,12 +150,14 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
         referencia: formData.referencia,
         descripcion: formData.descripcion,
         montoRecibido: formData.montoRecibido,
-        imagen: imagenFinal, // ✅ SIEMPRE STRING O NULL
+        imagen: imagenFinal, // SIEMPRE STRING O NULL
         error_message: null,
         fecha_cancelacion: null,
         motivo_cancelacion: null,
       }
-      console.log(paymentData, "esto es data de pago ")
+
+      
+
       const response = await fetch(`${API_URL}/api/payment/pago`, {
         method: "POST",
         headers: {
@@ -171,8 +172,8 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
       }
 
       const result = await response.json()
-
       setSuccess(true)
+
       await Swal.fire({
         icon: "success",
         title: "¡Pago Confirmado!",
@@ -189,10 +190,14 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
         confirmButtonColor: "#BF8D6B",
       })
 
+      // ✅ EJECUTAR CALLBACK DE ÉXITO ANTES DE CERRAR
+      if (onPaymentSuccess) {
+        onPaymentSuccess()
+      }
+
       onClose()
     } catch (error) {
       setError(error.message || "No se pudo procesar el pago")
-
       Swal.fire({
         icon: "error",
         title: "Error al procesar el pago",
@@ -301,7 +306,6 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
 
           <div>
             <label className="block text-sm font-medium mb-1 text-white">Comprobante de Pago (opcional)</label>
-
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
             <input
               ref={cameraInputRef}
@@ -371,7 +375,6 @@ export default function PagoModal({ isOpen, onClose, orderId, total, isInline = 
                 {formData.imagen && <p className="text-xs text-green-400 mt-1">✓ Imagen guardada en el servidor</p>}
               </div>
             )}
-
             <p className="text-xs text-gray-400 mt-2">
               Formatos soportados: JPG, PNG, GIF. Tamaño máximo: 5MB. Se sube automáticamente a tu servidor.
             </p>
