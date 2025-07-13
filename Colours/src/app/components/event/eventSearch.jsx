@@ -55,20 +55,20 @@ export default function EventSearchPage() {
 
       // Construir la URL base para obtener todos los eventos de graduación
       const url = `${API_URL}/api/evento?activo=true&tipo=graduacion`
-      console.log("URL de carga inicial:", url)
+      
 
       const response = await fetch(url, {
         headers: {
           "Content-Type": "application/json",
         },
       })
-
+   
       if (!response.ok) {
         throw new Error(`Error de servidor: ${response.status}`)
       }
 
       const resultData = await response.json()
-
+     
       if (resultData.success && Array.isArray(resultData.data)) {
         // Guardar todos los eventos
         setAllEvents(resultData.data)
