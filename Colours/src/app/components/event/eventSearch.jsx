@@ -24,7 +24,15 @@ export default function EventSearchPage() {
   // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const eventsPerPage = 5
+  const eventsPerPage = 3
+
+  const userRole= localStorage.getItem("b")
+
+ 
+
+
+
+
 
   // Función para formatear la fecha ISO a un formato más legible
   const formatDate = (isoDate) => {
@@ -293,7 +301,9 @@ export default function EventSearchPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => router.push(`/vendor/event/${event.id}`)}
+                    onClick={() =>{
+                      const path = userRole === "admin" ? `/prueba/vender/${event.id}` : `/vendor/event/${event.id}`
+                      router.push(path)}}
                     className="px-3 py-1 bg-[#b3964c] hover:bg-[#9a7f41] text-black font-medium rounded-md transition-colors ml-auto"
                   >
                     Vender

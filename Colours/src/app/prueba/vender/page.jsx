@@ -1,8 +1,7 @@
-
 import EventSearchPage from "@/app/components/event/eventSearch"
 
 export default function Page(params) {
-  return(
-    <><EventSearchPage/></>
-  )
+    return (
+        <EventSearchPage/>
+    )
 }
