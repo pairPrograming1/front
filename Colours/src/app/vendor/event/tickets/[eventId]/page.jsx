@@ -67,7 +67,6 @@ export default function TicketPurchasePage() {
       const result = await response.json()
       if (result.message === "Métodos de pago obtenidos exitosamente" && result.data) {
         setPaymentMethods(result.data)
-        
       } else {
         throw new Error(result.error || "Error al obtener los métodos de pago")
       }
@@ -81,7 +80,6 @@ export default function TicketPurchasePage() {
 
   // Función para calcular impuestos cuando cambia el método de pago
   const handlePaymentMethodChange = (methodId) => {
-  
     setSelectedPaymentMethod(methodId)
     if (!methodId) {
       setTaxCalculation({
@@ -95,14 +93,12 @@ export default function TicketPurchasePage() {
     }
 
     const selectedMethod = paymentMethods.find((method) => method.Id === methodId)
-    
     if (selectedMethod) {
       const baseAmount = subtotal || 0
       const taxPercentage = selectedMethod.impuesto || 0
       const taxAmount = Math.round(baseAmount * (taxPercentage / 100) * 100) / 100
       const finalTotal = Math.round((baseAmount + taxAmount) * 100) / 100
 
-     
       setTaxCalculation({
         baseAmount,
         taxAmount,
@@ -116,7 +112,6 @@ export default function TicketPurchasePage() {
   // Recalcular impuestos cuando cambia el subtotal
   useEffect(() => {
     if (selectedPaymentMethod && paymentMethods.length > 0) {
-    
       handlePaymentMethodChange(selectedPaymentMethod)
     }
   }, [subtotal, selectedPaymentMethod, paymentMethods])
@@ -188,9 +183,23 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // Preparar los datos para la orden
+  // ✅ PREPARAR LOS DATOS PARA LA ORDEN CON USER ID
   const prepareOrderData = () => {
     if (!buyerData) return null
+
+    // ✅ OBTENER EL USER ID DESDE LOCALSTORAGE (RUTA CORREGIDA)
+    let userId = null
+    try {
+      const authData = localStorage.getItem("authData")
+      if (authData) {
+        const parsedAuthData = JSON.parse(authData)
+        // ✅ RUTA CORRECTA: authData.auth.user.id
+        userId = parsedAuthData?.user?.id || null
+       
+      }
+    } catch (error) {
+      console.error("Error al obtener userId desde localStorage:", error)
+    }
 
     // Crear el array de detalles con los tickets seleccionados
     const detalles = Object.entries(tickets)
@@ -205,6 +214,7 @@ export default function TicketPurchasePage() {
       })
 
     return {
+      userId: userId, // ✅ AGREGAR EL USER ID
       estado: "pendiente",
       dni_cliente: buyerData.dni,
       nombre_cliente: buyerData.name,
@@ -224,7 +234,7 @@ export default function TicketPurchasePage() {
     setOrderError(null)
 
     try {
-
+  
       const response = await fetch(`${API_URL}/api/order`, {
         method: "POST",
         headers: {
@@ -234,12 +244,10 @@ export default function TicketPurchasePage() {
       })
 
       const data = await response.json()
- 
 
       if (response.ok) {
         setOrderSuccess(true)
         const newOrderId = data.id || data.orderId || data.data?.id || data.data?.orderId
-       
 
         if (newOrderId) {
           setOrderId(newOrderId)
@@ -533,30 +541,6 @@ export default function TicketPurchasePage() {
           </span>
         </div>
 
-        {/* Debug info - temporal para verificar cálculos */}
-        {/* {selectedPaymentMethod && (
-          <div className="mb-4 p-3 bg-gray-900/50 border border-gray-600 text-gray-300 rounded text-xs">
-            <p>
-              <strong>🔍 Debug:</strong>
-            </p>
-            <p>Método: {taxCalculation.methodName}</p>
-            <p>Base: ${taxCalculation.baseAmount}</p>
-            <p>
-              Impuesto ({taxCalculation.taxPercentage}%): ${taxCalculation.taxAmount}
-            </p>
-            <p>Total: ${taxCalculation.finalTotal}</p>
-          </div>
-        )} */}
-
-        {/* Debug info - temporal para ver qué está pasando */}
-        {/* {orderId && (
-          <div className="mb-4 p-2 bg-green-900/50 border border-green-700 text-green-300 rounded text-sm">
-            <p>
-              <strong>✅ Orden creada:</strong> #{orderId}
-            </p>
-          </div>
-        )} */}
-
         {/* Botón de pago */}
         <button
           onClick={proceedToOrder}
@@ -613,6 +597,4 @@ export default function TicketPurchasePage() {
     </div>
   )
 }
-
-
 
