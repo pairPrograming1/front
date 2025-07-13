@@ -302,8 +302,9 @@ export default function EventSearchPage() {
                   </div>
                   <button
                     onClick={() =>{
+                      if(userRole){
                       const path = userRole === "admin" ? `/prueba/vender/${event.id}` : `/vendor/event/${event.id}`
-                      router.push(path)}}
+                      router.push(path)}}}
                     className="px-3 py-1 bg-[#b3964c] hover:bg-[#9a7f41] text-black font-medium rounded-md transition-colors ml-auto"
                   >
                     Vender
