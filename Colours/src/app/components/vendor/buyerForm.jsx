@@ -12,7 +12,7 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
     dni: "",
     whatsapp: "",
     email: "",
-  })
+  })    
 
   const [eventId, setEventId] = useState(eventIdFromParams || null)
 
