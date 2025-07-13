@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LucideHome, Store, Building2, CalendarDays, CreditCard, ChevronLeft, ChevronRight, User } from 'lucide-react'
+import { LucideHome, Store, Building2, CalendarDays, CreditCard, ChevronLeft, ChevronRight, User, DollarSign } from 'lucide-react'
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -124,17 +124,33 @@ export default function Sidebar() {
               {!isCollapsed && <span className="text-xs md:text-sm">Eventos</span>}
             </Link>
           </li>
+
+           <li onClick={(e) => e.stopPropagation()}>
+            <Link
+              href="/prueba/vender"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/vender") ? "text-[#C88D6B]" : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
+            >
+              <DollarSign className="h-5 w-5 mb-1" />
+              {!isCollapsed && <span className="text-xs md:text-sm">Venta</span>}
+            </Link>
+          </li>    
+
           <li onClick={(e) => e.stopPropagation()}>
             <Link
               href="/prueba/ordenes-y-pagos"
               className={`flex flex-col items-center p-3 ${
-                isActive("/prueba/cobros-y-pagos") ? "text-[#C88D6B]" : "text-gray-400 hover:text-[#C88D6B]"
+                isActive("/prueba/ordenes-y-pagos") ? "text-[#C88D6B]" : "text-gray-400 hover:text-[#C88D6B]"
               }`}
             >
               <CreditCard className="h-5 w-5 mb-1" />
               {!isCollapsed && <span className="text-xs md:text-sm">Ordenes y Pagos</span>}
             </Link>
           </li>
+
+         
+
         </ul>
       </nav>
     </div>
