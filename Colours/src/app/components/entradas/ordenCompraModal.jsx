@@ -217,7 +217,7 @@ export default function OrdenCompraModal({
                 <CreditCard className="h-4 w-4 mr-1" />
                 {showPagoModal ? "Ocultar Pago" : "Crear Pago"}
               </button>
-              <button
+              {/* <button
                 onClick={downloadPDF}
                 disabled={isGeneratingPDF}
                 className={`px-4 py-2 ${
@@ -235,7 +235,7 @@ export default function OrdenCompraModal({
                     Descargar PDF
                   </>
                 )}
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

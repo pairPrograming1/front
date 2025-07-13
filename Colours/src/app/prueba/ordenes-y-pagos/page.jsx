@@ -1,11 +1,9 @@
 "use client"
-
 import { useState, useEffect } from "react"
-import { Search, Download, Eye, FileText } from "lucide-react"
+import { Search, Download, Eye } from "lucide-react"
 import Header from "../components/header"
 import OrdenDetalleModal from "@/app/components/entradas/ordenDetalleModal"
 import apiUrls from "@/app/components/utils/apiConfig"
-import ReportePDFModal from "@/app/components/entradas/reporteModalDetalle"
 
 const API_URL = apiUrls
 
@@ -16,6 +14,9 @@ export default function OrdenesYPagos() {
   const [error, setError] = useState(null)
   const [selectedOrden, setSelectedOrden] = useState(null)
   const [showModal, setShowModal] = useState(false)
+
+  // ✅ NUEVO: Estado para datos del usuario logueado
+  const [currentUser, setCurrentUser] = useState(null)
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1)
@@ -31,12 +32,35 @@ export default function OrdenesYPagos() {
     estado: "",
   })
 
-  // Fetch órdenes
+  // ✅ NUEVO: Obtener datos del usuario logueado desde localStorage
+  useEffect(() => {
+    try {
+      const authData = localStorage.getItem("authData")
+      if (authData) {
+        const parsedAuthData = JSON.parse(authData)
+        setCurrentUser(parsedAuthData.user)
+        console.log("🔍 Usuario logueado:", parsedAuthData.user)
+      }
+    } catch (error) {
+      console.error("Error al obtener datos del usuario:", error)
+    }
+  }, [])
+
+  // ✅ MODIFICADO: Fetch órdenes con filtro por usuario si es vendor
   const fetchOrdenes = async (page = 1) => {
     try {
       setLoading(true)
       const offset = (page - 1) * limit
-      const response = await fetch(`${API_URL}/api/order/?limit=${limit}&offset=${offset}`)
+
+      // ✅ NUEVO: Construir URL con filtro de usuario si es vendor
+      let url = `${API_URL}/api/order/?limit=${limit}&offset=${offset}`
+
+      if (currentUser && currentUser.rol === "vendor") {
+        url += `&userId=${currentUser.id}`
+        console.log("🔍 Filtrando órdenes para vendor:", currentUser.id)
+      }
+
+      const response = await fetch(url)
       const data = await response.json()
 
       if (data.success) {
@@ -52,14 +76,35 @@ export default function OrdenesYPagos() {
     }
   }
 
-  // Fetch pagos
+  // ✅ MODIFICADO: Fetch pagos con filtro por usuario si es vendor
   const fetchPagos = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/payment/pago/?limit=1000&offset=0`)
-      const data = await response.json()
+      const url = `${API_URL}/api/payment/pago/?limit=1000&offset=0`
 
-      if (data.success) {
-        setPagos(data.data.pagos || [])
+      // Si es vendor, solo obtener pagos de sus órdenes
+      if (currentUser && currentUser.rol === "vendor") {
+        // Primero necesitamos las órdenes del vendor para filtrar los pagos
+        const ordenesResponse = await fetch(`${API_URL}/api/order/?userId=${currentUser.id}&limit=1000&offset=0`)
+        const ordenesData = await ordenesResponse.json()
+
+        if (ordenesData.success && ordenesData.data.ordenes) {
+          const ordenIds = ordenesData.data.ordenes.map((orden) => orden.id)
+          // Filtrar pagos solo de las órdenes del vendor
+          const response = await fetch(url)
+          const data = await response.json()
+
+          if (data.success) {
+            const pagosFiltrados = data.data.pagos?.filter((pago) => ordenIds.includes(pago.ordenId)) || []
+            setPagos(pagosFiltrados)
+          }
+        }
+      } else {
+        // Si es admin, obtener todos los pagos
+        const response = await fetch(url)
+        const data = await response.json()
+        if (data.success) {
+          setPagos(data.data.pagos || [])
+        }
       }
     } catch (err) {
       console.error("Error fetching payments:", err)
@@ -80,6 +125,20 @@ export default function OrdenesYPagos() {
       return orden.DetalleDeOrdens[0]?.Entrada?.Evento?.nombre || "Sin evento"
     }
     return "Sin evento"
+  }
+
+  // ✅ NUEVO: Obtener datos del vendedor
+  const getVendedorInfo = (orden) => {
+    if (orden.User) {
+      return {
+        nombre: orden.User.nombre || "Sin nombre",
+        email: orden.User.email || "Sin email",
+      }
+    }
+    return {
+      nombre: "Sin vendedor",
+      email: "Sin email",
+    }
   }
 
   // Formatear fecha
@@ -106,7 +165,6 @@ export default function OrdenesYPagos() {
         </span>
       )
     }
-
     switch (estado) {
       case "pendiente":
         return (
@@ -149,11 +207,10 @@ export default function OrdenesYPagos() {
     const totalPagado = ordenesConPago
       .filter((orden) => orden.pago)
       .reduce((sum, orden) => sum + Number.parseFloat(orden.pago.total || 0), 0)
-
     return { totalEntradas, totalPagado }
   }
 
-  // Descargar CSV con resumen y detalles
+  // ✅ MODIFICADO: Descargar CSV con información del vendedor
   const downloadCSV = () => {
     try {
       const ordenesConPago = ordenes.map(getOrdenConPago)
@@ -172,16 +229,24 @@ export default function OrdenesYPagos() {
       csvContent += `Cantidad de Órdenes,${totalOrdenes}\n`
       csvContent += `Cantidad de Pagos,${pagos.length}\n`
       csvContent += `Fecha de Reporte,${new Date().toLocaleDateString("es-ES")}\n`
+
+      // ✅ NUEVO: Agregar información del usuario que genera el reporte
+      if (currentUser) {
+        csvContent += `Generado por,${currentUser.nombre} (${currentUser.email})\n`
+        csvContent += `Rol,${currentUser.rol}\n`
+      }
+
       csvContent += "\n\n"
 
-      // Encabezado de detalles
+      // ✅ MODIFICADO: Encabezado de detalles con vendedor
       csvContent += "DETALLE DE ÓRDENES\n"
       csvContent +=
-        "ID Orden,Cliente,DNI,Email,Teléfono,Evento,Fecha Creación,Fecha Pago,Monto Orden,Estado,Referencia Pago,Monto Pagado\n"
+        "Vendedor,Email Vendedor,Cliente,DNI,Email Cliente,Teléfono,Evento,Fecha Creación,Fecha Pago,Monto Orden,Estado,Referencia Pago,Monto Pagado\n"
 
       // Datos de las órdenes
       ordenesConPago.forEach((orden) => {
         const evento = getEventoNombre(orden)
+        const vendedor = getVendedorInfo(orden)
         const fechaCreacion = formatFecha(orden.fecha_creacion)
         const fechaPago = orden.pago ? formatFecha(orden.pago.fecha_pago) : "Sin pago"
         const estado = orden.pago ? "Pagado" : orden.estado
@@ -194,7 +259,8 @@ export default function OrdenesYPagos() {
           return `"${String(str).replace(/"/g, '""')}"`
         }
 
-        csvContent += `${escapeCsv(orden.id.slice(0, 8))},`
+        csvContent += `${escapeCsv(vendedor.nombre)},`
+        csvContent += `${escapeCsv(vendedor.email)},`
         csvContent += `${escapeCsv(orden.nombre_cliente)},`
         csvContent += `${escapeCsv(orden.dni_cliente)},`
         csvContent += `${escapeCsv(orden.email_cliente)},`
@@ -212,11 +278,9 @@ export default function OrdenesYPagos() {
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
       const link = document.createElement("a")
       const url = URL.createObjectURL(blob)
-
       link.setAttribute("href", url)
       link.setAttribute("download", `ordenes_y_pagos_${new Date().toISOString().slice(0, 10)}.csv`)
       link.style.visibility = "hidden"
-
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -228,10 +292,13 @@ export default function OrdenesYPagos() {
 
   const { totalEntradas, totalPagado } = calcularTotales()
 
+  // ✅ MODIFICADO: useEffect que espera a que currentUser esté disponible
   useEffect(() => {
-    fetchOrdenes(currentPage)
-    fetchPagos()
-  }, [currentPage])
+    if (currentUser !== null) {
+      fetchOrdenes(currentPage)
+      fetchPagos()
+    }
+  }, [currentPage, currentUser])
 
   if (loading && ordenes.length === 0) {
     return (
@@ -247,6 +314,17 @@ export default function OrdenesYPagos() {
   return (
     <div className="p-6">
       <Header title="Órdenes y Pagos" />
+
+      {/* ✅ NUEVO: Mostrar información del usuario logueado */}
+      {currentUser && (
+        <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700 rounded-lg">
+          <p className="text-blue-300 text-sm">
+            <span className="font-medium">Usuario:</span> {currentUser.nombre} ({currentUser.email}) -
+            <span className="ml-1 px-2 py-1 bg-blue-800 rounded text-xs">{currentUser.rol.toUpperCase()}</span>
+            {currentUser.rol === "vendor" && <span className="ml-2 text-blue-400">• Mostrando solo tus órdenes</span>}
+          </p>
+        </div>
+      )}
 
       {error && <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-6">{error}</div>}
 
@@ -281,7 +359,6 @@ export default function OrdenesYPagos() {
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
-
         <div className="w-full sm:w-1/5">
           <input
             type="date"
@@ -290,7 +367,6 @@ export default function OrdenesYPagos() {
             className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
           />
         </div>
-
         <div className="w-full sm:w-1/5">
           <input
             type="date"
@@ -299,7 +375,6 @@ export default function OrdenesYPagos() {
             className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
           />
         </div>
-
         <div className="w-full sm:w-1/5">
           <select
             value={filters.estado}
@@ -312,7 +387,6 @@ export default function OrdenesYPagos() {
             <option value="cancelado">Cancelado</option>
           </select>
         </div>
-
         <div className="flex gap-2">
           <button
             onClick={downloadCSV}
@@ -331,7 +405,8 @@ export default function OrdenesYPagos() {
           <table className="w-full">
             <thead className="bg-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-white font-medium">Orden</th>
+                {/* ✅ MODIFICADO: Cambiar "Orden" por "Vendedor" */}
+                <th className="px-4 py-3 text-left text-white font-medium">Vendedor</th>
                 <th className="px-4 py-3 text-left text-white font-medium">Cliente</th>
                 <th className="px-4 py-3 text-left text-white font-medium">Evento</th>
                 <th className="px-4 py-3 text-left text-white font-medium">Fecha</th>
@@ -343,14 +418,19 @@ export default function OrdenesYPagos() {
             <tbody className="divide-y divide-gray-700">
               {ordenes.map((orden) => {
                 const ordenConPago = getOrdenConPago(orden)
+                const vendedor = getVendedorInfo(orden)
                 return (
                   <tr
                     key={orden.id}
                     className="hover:bg-gray-700/50 cursor-pointer transition-colors"
                     onClick={() => handleRowClick(orden)}
                   >
+                    {/* ✅ MODIFICADO: Mostrar datos del vendedor en lugar del ID de orden */}
                     <td className="px-4 py-3 text-gray-300">
-                      <div className="font-mono text-sm">#{orden.id.slice(0, 8)}...</div>
+                      <div>
+                        <div className="font-medium">{vendedor.nombre}</div>
+                        <div className="text-sm text-gray-500">{vendedor.email}</div>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-300">
                       <div>
@@ -384,6 +464,7 @@ export default function OrdenesYPagos() {
         <div className="md:hidden divide-y divide-gray-700">
           {ordenes.map((orden) => {
             const ordenConPago = getOrdenConPago(orden)
+            const vendedor = getVendedorInfo(orden)
             return (
               <div
                 key={orden.id}
@@ -391,15 +472,17 @@ export default function OrdenesYPagos() {
                 onClick={() => handleRowClick(orden)}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <div className="font-mono text-sm text-gray-400">#{orden.id.slice(0, 8)}...</div>
+                  {/* ✅ MODIFICADO: Mostrar vendedor en lugar de ID de orden */}
+                  <div className="text-sm text-gray-400">
+                    <div className="font-medium text-white">{vendedor.nombre}</div>
+                    <div className="text-xs">{vendedor.email}</div>
+                  </div>
                   <div>{getEstadoBadge(orden.estado, ordenConPago.pago)}</div>
                 </div>
-
                 <div className="mb-2">
                   <div className="font-medium text-white">{getEventoNombre(orden)}</div>
                   <div className="text-sm text-gray-400">{formatFecha(orden.fecha_creacion)}</div>
                 </div>
-
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="text-sm text-gray-400">{orden.nombre_cliente}</div>
@@ -407,7 +490,6 @@ export default function OrdenesYPagos() {
                   </div>
                   <div className="text-white font-medium">{formatMonto(orden.total)}</div>
                 </div>
-
                 <div className="mt-3 flex justify-end">
                   <button
                     onClick={(e) => {
@@ -424,9 +506,10 @@ export default function OrdenesYPagos() {
             )
           })}
         </div>
-
         {ordenes.length === 0 && !loading && (
-          <div className="text-center py-12 text-gray-400">No se encontraron órdenes</div>
+          <div className="text-center py-12 text-gray-400">
+            {currentUser?.rol === "vendor" ? "No tienes órdenes registradas" : "No se encontraron órdenes"}
+          </div>
         )}
       </div>
 
@@ -440,7 +523,6 @@ export default function OrdenesYPagos() {
           >
             Anterior
           </button>
-
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             const page = i + 1
             return (
@@ -455,7 +537,6 @@ export default function OrdenesYPagos() {
               </button>
             )
           })}
-
           {totalPages > 5 && (
             <>
               <span className="text-gray-400">...</span>
@@ -469,7 +550,6 @@ export default function OrdenesYPagos() {
               </button>
             </>
           )}
-
           <button
             onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
@@ -485,3 +565,4 @@ export default function OrdenesYPagos() {
     </div>
   )
 }
+
