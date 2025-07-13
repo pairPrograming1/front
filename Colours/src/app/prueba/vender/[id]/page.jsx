@@ -1,4 +1,4 @@
-
+"use client"
 
 import EventDetailPage from "@/app/components/event/eventDetailPage"
 

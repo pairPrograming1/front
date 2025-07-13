@@ -1,4 +1,4 @@
-
+"use client"
 
 import BuyerInfoForm from "@/app/components/vendor/buyerForm"
 
