@@ -5,7 +5,7 @@ const initialState = {
   tickets: {}, // Cantidad de tickets seleccionados por ID
   ticketData: {}, // Datos completos de los tickets (incluyendo precio)
   prices: {
-    serviceCharge: 10, // Cargo de servicio fijo
+    
   },
 }
 

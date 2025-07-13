@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import apiUrls from "@/app/components/utils/apiConfig"
 import { ImageOff } from "lucide-react"
+import useUserRoleFromLocalStorage from "../hook/userRoleFromLocalstorage"
 
 export default function EventDetailPage({ params }) {
   const API_URL = apiUrls
@@ -13,13 +14,17 @@ export default function EventDetailPage({ params }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [imageError, setImageError] = useState(false)
+  const { userRole }= useUserRoleFromLocalStorage ();
 
   useEffect(() => {
     setMounted(true)
 
     // Extraer el ID de la URL en lugar de usar params
     const pathname = window.location.pathname
-    const idMatch = pathname.match(/\/vendor\/event\/([^/]+)/)
+    console.log(pathname)
+    let idMatch = null
+    if (userRole === "vendor") idMatch = pathname.match(/\/vendor\/event\/([^/]+)/);
+     if (userRole === "admin") idMatch = pathname.match(/\/prueba\/vender\/([^/]+)/)
     if (idMatch && idMatch[1]) {
       setEventId(idMatch[1])
     }
@@ -162,7 +167,11 @@ export default function EventDetailPage({ params }) {
         </div>
 
         <button
-          onClick={() => router.push(`/vendor/event/${eventId}/buy`)}
+          onClick={() => { 
+            if(userRole){
+            const path = userRole === "admin" ? `/prueba/vender/${eventId}/buy` : `/vendor/event/${eventId}/buy`
+                      router.push(path) }
+          }}
           className="w-full py-3 bg-[#c28b5b] text-white rounded-md font-medium hover:bg-[#b37a4a] transition-colors"
         >
           Vender entrada
