@@ -19,7 +19,7 @@ export default function OrdenCompraModal({
   selectedPaymentMethod,
   paymentMethodName,
   taxDetails,
-  // ✅ NUEVO PROP AGREGADO
+  
   onPaymentSuccess,
 }) {
   const summaryRef = useRef(null)
@@ -251,7 +251,7 @@ export default function OrdenCompraModal({
               paymentMethodName={paymentMethodName}
               taxDetails={taxDetails}
               isInline={true}
-              // ✅ PASAR EL CALLBACK DE ÉXITO
+              
               onPaymentSuccess={onPaymentSuccess}
             />
           </div>
