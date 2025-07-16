@@ -5,11 +5,13 @@ import { Search, Download, Eye } from "lucide-react"
 import Header from "../components/header"
 import OrdenDetalleModal from "@/app/components/entradas/ordenDetalleModal"
 import apiUrls from "@/app/components/utils/apiConfig"
+import useUserRoleFromLocalStorage from "@/app/components/hook/userRoleFromLocalstorage" // Importación corregida
 
 const API_URL = apiUrls
 
 export default function OrdenesYPagos() {
-  const [ordenes, setOrdenes] = useState([]) //para paginado 
+  const { userRole, userId } = useUserRoleFromLocalStorage() // Obtener rol y ID del usuario
+  const [ordenes, setOrdenes] = useState([]) // paginado
   const [allOrdersForSummary, setAllOrdersForSummary] = useState([]) // para calculo y csv
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -32,11 +34,20 @@ export default function OrdenesYPagos() {
 
   // Fetch órdenes para la tabla paginada
   const fetchPaginatedOrdenes = async (page = 1) => {
+    if (userRole === null) return // Esperar a que el rol se cargue
+
     try {
       setLoading(true)
       setError(null)
       const offset = (page - 1) * limit
-      const response = await fetch(`${API_URL}/api/order/?limit=${limit}&offset=${offset}`)
+      let url = `${API_URL}/api/order/?limit=${limit}&offset=${offset}`
+
+      // Si es vendedor, añadir filtro por userId
+      if (userRole === "vendor" && userId) {
+        url += `&userId=${userId}`
+      }
+
+      const response = await fetch(url)
       const data = await response.json()
 
       if (data.success) {
@@ -56,9 +67,17 @@ export default function OrdenesYPagos() {
 
   // Fetch todas las órdenes para el resumen y CSV
   const fetchAllOrdersForSummary = async () => {
+    if (userRole === null) return // Esperar a que el rol se cargue
+
     try {
-     //es un fetch con todo para obtner el calculo de todo 
-      const response = await fetch(`${API_URL}/api/order/?limit=99999999&offset=0`)
+      let url = `${API_URL}/api/order/?limit=10000&offset=0` // Límite alto para obtener todas
+
+      // Si es vendedor, añadir filtro por userId
+      if (userRole === "vendor" && userId) {
+        url += `&userId=${userId}`
+      }
+
+      const response = await fetch(url)
       const data = await response.json()
       if (data.success) {
         setAllOrdersForSummary(data.data.ordenes || [])
@@ -99,7 +118,6 @@ export default function OrdenesYPagos() {
   // Obtener el monto real de la orden (total de pago si existe, sino total de la orden)
   const getRealOrderTotal = (orden) => {
     if (orden.Pagos && orden.Pagos.length > 0) {
-      
       return orden.Pagos[0].total
     }
     return orden.total
@@ -146,7 +164,7 @@ export default function OrdenesYPagos() {
     setCurrentPage(page)
   }
 
-  // useMemo para calcular 
+  // Calculate summary totals using useMemo for performance, based on allOrdersForSummary
   const { totalOrdersValue, totalPaidValue, totalPendingValue, paidOrdersCount } = useMemo(() => {
     let totalOrders = 0
     let totalPaid = 0
@@ -154,7 +172,7 @@ export default function OrdenesYPagos() {
     let paidCount = 0
 
     allOrdersForSummary.forEach((orden) => {
-      const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0) // Use real total for calculations
+      const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0)
       totalOrders += realTotal
 
       if (orden.estado === "pagado") {
@@ -170,9 +188,9 @@ export default function OrdenesYPagos() {
       totalPendingValue: totalPending,
       paidOrdersCount: paidCount,
     }
-  }, [allOrdersForSummary]) 
+  }, [allOrdersForSummary])
 
-  
+  // Filtered orders based on search criteria for the displayed table
   const filteredOrdenes = useMemo(() => {
     return ordenes.filter((orden) => {
       const eventName = getEventoNombre(orden).toLowerCase()
@@ -192,26 +210,25 @@ export default function OrdenesYPagos() {
   // Descargar CSV con resumen y detalles de TODAS las órdenes
   const downloadCSV = () => {
     try {
-  
       let csvContent = ""
 
-      // resumen general 
+      // Summary Header
       csvContent += "RESUMEN GENERAL\n"
       csvContent += "Concepto,Monto\n"
       csvContent += `Total Órdenes,${formatMonto(totalOrdersValue)}\n`
       csvContent += `Total Pagado,${formatMonto(totalPaidValue)}\n`
       csvContent += `Total Pendiente,${formatMonto(totalPendingValue)}\n`
-      csvContent += `Cantidad de Órdenes,${totalOrdenesCount}\n` // Use totalOrdenesCount from pagination
-      csvContent += `Cantidad de Pagos,${paidOrdersCount}\n` // Use paidOrdersCount from allOrdersForSummary
+      csvContent += `Cantidad de Órdenes,${totalOrdenesCount}\n`
+      csvContent += `Cantidad de Pagos,${paidOrdersCount}\n`
       csvContent += `Fecha de Reporte,${new Date().toLocaleDateString("es-ES")}\n`
       csvContent += "\n\n"
 
-      // header detalle csv
+      // Detail Header
       csvContent += "DETALLE DE ÓRDENES\n"
       csvContent +=
         "Vendedor,Cliente,DNI,Email,Teléfono,Evento,Fecha Creación,Fecha Pago,Monto Orden,Estado,Referencia Pago,Monto Pagado\n"
 
-      
+      // Order Data (using allOrdersForSummary for full export)
       allOrdersForSummary.forEach((orden) => {
         const vendedor = orden.User ? `${orden.User.nombre} (${orden.User.email})` : "N/A"
         const evento = getEventoNombre(orden)
@@ -221,9 +238,8 @@ export default function OrdenesYPagos() {
         const estado = orden.estado
         const referenciaPago = pagoInfo ? pagoInfo.referencia : "N/A"
         const montoPagado = pagoInfo ? pagoInfo.total : 0
-        const montoOrdenReal = getRealOrderTotal(orden) // total real 
+        const montoOrdenReal = getRealOrderTotal(orden)
 
-       
         const escapeCsv = (str) => {
           if (str === null || str === undefined) return ""
           return `"${String(str).replace(/"/g, '""')}"`
@@ -237,13 +253,12 @@ export default function OrdenesYPagos() {
         csvContent += `${escapeCsv(evento)},`
         csvContent += `${escapeCsv(fechaCreacion)},`
         csvContent += `${escapeCsv(fechaPago)},`
-        csvContent += `${formatMonto(montoOrdenReal)},` 
+        csvContent += `${formatMonto(montoOrdenReal)},`
         csvContent += `${escapeCsv(estado)},`
         csvContent += `${escapeCsv(referenciaPago)},`
         csvContent += `${formatMonto(montoPagado)}\n`
       })
 
-      // crea y descarga csv
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
       const link = document.createElement("a")
       const url = URL.createObjectURL(blob)
@@ -259,13 +274,21 @@ export default function OrdenesYPagos() {
     }
   }
 
+  // Efecto para cargar órdenes paginadas cuando cambia la página o el rol/ID del usuario
   useEffect(() => {
-    fetchPaginatedOrdenes(currentPage) 
-  }, [currentPage])
+    if (userRole !== null) {
+      // Asegurarse de que el rol ya se haya cargado
+      fetchPaginatedOrdenes(currentPage)
+    }
+  }, [currentPage, userRole, userId])
 
+  // Efecto para cargar todas las órdenes para el resumen cuando el rol/ID del usuario se carga
   useEffect(() => {
-    fetchAllOrdersForSummary() 
-  }, []) 
+    if (userRole !== null) {
+      // Asegurarse de que el rol ya se haya cargado
+      fetchAllOrdersForSummary()
+    }
+  }, [userRole, userId]) // Dependencias: rol y ID del usuario
 
   if (loading && ordenes.length === 0) {
     return (
@@ -273,6 +296,19 @@ export default function OrdenesYPagos() {
         <Header title="Órdenes y Pagos" />
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#BF8D6B]"></div>
+        </div>
+      </div>
+    )
+  }
+
+  // Si el rol aún no se ha cargado, mostrar un spinner o mensaje
+  if (userRole === null) {
+    return (
+      <div className="p-6">
+        <Header title="Órdenes y Pagos" />
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#BF8D6B]"></div>
+          <p className="ml-4 text-gray-400">Cargando datos de usuario...</p>
         </div>
       </div>
     )
@@ -375,7 +411,7 @@ export default function OrdenesYPagos() {
                 >
                   <td className="px-4 py-3 text-gray-300">
                     <div>
-                      <div className="font-medium">Vendedor: {orden.User?.nombre || "N/A"}</div>
+                      <div className="font-medium">{orden.User?.nombre || "N/A"}</div>
                       <div className="text-sm text-gray-500">{orden.User?.email || "N/A"}</div>
                     </div>
                   </td>
@@ -387,7 +423,7 @@ export default function OrdenesYPagos() {
                   </td>
                   <td className="px-4 py-3 text-gray-300">{getEventoNombre(orden)}</td>
                   <td className="px-4 py-3 text-gray-300">{formatFecha(orden.fecha_creacion)}</td>
-                  <td className="px-4 py-3 text-gray-300 font-medium">{formatMonto(getRealOrderTotal(orden))}</td>{" "}
+                  <td className="px-4 py-3 text-gray-300 font-medium">{formatMonto(getRealOrderTotal(orden))}</td>
                   <td className="px-4 py-3">{getEstadoBadge(orden.estado)}</td>
                   <td className="px-4 py-3 text-center">
                     <button
@@ -426,7 +462,7 @@ export default function OrdenesYPagos() {
                   <div className="text-sm text-gray-400">{orden.nombre_cliente}</div>
                   <div className="text-xs text-gray-500 truncate max-w-[180px]">{orden.email_cliente}</div>
                 </div>
-                <div className="text-white font-medium">{formatMonto(getRealOrderTotal(orden))}</div>{" "}
+                <div className="text-white font-medium">{formatMonto(getRealOrderTotal(orden))}</div>
               </div>
               <div className="mt-3 flex justify-end">
                 <button
