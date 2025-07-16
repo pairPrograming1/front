@@ -13,7 +13,7 @@ import {
   selectPrices,
   selectSubtotal,
   selectTotal,
-  resetTickets, // ✅ IMPORTAR resetTickets
+  resetTickets, 
 } from "@/lib/slices/ticketsSlice"
 import OrdenCompraModal from "@/app/components/entradas/ordenCompraModal"
 
@@ -116,7 +116,7 @@ export default function TicketPurchasePage() {
     }
   }, [subtotal, selectedPaymentMethod, paymentMethods])
 
-  // ✅ LIMPIAR TICKETS AL CARGAR LA PÁGINA
+  //  LIMPIAR TICKETS AL CARGAR LA PÁGINA
   useEffect(() => {
     dispatch(resetTickets())
   }, [dispatch])
@@ -183,17 +183,17 @@ export default function TicketPurchasePage() {
     }
   }
 
-  // ✅ PREPARAR LOS DATOS PARA LA ORDEN CON USER ID
+ 
   const prepareOrderData = () => {
     if (!buyerData) return null
 
-    // ✅ OBTENER EL USER ID DESDE LOCALSTORAGE (RUTA CORREGIDA)
+   
     let userId = null
     try {
       const authData = localStorage.getItem("authData")
       if (authData) {
         const parsedAuthData = JSON.parse(authData)
-        // ✅ RUTA CORRECTA: authData.auth.user.id
+       
         userId = parsedAuthData?.user?.id || null
        
       }
@@ -214,7 +214,7 @@ export default function TicketPurchasePage() {
       })
 
     return {
-      userId: userId, // ✅ AGREGAR EL USER ID
+      userId: userId, 
       estado: "pendiente",
       dni_cliente: buyerData.dni,
       nombre_cliente: buyerData.name,
@@ -286,7 +286,7 @@ export default function TicketPurchasePage() {
     setShowSummary(false)
   }
 
-  // ✅ FUNCIÓN PARA MANEJAR EL ÉXITO DEL PAGO
+  
   const handlePaymentSuccess = () => {
     // Limpiar el estado de tickets
     dispatch(resetTickets())
@@ -591,7 +591,7 @@ export default function TicketPurchasePage() {
         selectedPaymentMethod={selectedPaymentMethod}
         paymentMethodName={taxCalculation.methodName}
         taxDetails={taxCalculation}
-        // ✅ PASAR LA FUNCIÓN DE ÉXITO DEL PAGO
+    
         onPaymentSuccess={handlePaymentSuccess}
       />
     </div>

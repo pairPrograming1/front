@@ -19,8 +19,7 @@ export default function EventDetailPage({ idFromEvent }) {
 
   useEffect(() => {
     setMounted(true)
-    // ✅ ELIMINADO: Lógica de extracción de ID de window.location.pathname
-    // El eventId ya se inicializa con params.id y se actualiza en el siguiente useEffect
+    
   }, [])
 
   useEffect(() => {
