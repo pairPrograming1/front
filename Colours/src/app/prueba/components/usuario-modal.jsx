@@ -145,7 +145,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             <input
               type="text"
               name="usuario"
-              placeholder="Usuario"
+              placeholder="Usuario *"
               className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
               value={formData.usuario}
               onChange={handleChange}
@@ -160,7 +160,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               <input
                 type="text"
                 name="nombre"
-                placeholder="Nombre"
+                placeholder="Nombre *"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.nombre}
                 onChange={handleChange}
@@ -170,18 +170,17 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               <input
                 type="text"
                 name="dni"
-                placeholder="DNI (solo números y M/F al final)"
+                placeholder="DNI (Opcional - solo números y M/F al final)"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.dni}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                required
               />
 
               <input
                 type="text"
                 name="direccion"
-                placeholder="Dirección"
+                placeholder="Dirección (Opcional)"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.direccion}
                 onChange={handleChange}
@@ -190,7 +189,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               <input
                 type="text"
                 name="whatsapp"
-                placeholder="WhatsApp (solo números, + al inicio)"
+                placeholder="WhatsApp (Opcional - solo números, + al inicio)"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.whatsapp}
                 onChange={handleChange}
@@ -203,7 +202,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               <input
                 type="text"
                 name="apellido"
-                placeholder="Apellido"
+                placeholder="Apellido *"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.apellido}
                 onChange={handleChange}
@@ -213,18 +212,17 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               <input
                 type="email"
                 name="email"
-                placeholder="E-mail"
+                placeholder="E-mail (Opcional)"
                 className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                 value={formData.email}
                 onChange={handleChange}
-                required
               />
 
               {!userData && (
                 <input
                   type="password"
                   name="password"
-                  placeholder="Contraseña"
+                  placeholder="Contraseña *"
                   className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                   value={formData.password}
                   onChange={handleChange}
