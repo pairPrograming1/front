@@ -13,6 +13,7 @@ import {
   ChevronRight,
   User,
   DollarSign,
+  WalletCards,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -23,19 +24,14 @@ export default function Sidebar() {
   // Detectar si es dispositivo móvil al cargar y cuando cambia el tamaño de la ventana
   useEffect(() => {
     const checkIfMobile = () => {
-      const mobile = window.innerWidth < 768; // Punto de quiebre para dispositivos móviles
+      const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // Establecer el estado inicial del sidebar basado en el tamaño de la pantalla
       setIsCollapsed(mobile);
     };
 
-    // Verificar al cargar el componente
     checkIfMobile();
-
-    // Agregar listener para cambios de tamaño de ventana
     window.addEventListener("resize", checkIfMobile);
 
-    // Limpiar el listener cuando el componente se desmonte
     return () => {
       window.removeEventListener("resize", checkIfMobile);
     };
@@ -45,7 +41,6 @@ export default function Sidebar() {
     setIsCollapsed(!isCollapsed);
   };
 
-  // Función para determinar si un enlace está activo
   const isActive = (href) => {
     return pathname === href;
   };
@@ -186,6 +181,23 @@ export default function Sidebar() {
               <CreditCard className="h-5 w-5 mb-1" />
               {!isCollapsed && (
                 <span className="text-xs md:text-sm">Ordenes y Pagos</span>
+              )}
+            </Link>
+          </li>
+
+          {/* Botón para procesar pagos con Link */}
+          <li onClick={(e) => e.stopPropagation()}>
+            <Link
+              href="/prueba/procesar-pago"
+              className={`flex flex-col items-center p-3 ${
+                isActive("/prueba/procesar-pago")
+                  ? "text-[#C88D6B]"
+                  : "text-gray-400 hover:text-[#C88D6B]"
+              }`}
+            >
+              <WalletCards className="h-5 w-5 mb-1" />
+              {!isCollapsed && (
+                <span className="text-xs md:text-sm">Procesar Pago</span>
               )}
             </Link>
           </li>

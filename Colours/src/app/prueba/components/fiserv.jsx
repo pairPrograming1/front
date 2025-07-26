@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   CreditCard,
   Lock,
   AlertCircle,
   CheckCircle,
   Loader2,
+  X,
 } from "lucide-react";
 
-const FiservPaymentComponent = () => {
+const FiservPaymentComponent = ({ onClose }) => {
   const [paymentData, setPaymentData] = useState({
     cardNumber: "",
     expiryMonth: "",
@@ -203,8 +206,15 @@ const FiservPaymentComponent = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 px-4 py-12">
-      <div className="w-full max-w-md bg-[#1E2330]/70 p-6 rounded-xl shadow-lg">
+    <div className="min-h-screen w-full flex items-center justify-center  px-4 py-12">
+      <div className="w-full max-w-md bg-[#1E2330]/40 p-6 rounded-xl shadow-lg relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-[#EDEEF0] hover:text-white p-1"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <CreditCard className="w-8 h-8 text-[#FFFFFF]" />
