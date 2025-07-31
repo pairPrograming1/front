@@ -5,14 +5,14 @@ import { Search, Download, Eye } from "lucide-react"
 import Header from "../components/header"
 import OrdenDetalleModal from "@/app/components/entradas/ordenDetalleModal"
 import apiUrls from "@/app/components/utils/apiConfig"
-import useUserRoleFromLocalStorage from "@/app/components/hook/userRoleFromLocalstorage" // Importación corregida
+import useUserRoleFromLocalStorage from "@/app/components/hook/userRoleFromLocalstorage"
 
 const API_URL = apiUrls
 
 export default function OrdenesYPagos() {
-  const { userRole, userId } = useUserRoleFromLocalStorage() // Obtener rol y ID del usuario
-  const [ordenes, setOrdenes] = useState([]) // paginado
-  const [allOrdersForSummary, setAllOrdersForSummary] = useState([]) // para calculo y csv
+  const { userRole, userId } = useUserRoleFromLocalStorage()
+  const [ordenes, setOrdenes] = useState([])
+  const [allOrdersForSummary, setAllOrdersForSummary] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedOrden, setSelectedOrden] = useState(null)
@@ -21,31 +21,54 @@ export default function OrdenesYPagos() {
   // Paginación
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [totalOrdenesCount, setTotalOrdenesCount] = useState(0) // Total count from API pagination
+  const [totalOrdenesCount, setTotalOrdenesCount] = useState(0)
   const limit = 7
 
-  // Filtros
+  // Filtros y Ordenamiento
   const [filters, setFilters] = useState({
     evento: "",
-    fechaDesde: "",
-    fechaHasta: "",
     estado: "",
+    salon: "",
   })
+  const [orderBy, setOrderBy] = useState("fecha_creacion")
+  const [orderDirection, setOrderDirection] = useState("DESC")
+
+  // Función para construir la URL con filtros y ordenamiento
+  const buildApiUrl = (basePath, currentLimit, currentOffset) => {
+    const queryParams = new URLSearchParams()
+    queryParams.append("limit", currentLimit)
+    queryParams.append("offset", currentOffset)
+
+    // Añadir filtros
+    if (userRole === "vendor" && userId) {
+      queryParams.append("userId", userId)
+    }
+    if (filters.evento) {
+      queryParams.append("evento", filters.evento)
+    }
+    if (filters.estado) {
+      queryParams.append("estado", filters.estado)
+    }
+    if (filters.salon) {
+      queryParams.append("salon", filters.salon)
+    }
+
+    // Añadir ordenamiento
+    queryParams.append("orderBy", orderBy)
+    queryParams.append("orderDirection", orderDirection)
+
+    return `${basePath}/api/order?${queryParams.toString()}`
+  }
 
   // Fetch órdenes para la tabla paginada
   const fetchPaginatedOrdenes = async (page = 1) => {
-    if (userRole === null) return // Esperar a que el rol se cargue
+    if (userRole === null) return
 
     try {
       setLoading(true)
       setError(null)
       const offset = (page - 1) * limit
-      let url = `${API_URL}/api/order/?limit=${limit}&offset=${offset}`
-
-      // Si es vendedor, añadir filtro por userId
-      if (userRole === "vendor" && userId) {
-        url += `&userId=${userId}`
-      }
+      const url = buildApiUrl(API_URL, limit, offset)
 
       const response = await fetch(url)
       const data = await response.json()
@@ -67,18 +90,15 @@ export default function OrdenesYPagos() {
 
   // Fetch todas las órdenes para el resumen y CSV
   const fetchAllOrdersForSummary = async () => {
-    if (userRole === null) return // Esperar a que el rol se cargue
+    if (userRole === null) return
 
     try {
-      let url = `${API_URL}/api/order/?limit=10000&offset=0` // Límite alto para obtener todas
-
-      // Si es vendedor, añadir filtro por userId
-      if (userRole === "vendor" && userId) {
-        url += `&userId=${userId}`
-      }
+      // Usar un límite alto para obtener todas las órdenes
+      const url = buildApiUrl(API_URL, 10000, 0)
 
       const response = await fetch(url)
       const data = await response.json()
+
       if (data.success) {
         setAllOrdersForSummary(data.data.ordenes || [])
       } else {
@@ -159,9 +179,26 @@ export default function OrdenesYPagos() {
     setShowModal(true)
   }
 
-  // Cambiar página
+  // Manejar cambio de página
   const handlePageChange = (page) => {
     setCurrentPage(page)
+  }
+
+  // Manejar cambio de ordenamiento
+  const handleSort = (field) => {
+    const allowedSortFields = ["fecha_creacion", "estado", "total", "nombre_cliente", "email_cliente"]
+    if (!allowedSortFields.includes(field)) {
+      console.warn(`Sorting by field "${field}" is not allowed by the backend.`)
+      return
+    }
+
+    if (orderBy === field) {
+      setOrderDirection(orderDirection === "ASC" ? "DESC" : "ASC")
+    } else {
+      setOrderBy(field)
+      setOrderDirection("DESC")
+    }
+    setCurrentPage(1)
   }
 
   // Calculate summary totals using useMemo for performance, based on allOrdersForSummary
@@ -170,11 +207,9 @@ export default function OrdenesYPagos() {
     let totalPaid = 0
     let totalPending = 0
     let paidCount = 0
-
     allOrdersForSummary.forEach((orden) => {
       const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0)
       totalOrders += realTotal
-
       if (orden.estado === "pagado") {
         totalPaid += realTotal
         paidCount++
@@ -190,28 +225,10 @@ export default function OrdenesYPagos() {
     }
   }, [allOrdersForSummary])
 
-  // Filtered orders based on search criteria for the displayed table
-  const filteredOrdenes = useMemo(() => {
-    return ordenes.filter((orden) => {
-      const eventName = getEventoNombre(orden).toLowerCase()
-      const matchesEvento = filters.evento ? eventName.includes(filters.evento.toLowerCase()) : true
-      const matchesFechaDesde = filters.fechaDesde
-        ? new Date(orden.fecha_creacion) >= new Date(filters.fechaDesde)
-        : true
-      const matchesFechaHasta = filters.fechaHasta
-        ? new Date(orden.fecha_creacion) <= new Date(filters.fechaHasta)
-        : true
-      const matchesEstado = filters.estado ? orden.estado.toLowerCase() === filters.estado.toLowerCase() : true
-
-      return matchesEvento && matchesFechaDesde && matchesFechaHasta && matchesEstado
-    })
-  }, [ordenes, filters])
-
   // Descargar CSV con resumen y detalles de TODAS las órdenes
   const downloadCSV = () => {
     try {
       let csvContent = ""
-
       // Summary Header
       csvContent += "RESUMEN GENERAL\n"
       csvContent += "Concepto,Monto\n"
@@ -222,12 +239,10 @@ export default function OrdenesYPagos() {
       csvContent += `Cantidad de Pagos,${paidOrdersCount}\n`
       csvContent += `Fecha de Reporte,${new Date().toLocaleDateString("es-ES")}\n`
       csvContent += "\n\n"
-
       // Detail Header
       csvContent += "DETALLE DE ÓRDENES\n"
       csvContent +=
         "Vendedor,Cliente,DNI,Email,Teléfono,Evento,Fecha Creación,Fecha Pago,Monto Orden,Estado,Referencia Pago,Monto Pagado\n"
-
       // Order Data (using allOrdersForSummary for full export)
       allOrdersForSummary.forEach((orden) => {
         const vendedor = orden.User ? `${orden.User.nombre} (${orden.User.email})` : "N/A"
@@ -239,12 +254,10 @@ export default function OrdenesYPagos() {
         const referenciaPago = pagoInfo ? pagoInfo.referencia : "N/A"
         const montoPagado = pagoInfo ? pagoInfo.total : 0
         const montoOrdenReal = getRealOrderTotal(orden)
-
         const escapeCsv = (str) => {
           if (str === null || str === undefined) return ""
           return `"${String(str).replace(/"/g, '""')}"`
         }
-
         csvContent += `${escapeCsv(vendedor)},`
         csvContent += `${escapeCsv(orden.nombre_cliente)},`
         csvContent += `${escapeCsv(orden.dni_cliente)},`
@@ -258,7 +271,6 @@ export default function OrdenesYPagos() {
         csvContent += `${escapeCsv(referenciaPago)},`
         csvContent += `${formatMonto(montoPagado)}\n`
       })
-
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
       const link = document.createElement("a")
       const url = URL.createObjectURL(blob)
@@ -274,21 +286,19 @@ export default function OrdenesYPagos() {
     }
   }
 
-  // Efecto para cargar órdenes paginadas cuando cambia la página o el rol/ID del usuario
+  // Efecto para cargar órdenes paginadas cuando cambia la página, filtros, ordenamiento o el rol/ID del usuario
   useEffect(() => {
     if (userRole !== null) {
-      // Asegurarse de que el rol ya se haya cargado
       fetchPaginatedOrdenes(currentPage)
     }
-  }, [currentPage, userRole, userId])
+  }, [currentPage, userRole, userId, filters, orderBy, orderDirection])
 
-  // Efecto para cargar todas las órdenes para el resumen cuando el rol/ID del usuario se carga
+  // Efecto para cargar todas las órdenes para el resumen cuando el rol/ID del usuario se carga, o cambian filtros/ordenamiento
   useEffect(() => {
     if (userRole !== null) {
-      // Asegurarse de que el rol ya se haya cargado
       fetchAllOrdersForSummary()
     }
-  }, [userRole, userId]) // Dependencias: rol y ID del usuario
+  }, [userRole, userId, filters, orderBy, orderDirection])
 
   if (loading && ordenes.length === 0) {
     return (
@@ -301,7 +311,6 @@ export default function OrdenesYPagos() {
     )
   }
 
-  // Si el rol aún no se ha cargado, mostrar un spinner o mensaje
   if (userRole === null) {
     return (
       <div className="p-6">
@@ -348,23 +357,17 @@ export default function OrdenesYPagos() {
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
-        <div className="w-full sm:w-1/5">
+        <div className="relative w-full sm:w-1/4">
           <input
-            type="date"
-            value={filters.fechaDesde}
-            onChange={(e) => setFilters({ ...filters, fechaDesde: e.target.value })}
-            className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
+            type="text"
+            placeholder="Buscar por salón"
+            value={filters.salon}
+            onChange={(e) => setFilters({ ...filters, salon: e.target.value })}
+            className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
           />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         </div>
-        <div className="w-full sm:w-1/5">
-          <input
-            type="date"
-            value={filters.fechaHasta}
-            onChange={(e) => setFilters({ ...filters, fechaHasta: e.target.value })}
-            className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
-          />
-        </div>
-        <div className="w-full sm:w-1/5">
+        <div className="w-full sm:w-1/4">
           <select
             value={filters.estado}
             onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
@@ -393,28 +396,45 @@ export default function OrdenesYPagos() {
           <table className="w-full">
             <thead className="bg-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-white font-medium">Vendedor</th>
-                <th className="px-4 py-3 text-left text-white font-medium">Cliente</th>
+                <th
+                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  onClick={() => handleSort("nombre_cliente")}
+                >
+                  Cliente
+                  {orderBy === "nombre_cliente" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                </th>
                 <th className="px-4 py-3 text-left text-white font-medium">Evento</th>
-                <th className="px-4 py-3 text-left text-white font-medium">Fecha</th>
-                <th className="px-4 py-3 text-left text-white font-medium">Monto</th>
-                <th className="px-4 py-3 text-left text-white font-medium">Estado</th>
+                <th
+                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  onClick={() => handleSort("fecha_creacion")}
+                >
+                  Fecha
+                  {orderBy === "fecha_creacion" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  onClick={() => handleSort("total")}
+                >
+                  Monto
+                  {orderBy === "total" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                </th>
+                <th
+                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  onClick={() => handleSort("estado")}
+                >
+                  Estado
+                  {orderBy === "estado" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
+                </th>
                 <th className="px-4 py-3 text-center text-white font-medium">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {filteredOrdenes.map((orden) => (
+              {ordenes.map((orden) => (
                 <tr
                   key={orden.id}
                   className="hover:bg-gray-700/50 cursor-pointer transition-colors"
                   onClick={() => handleRowClick(orden)}
                 >
-                  <td className="px-4 py-3 text-gray-300">
-                    <div>
-                      <div className="font-medium">{orden.User?.nombre || "N/A"}</div>
-                      <div className="text-sm text-gray-500">{orden.User?.email || "N/A"}</div>
-                    </div>
-                  </td>
                   <td className="px-4 py-3 text-gray-300">
                     <div>
                       <div className="font-medium">{orden.nombre_cliente}</div>
@@ -443,7 +463,7 @@ export default function OrdenesYPagos() {
         </div>
         {/* Vista Mobile - Tarjetas */}
         <div className="md:hidden divide-y divide-gray-700">
-          {filteredOrdenes.map((orden) => (
+          {ordenes.map((orden) => (
             <div
               key={orden.id}
               className="p-4 hover:bg-gray-700/50 cursor-pointer transition-colors"
@@ -479,7 +499,7 @@ export default function OrdenesYPagos() {
             </div>
           ))}
         </div>
-        {filteredOrdenes.length === 0 && !loading && (
+        {ordenes.length === 0 && !loading && (
           <div className="text-center py-12 text-gray-400">No se encontraron órdenes</div>
         )}
       </div>
@@ -493,7 +513,8 @@ export default function OrdenesYPagos() {
           >
             Anterior
           </button>
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+          {/* Se muestran todos los números de página */}
+          {Array.from({ length: totalPages }, (_, i) => {
             const page = i + 1
             return (
               <button
@@ -507,19 +528,6 @@ export default function OrdenesYPagos() {
               </button>
             )
           })}
-          {totalPages > 5 && (
-            <>
-              <span className="text-gray-400">...</span>
-              <button
-                onClick={() => handlePageChange(totalPages)}
-                className={`px-3 py-2 rounded-lg transition-colors ${
-                  currentPage === totalPages ? "bg-[#BF8D6B] text-white" : "bg-gray-700 text-white hover:bg-gray-600"
-                }`}
-              >
-                {totalPages}
-              </button>
-            </>
-          )}
           <button
             onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
@@ -530,7 +538,11 @@ export default function OrdenesYPagos() {
         </div>
       )}
       {/* Modal de Detalle */}
-      {showModal && selectedOrden && <OrdenDetalleModal orden={selectedOrden} onClose={() => setShowModal(false)} />}
+      {showModal && selectedOrden && (
+        <div>
+          <OrdenDetalleModal orden={selectedOrden} onClose={() => setShowModal(false)} />
+        </div>
+      )}
     </div>
   )
 }
