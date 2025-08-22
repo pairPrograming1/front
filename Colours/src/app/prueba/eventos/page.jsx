@@ -134,21 +134,17 @@ export default function Eventos() {
     try {
       if (!dateString) return "Fecha no disponible";
 
+      // Parsear la fecha manteniendo la hora exacta de la BD
       const date = new Date(dateString);
-
-      // Forzar la zona horaria local del navegador
-      const localDate = new Date(
-        date.getTime() - date.getTimezoneOffset() * 60000
-      );
-
-      return localDate.toLocaleString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "UTC",
-      });
+      
+      // Extraer componentes UTC directamente
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const year = date.getUTCFullYear();
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      
+      return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (e) {
       console.error("Error formateando fecha:", e, dateString);
       return dateString || "Fecha no disponible";
@@ -159,12 +155,14 @@ export default function Eventos() {
     if (!dateString) return "";
 
     const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-
+    
+    // Usar componentes UTC para el input
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
