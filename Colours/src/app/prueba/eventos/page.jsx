@@ -136,14 +136,14 @@ export default function Eventos() {
 
       // Parsear la fecha manteniendo la hora exacta de la BD
       const date = new Date(dateString);
-      
+
       // Extraer componentes UTC directamente
-      const day = String(date.getUTCDate()).padStart(2, '0');
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
       const year = date.getUTCFullYear();
-      const hours = String(date.getUTCHours()).padStart(2, '0');
-      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-      
+      const hours = String(date.getUTCHours()).padStart(2, "0");
+      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
       return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (e) {
       console.error("Error formateando fecha:", e, dateString);
@@ -155,14 +155,14 @@ export default function Eventos() {
     if (!dateString) return "";
 
     const date = new Date(dateString);
-    
+
     // Usar componentes UTC para el input
     const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-    
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
