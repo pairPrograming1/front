@@ -19,11 +19,8 @@ const useImageFetcher = () => {
       const res = await fetch(`${API_URL}/api/upload/images`, {
         cache: "no-store",
       })
-
       if (!res.ok) throw new Error("No se pudieron obtener las imágenes")
-
       const data = await res.json()
-      
       setImages(data)
     } catch (err) {
       console.error("Error al cargar imágenes:", err)
@@ -43,56 +40,49 @@ const useImageFetcher = () => {
     setError(null)
     try {
       const formData = new FormData()
-
-      // ✅ Probar diferentes nombres de campo que tu API podría esperar
-      formData.append("image", file) // Cambié de "file" a "image"
-
-     
+      formData.append("image", file)
 
       const res = await fetch(`${API_URL}/api/upload/image`, {
         method: "POST",
         body: formData,
       })
 
-  
+      // --- IMPORTANTE: Verificar si la respuesta es OK antes de intentar parsear ---
+      if (!res.ok) {
+        const errorText = await res.text() // Obtener el texto crudo de la respuesta de error
+        console.error("El servidor respondió con un error HTTP:", res.status, errorText)
+        throw new Error(`Error del servidor (${res.status}): ${errorText || "Respuesta vacía"}`)
+      }
 
-      // ✅ Manejar respuestas que no son JSON
+      // Si la respuesta es OK, intentar parsear como JSON o asumir texto es URL
       let data
       const contentType = res.headers.get("content-type")
-
       if (contentType && contentType.includes("application/json")) {
         data = await res.json()
+     
       } else {
-        // Si no es JSON, obtener como texto
         const textResponse = await res.text()
        
-
-        if (!res.ok) {
-          throw new Error(textResponse || `Error HTTP: ${res.status}`)
-        }
-
-        // Si es exitoso pero no JSON, asumir que el texto es la URL
-        data = { url: textResponse }
+        data = { fileUrl: textResponse }
       }
 
-      if (!res.ok) {
-        throw new Error(data.message || data.error || `Error HTTP: ${res.status}`)
-      }
-
-
-
-      // ✅ Extraer la URL de diferentes posibles estructuras
+      // Extraer la URL, incluyendo 'fileUrl'
       const imageUrl =
-        data.url || data.secure_url || data.data?.url || data.data?.secure_url || data.imageUrl || data.path || data
+        data.fileUrl ||
+        data.url ||
+        data.secure_url ||
+        data.data?.url ||
+        data.data?.secure_url ||
+        data.imageUrl ||
+        data.path ||
+        data
 
       if (!imageUrl || typeof imageUrl !== "string") {
-        console.error("No se encontró URL válida en la respuesta:", data)
-        throw new Error("No se pudo obtener la URL de la imagen")
+        console.error("No se encontró URL válida en la respuesta exitosa:", data)
+        throw new Error("No se pudo obtener la URL de la imagen de la respuesta exitosa")
       }
 
-      // Opcional: Refrescar la lista de imágenes
-      await fetchImages()
-
+    
       return imageUrl
     } catch (err) {
       console.error("Error al subir imagen:", err)
@@ -127,3 +117,4 @@ const useImageFetcher = () => {
 }
 
 export default useImageFetcher
+

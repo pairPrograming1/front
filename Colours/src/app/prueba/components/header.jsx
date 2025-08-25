@@ -10,11 +10,11 @@ export default function Header({ title, showBack = false }) {
             <ArrowLeft className="h-5 w-5" />
           </Link>
         )}
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <h1 className="text-2xl font-bold text-white">{title}</h1>
       </div>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-gray-400">
-          <User className="h-5 w-5" />
+          
          
         </div>
       </div>

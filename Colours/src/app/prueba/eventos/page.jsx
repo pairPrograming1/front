@@ -19,6 +19,7 @@ import {
   ListFilter,
   Info,
   X,
+  FileText,
 } from "lucide-react";
 import Header from "../components/header";
 import EventoModal from "../components/evento-modal";
@@ -26,7 +27,7 @@ import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 import EntradasModal from "../components/entradas-modal";
-import UploadImageModal from "../components/upload-image-modal"; // Importar el modal
+import UploadImageModal from "../components/upload-image-modal";
 
 const API_URL = apiUrls;
 
@@ -39,14 +40,14 @@ export default function Eventos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState("active"); // Options: "active", "inactive", "all"
+  const [filterMode, setFilterMode] = useState("active");
   const [selectedEventos, setSelectedEventos] = useState([]);
   const [eventoEditar, setEventoEditar] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedEvento, setExpandedEvento] = useState(null);
   const [showEntradasModal, setShowEntradasModal] = useState(false);
   const [eventoEntradas, setEventoEntradas] = useState(null);
-  const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [eventoDetalle, setEventoDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -85,16 +86,22 @@ export default function Eventos() {
       const resultData = await response.json();
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        const mappedEventos = resultData.data.map((evento) => ({
-          id: evento.id,
-          nombre: evento.nombre,
-          descripcion: evento.descripcion || "Sin descripción",
-          fecha: evento.fecha,
-          duracion: evento.duracion,
-          capacidad: evento.capacidad,
-          activo: evento.activo,
-          salon: evento.salonNombre || "Sin salón asignado", // Cambiado para mostrar el nombre
-        }));
+        const mappedEventos = resultData.data.map((evento) => {
+          console.log("Fecha original de BD:", evento.fecha);
+          console.log("Fecha formateada:", formatDateTime(evento.fecha));
+
+          return {
+            id: evento.id,
+            nombre: evento.nombre,
+            descripcion: evento.descripcion || "Sin descripción",
+            fecha: evento.fecha,
+            fechaFormateada: formatDateTime(evento.fecha),
+            duracion: evento.duracion,
+            capacidad: evento.capacidad,
+            activo: evento.activo,
+            salon: evento.salonNombre || "Sin salón asignado",
+          };
+        });
 
         setEventos(mappedEventos);
       } else {
@@ -125,17 +132,38 @@ export default function Eventos() {
 
   const formatDateTime = (dateString) => {
     try {
+      if (!dateString) return "Fecha no disponible";
+
+      // Parsear la fecha manteniendo la hora exacta de la BD
       const date = new Date(dateString);
-      return date.toLocaleString("es-ES", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+
+      // Extraer componentes UTC directamente
+      const day = String(date.getUTCDate()).padStart(2, "0");
+      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+      const year = date.getUTCFullYear();
+      const hours = String(date.getUTCHours()).padStart(2, "0");
+      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+      return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (e) {
+      console.error("Error formateando fecha:", e, dateString);
       return dateString || "Fecha no disponible";
     }
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+
+    // Usar componentes UTC para el input
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const eventosFiltrados = eventos.filter((evento) => {
@@ -514,7 +542,6 @@ export default function Eventos() {
     setShowEntradasModal(true);
   };
 
-  // Obtener detalle por GET /api/evento/:id
   const handleShowDetail = async (eventoId) => {
     setLoadingDetail(true);
     setShowDetailModal(true);
@@ -524,9 +551,8 @@ export default function Eventos() {
       if (!response.ok)
         throw new Error("Error al obtener el detalle del evento");
       const result = await response.json();
-      setEventoDetalle(result.data || result); // Ajusta según tu backend
+      setEventoDetalle(result.data || result);
 
-      // Obtener entradas del evento
       setLoadingEntradas(true);
       const entradasRes = await fetch(`${API_URL}/api/entrada/${eventoId}`);
       if (entradasRes.ok) {
@@ -569,7 +595,6 @@ export default function Eventos() {
     <div className="p-4 md:p-6">
       <Header title="Eventos" />
 
-      {/* Filtros y búsqueda */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4">
@@ -643,7 +668,7 @@ export default function Eventos() {
           </button>
           <button
             className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowUploadModal(true)} // Abre el modal de carga de imágenes
+            onClick={() => setShowUploadModal(true)}
           >
             <Plus className="h-4 w-4" />
             Cargar imágenes
@@ -657,9 +682,7 @@ export default function Eventos() {
         </div>
       )}
 
-      {/* Tabla de eventos */}
       <div className="overflow-x-auto">
-        {/* Vista de escritorio */}
         <div className="hidden md:block">
           <table className="table min-w-full">
             <thead>
@@ -681,7 +704,7 @@ export default function Eventos() {
                 <th>Duración</th>
                 <th>Capacidad</th>
                 <th>Estado</th>
-                {currentItems.length > 0 && <th className="w-40">Acciones</th>}
+                {currentItems.length > 0 && <th className="w-52">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -715,7 +738,7 @@ export default function Eventos() {
                     </td>
                     {currentItems.length > 0 && (
                       <td>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <button
                             className="btn btn-sm btn-outline btn-primary p-1"
                             onClick={() => handleEditEvento(evento)}
@@ -773,7 +796,7 @@ export default function Eventos() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center py-10">
+                  <td colSpan="9" className="text-center py-10">
                     <p className="text-gray-500">
                       No se encontraron eventos que coincidan con los criterios
                       de búsqueda
@@ -785,7 +808,6 @@ export default function Eventos() {
           </table>
         </div>
 
-        {/* Vista móvil mejorada */}
         <div className="md:hidden space-y-4">
           {currentItems.length > 0 ? (
             currentItems.map((evento) => (
@@ -874,7 +896,7 @@ export default function Eventos() {
                       </div>
 
                       <div className="flex justify-between pt-3 mt-2 border-t">
-                        <div className="grid grid-cols-5 gap-2 w-full">
+                        <div className="grid grid-cols-2 gap-2 w-full">
                           <button
                             className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
                             onClick={() => handleEditEvento(evento)}
@@ -943,7 +965,6 @@ export default function Eventos() {
         </div>
       </div>
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
           {currentPage > 1 && (
@@ -955,7 +976,6 @@ export default function Eventos() {
             </button>
           )}
           {[...Array(totalPages)].map((_, index) => {
-            // Show limited page numbers on mobile
             if (
               index === 0 ||
               index === totalPages - 1 ||
@@ -998,7 +1018,6 @@ export default function Eventos() {
         </div>
       )}
 
-      {/* Modales */}
       {showModal && (
         <EventoModal
           onClose={() => setShowModal(false)}
@@ -1032,7 +1051,6 @@ export default function Eventos() {
         />
       )}
 
-      {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
@@ -1064,7 +1082,6 @@ export default function Eventos() {
               ) : eventoDetalle ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
                   <div className="space-y-4">
-                    {/* Imagen del evento */}
                     {(eventoDetalle.image || eventoDetalle.imagen) && (
                       <div>
                         <span className="block text-sm text-yellow-400 mb-1">
@@ -1109,7 +1126,7 @@ export default function Eventos() {
                         Fecha
                       </span>
                       <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {eventoDetalle.fecha}
+                        {formatDateTime(eventoDetalle.fecha)}
                       </div>
                     </div>
                   </div>
@@ -1146,7 +1163,6 @@ export default function Eventos() {
                         </span>
                       </div>
                     </div>
-                    {/* Sección de Entradas */}
                     <div>
                       <span className="block text-sm text-yellow-400 mb-1">
                         Entradas

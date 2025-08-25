@@ -1,5 +1,4 @@
 "use client"
-
 import { useRef, useState } from "react"
 import { jsPDF } from "jspdf"
 import { X, Download, FileText, User, Calendar, Tag, Loader, CreditCard } from "lucide-react"
@@ -12,11 +11,16 @@ export default function OrdenCompraModal({
   eventData,
   selectedTickets,
   subtotal,
-  serviceCharge,
   total,
   orderSuccess,
   orderError,
   orderId,
+  // Nuevos props para método de pago
+  selectedPaymentMethod,
+  paymentMethodName,
+  taxDetails,
+
+  onPaymentSuccess,
 }) {
   const summaryRef = useRef(null)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
@@ -62,14 +66,14 @@ export default function OrdenCompraModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50  overflow-hidden flex items-center justify-center p-4 bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="flex flex-col lg:flex-row gap-4 w-full h-full max-w-7xl">
         <div
           className={`bg-gray-800 rounded-lg border-2 border-[#BF8D6B] p-4 sm:p-6 overflow-y-auto ${
             showPagoModal ? "w-full lg:w-1/2 h-1/2 lg:h-full" : "w-full max-w-2xl mx-auto h-full max-h-[90vh]"
           }`}
         >
-          <div className=" flex justify-between items-center mb-4 sm:mb-6  bg-gray-800 pb-2 border-b border-gray-700">
+          <div className="flex justify-between items-center mb-4 sm:mb-6 bg-gray-800 pb-2 border-b border-gray-700">
             <div>
               <h2 className="text-xl font-semibold text-white">Resumen de Orden</h2>
               <p className="text-sm text-gray-300">Orden #{finalOrderId}</p>
@@ -83,7 +87,7 @@ export default function OrdenCompraModal({
             <div className="mb-4 border-b pb-3">
               <div className="flex items-center mb-2">
                 <User className="h-5 w-5 mr-2 text-[#BF8D6B]" />
-                <h3 className="font-semibold">Datos del Comprador</h3>
+                <h3 className="font-semibold">Datos del Graduado</h3>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
@@ -142,6 +146,22 @@ export default function OrdenCompraModal({
               </table>
             </div>
 
+            {/* Mostrar método de pago seleccionado */}
+            {selectedPaymentMethod && (
+              <div className="mb-4 border-b pb-3">
+                <div className="flex items-center mb-2">
+                  <CreditCard className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                  <h3 className="font-semibold">Método de Pago</h3>
+                </div>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="font-medium text-blue-800">{paymentMethodName}</p>
+                  {taxDetails?.taxPercentage > 0 && (
+                    <p className="text-sm text-blue-700">Impuesto aplicado: {taxDetails.taxPercentage}%</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div>
               <div className="flex items-center mb-2">
                 <FileText className="h-5 w-5 mr-2 text-[#BF8D6B]" />
@@ -151,13 +171,20 @@ export default function OrdenCompraModal({
                 <span>Subtotal</span>
                 <span>${subtotal?.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between mb-1 text-sm">
-                <span>Cargo de Servicio</span>
-                <span>${serviceCharge?.toLocaleString()}</span>
+              <div className="flex justify-between mb-1">
+                <span>Total Base</span>
+                <span>${taxDetails?.baseAmount?.toLocaleString() || subtotal?.toLocaleString()}</span>
               </div>
+              {/* Mostrar impuestos si los hay */}
+              {taxDetails?.taxAmount > 0 && (
+                <div className="flex justify-between mb-1 text-sm text-orange-600">
+                  <span>Impuesto ({taxDetails.taxPercentage}%)</span>
+                  <span>+${taxDetails.taxAmount?.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold text-lg mt-2 pt-2 border-t">
-                <span>Total</span>
-                <span>${total?.toLocaleString()}</span>
+                <span>Total Final</span>
+                <span className={taxDetails?.taxAmount > 0 ? "text-orange-600" : ""}>${total?.toLocaleString()}</span>
               </div>
             </div>
 
@@ -181,7 +208,6 @@ export default function OrdenCompraModal({
               <X className="h-4 w-4 mr-1" />
               Cerrar
             </button>
-
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleCrearPago}
@@ -191,8 +217,7 @@ export default function OrdenCompraModal({
                 <CreditCard className="h-4 w-4 mr-1" />
                 {showPagoModal ? "Ocultar Pago" : "Crear Pago"}
               </button>
-
-              <button
+              {/* <button
                 onClick={downloadPDF}
                 disabled={isGeneratingPDF}
                 className={`px-4 py-2 ${
@@ -210,7 +235,7 @@ export default function OrdenCompraModal({
                     Descargar PDF
                   </>
                 )}
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -222,7 +247,11 @@ export default function OrdenCompraModal({
               onClose={() => setShowPagoModal(false)}
               orderId={finalOrderId}
               total={total}
+              metodoDeCobroId={selectedPaymentMethod || null}
+              paymentMethodName={paymentMethodName}
+              taxDetails={taxDetails}
               isInline={true}
+              onPaymentSuccess={onPaymentSuccess}
             />
           </div>
         )}
@@ -230,4 +259,3 @@ export default function OrdenCompraModal({
     </div>
   )
 }
-

@@ -7,4 +7,3 @@ export default function Page({params}) {
     <><EventDetailPage idFromEvent={params.id}/></>
   )
 }
-

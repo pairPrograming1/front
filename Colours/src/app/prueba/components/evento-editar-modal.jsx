@@ -13,6 +13,8 @@ import {
   Loader,
   Plus,
   Trash2,
+  FileText,
+  ChevronDown,
 } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
@@ -32,20 +34,17 @@ export default function EventoEditarModal({
     activo: true,
     salonId: "",
     descripcion: "",
-    image: "", // Campo para URL de imagen
+    image: "",
   });
 
   const [salones, setSalones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetchingSalones, setFetchingSalones] = useState(true);
   const [error, setError] = useState(null);
-
-  // Nuevos estados para manejar imágenes
   const [images, setImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
-  // Estados para la pestaña de entradas
-  const [activeTab, setActiveTab] = useState("info"); // info | imagenes | entradas
+  const [activeTab, setActiveTab] = useState("info");
   const [entradas, setEntradas] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState(null);
@@ -62,6 +61,27 @@ export default function EventoEditarModal({
     estatus: "",
   });
 
+  // Contrato states
+  const [numeroContrato, setNumeroContrato] = useState("");
+  const [fechaContrato, setFechaContrato] = useState("");
+  const [montoContrato, setMontoContrato] = useState("");
+  const [cantidadGraduados, setCantidadGraduados] = useState("");
+  const [minimoCenas, setMinimoCenas] = useState("");
+  const [minimoBrindis, setMinimoBrindis] = useState("");
+  const [firmantes, setFirmantes] = useState([
+    { nombre: "", apellido: "", telefono: "", mail: "" },
+  ]);
+  const [fechaFirma, setFechaFirma] = useState("");
+  const [vendedor, setVendedor] = useState("");
+  const [observaciones, setObservaciones] = useState("");
+  const [fechaSenia, setFechaSenia] = useState("");
+  const [pdf, setPdf] = useState(null);
+  const [loadingContrato, setLoadingContrato] = useState(false);
+  const [errorContrato, setErrorContrato] = useState(null);
+  const [contratoId, setContratoId] = useState("");
+  const [contratoData, setContratoData] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState("");
+
   useEffect(() => {
     if (evento) {
       const eventDate = new Date(evento.fecha);
@@ -75,10 +95,9 @@ export default function EventoEditarModal({
         activo: evento.activo !== undefined ? evento.activo : true,
         salonId: evento.salonId || "",
         descripcion: evento.descripcion || "",
-        image: evento.image || "", // Inicializar con la URL de la imagen existente
+        image: evento.image || "",
       });
 
-      // Si el evento tiene una imagen, seleccionarla
       if (evento.image) {
         setSelectedImage(evento.image);
       }
@@ -100,7 +119,7 @@ export default function EventoEditarModal({
     const fetchSalones = async () => {
       try {
         setFetchingSalones(true);
-        const response = await fetch(`${API_URL}/api/salon?limit=100`); // Aumentar el límite para obtener todos los salones
+        const response = await fetch(`${API_URL}/api/salon?limit=100`);
         if (!response.ok) {
           throw new Error("Error al cargar los salones");
         }
@@ -108,7 +127,6 @@ export default function EventoEditarModal({
         const data = await response.json();
         let salonesData = [];
 
-        // Manejar diferentes formatos de respuesta
         if (data.success && Array.isArray(data.data)) {
           salonesData = data.data;
         } else if (Array.isArray(data)) {
@@ -117,7 +135,6 @@ export default function EventoEditarModal({
           salonesData = data.salones;
         }
 
-        // Filtrar solo salones activos
         const activeSalones = salonesData.filter(
           (salon) =>
             salon.estatus === true ||
@@ -125,15 +142,13 @@ export default function EventoEditarModal({
             salon.activo === true
         );
 
-        // Asegurarse de que todos los salones tengan un ID válido
         const validSalones = activeSalones.filter((salon) => {
           return salon.Id || salon.id || salon._id;
         });
 
-        // Mapear los salones para normalizar la estructura
         const normalizedSalones = validSalones.map((salon) => ({
           Id: salon.Id || salon.id || salon._id,
-          nombre: salon.salon || salon.nombre || "Salón sin nombre", // Mostrar el campo 'salon'
+          nombre: salon.salon || salon.nombre || "Salón sin nombre",
           capacidad: salon.capacidad,
         }));
 
@@ -153,11 +168,9 @@ export default function EventoEditarModal({
     };
 
     fetchSalones();
-    // Cargar imágenes al iniciar el componente
     fetchImages();
   }, []);
 
-  // Función para cargar imágenes
   const fetchImages = async () => {
     setLoadingImages(true);
     setError(null);
@@ -179,7 +192,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Función para seleccionar una imagen de la galería
   const selectImage = (url) => {
     setSelectedImage(url);
     setFormData((prev) => ({
@@ -223,11 +235,12 @@ export default function EventoEditarModal({
 
       const formattedData = {
         ...formData,
-        fecha: new Date(formData.fecha).toISOString(),
+        // Enviar la fecha tal cual está en el input
+        fecha: formData.fecha,
         salonNombre:
           salones.find((salon) => salon.Id === formData.salonId)?.nombre ||
           evento.salon ||
-          "", // Mantener el salón asignado si no se selecciona uno nuevo
+          "",
       };
 
       const response = await fetch(`${API_URL}/api/evento/${evento.id}`, {
@@ -278,12 +291,10 @@ export default function EventoEditarModal({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Obtener entradas cuando se selecciona la pestaña "entradas"
   useEffect(() => {
     if (activeTab === "entradas" && evento?.id) {
       fetchEntradas();
     }
-    // eslint-disable-next-line
   }, [activeTab, evento?.id]);
 
   const fetchEntradas = async () => {
@@ -335,7 +346,6 @@ export default function EventoEditarModal({
     }
   };
 
-  // Al hacer click en editar, muestra confirmación antes de cargar los datos en el formulario de edición
   const handleEditarEntrada = async (entrada) => {
     const result = await Swal.fire({
       title: "¿Editar entrada?",
@@ -357,6 +367,44 @@ export default function EventoEditarModal({
     }
   };
 
+  const handleEntradaEditChange = (e) => {
+    const { name, value } = e.target;
+    setEntradaEdit((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleActualizarEntrada = async () => {
+    if (!editandoEntradaId) return;
+
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const body = {
+        tipo_entrada: entradaEdit.tipo,
+        precio: Number(entradaEdit.precio),
+        cantidad: Number(entradaEdit.cantidad),
+        estatus: entradaEdit.estatus,
+      };
+
+      const res = await fetch(`${API_URL}/api/entrada/${editandoEntradaId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error("No se pudo actualizar la entrada");
+
+      setEditandoEntradaId(null);
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al actualizar entrada");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
   const handleEliminarEntrada = async (entradaId) => {
     const result = await Swal.fire({
       title: "¿Eliminar entrada?",
@@ -368,6 +416,7 @@ export default function EventoEditarModal({
       reverseButtons: true,
     });
     if (!result.isConfirmed) return;
+
     setLoadingEntradas(true);
     setErrorEntradas(null);
     try {
@@ -383,14 +432,336 @@ export default function EventoEditarModal({
     }
   };
 
+  const handleFirmanteChange = (idx, field, value) => {
+    setFirmantes((prev) =>
+      prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
+    );
+  };
+
+  const agregarFirmante = () => {
+    setFirmantes((prev) => [
+      ...prev,
+      { nombre: "", apellido: "", telefono: "", mail: "" },
+    ]);
+  };
+
+  const eliminarFirmante = (idx) => {
+    setFirmantes((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleContratoSubmit = async (e) => {
+    e.preventDefault();
+    if (!pdf) {
+      setErrorContrato("Debes seleccionar un PDF");
+      return;
+    }
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const formDataContrato = new FormData();
+      formDataContrato.append("numeroContrato", numeroContrato);
+      formDataContrato.append("fechaContrato", fechaContrato);
+      formDataContrato.append("montoContrato", montoContrato);
+      formDataContrato.append("cantidadGraduados", cantidadGraduados);
+      formDataContrato.append("minimoCenas", minimoCenas);
+      formDataContrato.append("minimoBrindis", minimoBrindis);
+      formDataContrato.append("fechaFirma", fechaFirma);
+      formDataContrato.append("vendedor", vendedor);
+      formDataContrato.append("observaciones", observaciones);
+      formDataContrato.append("fechaSenia", fechaSenia);
+      formDataContrato.append("pdf", pdf);
+      formDataContrato.append("firmantes", JSON.stringify(firmantes));
+
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
+        method: "POST",
+        body: formDataContrato,
+      });
+      if (!res.ok) throw new Error("Error al guardar contrato");
+      Swal.fire({
+        icon: "success",
+        title: "Contrato guardado",
+        text: "El contrato se guardó correctamente.",
+      });
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  const handleContratoJsonSubmit = async () => {
+    setLoadingContrato(true);
+    setErrorContrato(null);
+
+    if (!numeroContrato || !fechaContrato || !montoContrato) {
+      setErrorContrato("Completa los campos obligatorios del contrato.");
+      setLoadingContrato(false);
+      return;
+    }
+
+    try {
+      const contratoJson = {
+        numeroContrato,
+        fechaContrato,
+        montoContrato: parseFloat(montoContrato),
+        cantidadGraduados: parseInt(cantidadGraduados) || 0,
+        minimoCenas: parseInt(minimoCenas) || 0,
+        minimoBrindis: parseInt(minimoBrindis) || 0,
+        firmantes,
+        fechaFirma,
+        vendedor,
+        observaciones,
+        fechaSenia,
+        pdf: pdfUrl || "",
+        eventoId: evento.id,
+      };
+
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(contratoJson),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al guardar contrato");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Contrato guardado",
+        text: "El contrato se guardó correctamente.",
+      });
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "contrato" && evento?.id) {
+      console.log("ID del evento al entrar a la pestaña Contrato:", evento.id);
+      setContratoId(evento.id);
+    }
+  }, [activeTab, evento?.id]);
+
+  const fetchContrato = async () => {
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      console.log("Obteniendo contrato para evento ID:", evento.id);
+      const res = await fetch(`${API_URL}/api/evento/${evento.id}/contrato`);
+      if (res.status === 400) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sin contrato",
+          text: "No hay ningún contrato registrado para este evento.",
+        });
+        setContratoData(null);
+        setNumeroContrato("");
+        setFechaContrato("");
+        setMontoContrato("");
+        setCantidadGraduados("");
+        setMinimoCenas("");
+        setMinimoBrindis("");
+        setFirmantes([{ nombre: "", apellido: "", telefono: "", mail: "" }]);
+        setFechaFirma("");
+        setVendedor("");
+        setObservaciones("");
+        setFechaSenia("");
+        setContratoId("");
+        return;
+      }
+      if (!res.ok) throw new Error("No se pudo obtener el contrato");
+      const data = await res.json();
+      const contrato = Array.isArray(data.data) ? data.data[0] : data.data;
+      if (!contrato) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sin contrato",
+          text: "No hay ningún contrato registrado para este evento.",
+        });
+        setContratoData(null);
+        setNumeroContrato("");
+        setFechaContrato("");
+        setMontoContrato("");
+        setCantidadGraduados("");
+        setMinimoCenas("");
+        setMinimoBrindis("");
+        setFirmantes([{ nombre: "", apellido: "", telefono: "", mail: "" }]);
+        setFechaFirma("");
+        setVendedor("");
+        setObservaciones("");
+        setFechaSenia("");
+        setContratoId("");
+        return;
+      }
+      setContratoData(contrato);
+      setNumeroContrato(contrato?.numeroContrato || "");
+      setFechaContrato(contrato?.fechaContrato || "");
+      setMontoContrato(contrato?.montoContrato || "");
+      setCantidadGraduados(contrato?.cantidadGraduados || "");
+      setMinimoCenas(contrato?.minimoCenas || "");
+      setMinimoBrindis(contrato?.minimoBrindis || "");
+      setFirmantes(
+        contrato?.firmantes || [
+          { nombre: "", apellido: "", telefono: "", mail: "" },
+        ]
+      );
+      setFechaFirma(contrato?.fechaFirma || "");
+      setVendedor(contrato?.vendedor || "");
+      setObservaciones(contrato?.observaciones || "");
+      setFechaSenia(contrato?.fechaSenia || "");
+      setContratoId(contrato?.id || "");
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  const handleEliminarContrato = async () => {
+    if (!contratoId) {
+      Swal.fire({ icon: "warning", title: "ID de contrato requerido" });
+      return;
+    }
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar contrato?",
+      text: "Esta acción no se puede deshacer.",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirm.isConfirmed) return;
+
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo eliminar el contrato");
+      Swal.fire({ icon: "success", title: "Contrato eliminado" });
+      setContratoData(null);
+      setContratoId("");
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  const handleActualizarContrato = async () => {
+    if (!contratoId) {
+      setErrorContrato("ID de contrato requerido para actualizar.");
+      return;
+    }
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const contratoJson = {
+        numeroContrato,
+        fechaContrato,
+        montoContrato: parseFloat(montoContrato),
+        cantidadGraduados: parseInt(cantidadGraduados) || 0,
+        minimoCenas: parseInt(minimoCenas) || 0,
+        minimoBrindis: parseInt(minimoBrindis) || 0,
+        firmantes,
+        fechaFirma,
+        vendedor,
+        observaciones,
+        fechaSenia,
+        pdf: pdfUrl || "",
+        eventoId: evento.id,
+      };
+      const res = await fetch(
+        `${API_URL}/api/evento/${evento.id}/contrato/${contratoId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contratoJson),
+        }
+      );
+      if (res.status === 400) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sin contrato",
+          text: "No hay ningún contrato registrado para este evento.",
+        });
+        setContratoData(null);
+        setNumeroContrato("");
+        setFechaContrato("");
+        setMontoContrato("");
+        setCantidadGraduados("");
+        setMinimoCenas("");
+        setMinimoBrindis("");
+        setFirmantes([{ nombre: "", apellido: "", telefono: "", mail: "" }]);
+        setFechaFirma("");
+        setVendedor("");
+        setObservaciones("");
+        setFechaSenia("");
+        setContratoId("");
+        setLoadingContrato(false);
+        return;
+      }
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Error al actualizar contrato");
+      }
+      Swal.fire({ icon: "success", title: "Contrato actualizado" });
+      fetchContrato();
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
+  const handlePdfUpload = async (file) => {
+    if (!file) return;
+    setLoadingContrato(true);
+    setErrorContrato(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`${API_URL}/api/upload/image`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Error al subir el PDF");
+      const data = await res.json();
+      const url = data.url || data.fileUrl || "";
+      setPdfUrl(url);
+      console.log("URL del PDF subido:", url);
+      Swal.fire({
+        icon: "success",
+        title: "PDF subido",
+        text: "El archivo PDF se subió correctamente.",
+      });
+    } catch (err) {
+      setErrorContrato(err.message);
+    } finally {
+      setLoadingContrato(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-4 sm:p-6 w-full max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">Editar Evento</h2>
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-2 sm:p-4 md:p-6 w-full max-w-full sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto shadow-lg shadow-yellow-800/20 max-h-[95vh] overflow-y-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 sticky top-0 bg-gray-800 pb-2 border-b border-gray-700 z-10">
+          <h2 className="text-lg sm:text-xl font-semibold text-white">
+            Editar Evento
+          </h2>
           <button
             onClick={onClose}
-            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            className="text-yellow-500 hover:text-yellow-300 transition-colors mt-2 sm:mt-0"
             aria-label="Cerrar"
           >
             <X className="h-5 w-5" />
@@ -403,24 +774,23 @@ export default function EventoEditarModal({
           </div>
         )}
 
-        {/* Pestañas para cambiar entre formulario, imágenes y entradas */}
-        <div className="flex border-b border-gray-700 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-4">
           <button
             onClick={() => setActiveTab("info")}
-            className={`py-2 px-4 text-sm font-medium ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "info"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             Información del Evento
           </button>
           <button
             onClick={() => setActiveTab("imagenes")}
-            className={`py-2 px-4 text-sm font-medium flex items-center ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "imagenes"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             <Image className="h-4 w-4 mr-1" />
@@ -428,14 +798,25 @@ export default function EventoEditarModal({
           </button>
           <button
             onClick={() => setActiveTab("entradas")}
-            className={`py-2 px-4 text-sm font-medium flex items-center ${
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
               activeTab === "entradas"
-                ? "text-yellow-500 border-b-2 border-yellow-500"
-                : "text-gray-400 hover:text-white"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
             <Users className="h-4 w-4 mr-1" />
             Entradas
+          </button>
+          <button
+            onClick={() => setActiveTab("contrato")}
+            className={`py-2 px-2 text-sm font-medium w-full flex items-center justify-center rounded ${
+              activeTab === "contrato"
+                ? "text-yellow-500 border-2 border-yellow-500 bg-gray-900"
+                : "text-gray-400 hover:text-white border border-gray-700"
+            }`}
+          >
+            <FileText className="h-4 w-4 mr-1" />
+            Contrato
           </button>
         </div>
 
@@ -598,30 +979,26 @@ export default function EventoEditarModal({
               </div>
             </div>
 
-            {/* Campo de URL de imagen - ahora muestra la imagen seleccionada si hay una */}
-            <div>
-              {/* Mostrar la URL actual de la imagen */}
-              {formData.image && (
-                <div className="mt-2">
-                  <div className="text-xs text-yellow-500 mb-1">
-                    URL actual de la imagen:
-                  </div>
-                  <div className="bg-gray-700 p-2 rounded-lg border border-yellow-600 text-white text-xs break-all">
-                    {formData.image}
-                  </div>
-                  <img
-                    src={formData.image}
-                    alt="Vista previa"
-                    className="h-20 rounded-lg border border-yellow-600 mt-2"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "/placeholder-image.jpg";
-                      e.target.alt = "Error al cargar la imagen";
-                    }}
-                  />
+            {formData.image && (
+              <div className="mt-2">
+                <div className="text-xs text-yellow-500 mb-1">
+                  URL actual de la imagen:
                 </div>
-              )}
-            </div>
+                <div className="bg-gray-700 p-2 rounded-lg border border-yellow-600 text-white text-xs break-all">
+                  {formData.image}
+                </div>
+                <img
+                  src={formData.image}
+                  alt="Vista previa"
+                  className="h-20 rounded-lg border border-yellow-600 mt-2"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/placeholder-image.jpg";
+                    e.target.alt = "Error al cargar la imagen";
+                  }}
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium mb-1 text-white">
@@ -653,7 +1030,6 @@ export default function EventoEditarModal({
             </button>
           </form>
         ) : activeTab === "imagenes" ? (
-          // Vista de selección de imágenes
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-white">
@@ -667,7 +1043,6 @@ export default function EventoEditarModal({
               </button>
             </div>
 
-            {/* Mostrar la URL actual de la imagen en la pestaña de imágenes */}
             {formData.image && (
               <div className="bg-gray-700 p-3 rounded-lg border border-yellow-600 mb-4">
                 <div className="text-sm text-yellow-500 mb-1">
@@ -742,8 +1117,7 @@ export default function EventoEditarModal({
               </button>
             </div>
           </div>
-        ) : (
-          // Sección de Entradas
+        ) : activeTab === "entradas" ? (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white mb-2">
               Entradas del Evento
@@ -767,7 +1141,6 @@ export default function EventoEditarModal({
                         <tr className="bg-gray-700 text-yellow-500">
                           <th className="px-2 sm:px-3 py-2">Tipo</th>
                           <th className="px-2 sm:px-3 py-2">Precio</th>
-
                           <th className="px-2 sm:px-3 py-2">Estatus</th>
                           <th className="px-2 sm:px-3 py-2">Acciones</th>
                         </tr>
@@ -800,7 +1173,6 @@ export default function EventoEditarModal({
                                   required
                                 />
                               </td>
-
                               <td className="px-3 py-2">
                                 <input
                                   type="text"
@@ -838,7 +1210,6 @@ export default function EventoEditarModal({
                                 {entrada.tipo_entrada || entrada.tipo}
                               </td>
                               <td className="px-3 py-2">${entrada.precio}</td>
-
                               <td className="px-3 py-2">
                                 {entrada.estatus || "-"}
                               </td>
@@ -887,27 +1258,274 @@ export default function EventoEditarModal({
               </button>
             </div>
           </div>
+        ) : (
+          activeTab === "contrato" && (
+            <form
+              onSubmit={handleContratoSubmit}
+              className="space-y-4 overflow-y-auto"
+              style={{ maxHeight: "60vh" }}
+            >
+              <div className="flex gap-2 items-end">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={fetchContrato}
+                  disabled={loadingContrato || !contratoId}
+                >
+                  Obtener contrato
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary w-full"
+                  disabled={loadingContrato || !contratoId}
+                  onClick={handleActualizarContrato}
+                >
+                  {loadingContrato ? "Actualizando..." : "Actualizar Contrato"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleEliminarContrato}
+                  disabled={loadingContrato || !contratoId}
+                >
+                  Eliminar contrato
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Número de Contrato
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={numeroContrato}
+                  onChange={(e) => setNumeroContrato(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Fecha de Contrato
+                </label>
+                <input
+                  type="date"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={fechaContrato}
+                  onChange={(e) => setFechaContrato(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Monto
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={montoContrato}
+                  onChange={(e) => setMontoContrato(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Cantidad de graduados
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={cantidadGraduados}
+                  onChange={(e) => setCantidadGraduados(e.target.value)}
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Mínimo de cenas
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={minimoCenas}
+                  onChange={(e) => setMinimoCenas(e.target.value)}
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Mínimo de brindis
+                </label>
+                <input
+                  type="number"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={minimoBrindis}
+                  onChange={(e) => setMinimoBrindis(e.target.value)}
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Firmantes
+                </label>
+                {firmantes.map((f, idx) => (
+                  <div
+                    key={idx}
+                    className="mb-2 p-2 bg-gray-800 rounded-lg border border-yellow-700"
+                  >
+                    <div className="flex gap-2 mb-1">
+                      <input
+                        type="text"
+                        placeholder="Apellido*"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.apellido}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "apellido", e.target.value)
+                        }
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Nombre*"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.nombre}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "nombre", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2 mb-1">
+                      <input
+                        type="text"
+                        placeholder="Teléfono"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.telefono}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "telefono", e.target.value)
+                        }
+                      />
+                      <input
+                        type="email"
+                        placeholder="Mail"
+                        className="input input-bordered bg-gray-700 text-white border-yellow-600 flex-1"
+                        value={f.mail}
+                        onChange={(e) =>
+                          handleFirmanteChange(idx, "mail", e.target.value)
+                        }
+                      />
+                    </div>
+                    {firmantes.length > 1 && (
+                      <button
+                        type="button"
+                        className="text-xs text-red-400 hover:text-red-200"
+                        onClick={() => eliminarFirmante(idx)}
+                      >
+                        Eliminar firmante
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="text-xs text-yellow-400 hover:text-yellow-200 mt-1"
+                  onClick={agregarFirmante}
+                >
+                  + Agregar firmante
+                </button>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Fecha de firma
+                </label>
+                <input
+                  type="date"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={fechaFirma}
+                  onChange={(e) => setFechaFirma(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Vendedor
+                </label>
+                <input
+                  type="text"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={vendedor}
+                  onChange={(e) => setVendedor(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Observaciones
+                </label>
+                <textarea
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={observaciones}
+                  onChange={(e) => setObservaciones(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Fecha de seña
+                </label>
+                <input
+                  type="date"
+                  className="input input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                  value={fechaSenia}
+                  onChange={(e) => setFechaSenia(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-yellow-400 mb-1">
+                  Archivo PDF
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    setPdf(e.target.files[0]);
+                    handlePdfUpload(e.target.files[0]);
+                  }}
+                  required
+                  className="file-input file-input-bordered w-full bg-gray-700 text-white border-yellow-600"
+                />
+                {pdf && (
+                  <span className="text-xs text-gray-200">{pdf.name}</span>
+                )}
+
+                {(pdfUrl || contratoData?.pdf) && (
+                  <div className="text-xs text-green-400 mt-1">
+                    PDF subido:{" "}
+                    <a
+                      href={pdfUrl || contratoData?.pdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {pdfUrl || contratoData?.pdf}
+                    </a>
+                  </div>
+                )}
+              </div>
+              {errorContrato && (
+                <div className="text-red-400 text-sm">{errorContrato}</div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary w-full"
+                  disabled={loadingContrato}
+                  onClick={handleContratoJsonSubmit}
+                >
+                  {loadingContrato ? "Enviando..." : "Guardar Contrato"}
+                </button>
+              </div>
+            </form>
+          )
         )}
       </div>
     </div>
-  );
-}
-
-function ChevronDown(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
   );
 }
