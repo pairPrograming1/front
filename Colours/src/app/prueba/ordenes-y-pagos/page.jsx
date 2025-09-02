@@ -36,7 +36,7 @@ export default function OrdenesYPagos() {
     fechaDesde: "",
     fechaHasta: "",
     metodoDePago: "",
-    cuotas: "", // Changed from impuestoClave to cuotas to match controller
+    cuotas: "", 
   })
 
   const buildApiUrl = (basePath, currentLimit, currentOffset) => {
@@ -63,10 +63,10 @@ export default function OrdenesYPagos() {
       queryParams.append("fechaHasta", filters.fechaHasta)
     }
     if (filters.metodoDePago) {
-      queryParams.append("metodoDePago", filters.metodoDePago) // Changed from tipoDeCobro to metodoDePago to match controller
+      queryParams.append("metodoDePago", filters.metodoDePago) 
     }
     if (filters.cuotas) {
-      queryParams.append("cuotas", filters.cuotas) // Changed from impuestoClave to cuotas to match controller
+      queryParams.append("cuotas", filters.cuotas) 
     }
 
     queryParams.append("orderBy", orderBy)
@@ -174,7 +174,7 @@ export default function OrdenesYPagos() {
       fechaDesde: "",
       fechaHasta: "",
       metodoDePago: "",
-      cuotas: "", // Changed from impuestoClave to cuotas
+      cuotas: "", 
     })
     setCurrentPage(1)
   }
@@ -734,7 +734,7 @@ export default function OrdenesYPagos() {
   )
 }
 
-// Helper functions to get payment method and installments from order data
+// Helpers
 const getMetodoDePago = (orden) => {
   if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].MetodoDePago) {
     return orden.Pagos[0].MetodoDePago.tipo_de_cobro
