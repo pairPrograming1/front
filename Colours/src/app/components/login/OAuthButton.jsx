@@ -21,6 +21,8 @@ export default function OAuthButton() {
       // Primero verificamos la cuenta antes de mostrar cualquier mensaje de éxito
       const processAuth = async () => {
         try {
+          console.log("Verificando usuario con email:", user.email);
+
           const verifyResponse = await fetch(`${API_URL}/api/users/verificar`, {
             method: "POST",
             headers: {
@@ -31,9 +33,13 @@ export default function OAuthButton() {
             }),
           });
 
+          console.log("Respuesta de verificación:", verifyResponse.status);
           const verifyData = await verifyResponse.json();
+          console.log("Datos de verificación:", verifyData);
 
           if (!verifyResponse.ok || !verifyData.registrado) {
+            console.log("Usuario no registrado, procediendo con registro...");
+
             const registerUser = async () => {
               try {
                 const response = await fetch(`${API_URL}/api/users/register`, {
@@ -45,39 +51,62 @@ export default function OAuthButton() {
                     auth0Id: user.sub,
                     email: user.email,
                     apellido: user.family_name || "",
-                    nombre: user.given_name || user.name,
+                    nombre: user.given_name || user.name || "",
+                    rol: "comun",
                   }),
                 });
 
-                if (!response.ok) {
-                  console.error(
-                    "Error al registrar el usuario:",
-                    response.statusText
-                  );
-                } else {
-                  const newVerifyResponse = await fetch(
-                    `${API_URL}/api/users/verificar`,
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        email: user.email,
-                      }),
-                    }
-                  );
-                  const newVerifyData = await newVerifyResponse.json();
+                const responseData = await response.json();
 
-                  if (newVerifyResponse.ok && newVerifyData.registrado) {
-                    verifyData.usuario = newVerifyData.usuario;
+                if (!response.ok) {
+                  throw new Error(
+                    responseData.message || "Error al registrar el usuario"
+                  );
+                }
+
+                console.log("Usuario registrado exitosamente");
+
+                // Verificar nuevamente después del registro
+                const newVerifyResponse = await fetch(
+                  `${API_URL}/api/users/verificar`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      email: user.email,
+                    }),
                   }
+                );
+
+                if (!newVerifyResponse.ok) {
+                  throw new Error("Error al verificar después del registro");
+                }
+
+                const newVerifyData = await newVerifyResponse.json();
+                console.log("Nueva verificación:", newVerifyData);
+
+                if (newVerifyResponse.ok && newVerifyData.registrado) {
+                  verifyData.usuario = newVerifyData.usuario;
+                  return newVerifyData;
                 }
               } catch (error) {
-                console.error("Error en la solicitud:", error);
+                console.error("Error en el registro:", error);
+                Swal.fire({
+                  icon: "error",
+                  title: "Error de registro",
+                  text: error.message || "No se pudo registrar el usuario",
+                  confirmButtonColor: "#BF8D6B",
+                });
+                throw error;
               }
             };
-            await registerUser();
+
+            const registeredData = await registerUser();
+            if (registeredData && registeredData.registrado) {
+              verifyData.usuario = registeredData.usuario;
+            }
           }
 
           // ESTRUCTURA ESTANDARIZADA PARA EL CONTEXTO
@@ -113,7 +142,7 @@ export default function OAuthButton() {
             // Mostrar mensaje de éxito SOLO si la cuenta está activa
             Swal.fire({
               title: "¡Inicio de sesión exitoso!",
-              text: `Bienvenido, ${user.name}`,
+              text: `Bienvenido, ${userData.nombre || user.name}`,
               icon: "success",
               confirmButtonText: "Continuar",
             }).then(() => {
@@ -129,11 +158,23 @@ export default function OAuthButton() {
             });
           } else {
             setAuthData(null); // Limpiar contexto si falla
+            Swal.fire({
+              icon: "error",
+              title: "Error de autenticación",
+              text: "No se pudo completar el proceso de autenticación",
+              confirmButtonColor: "#BF8D6B",
+            });
             router.push("/users");
           }
         } catch (error) {
           console.error("Error en la solicitud de verificación:", error);
           setAuthData(null); // Limpiar contexto en errores
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: error.message || "Ocurrió un error durante la autenticación",
+            confirmButtonColor: "#BF8D6B",
+          });
           router.push("/users");
         }
       };
@@ -158,7 +199,6 @@ export default function OAuthButton() {
           className="hover:scale-110 transition-transform duration-200"
         />
       </button>
-  
     </div>
   );
 }
