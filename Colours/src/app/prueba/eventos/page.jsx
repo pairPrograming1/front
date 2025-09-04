@@ -87,9 +87,7 @@ export default function Eventos() {
 
       if (resultData.success && Array.isArray(resultData.data)) {
         const mappedEventos = resultData.data.map((evento) => {
-          console.log("Fecha original de BD:", evento.fecha);
-          console.log("Fecha formateada:", formatDateTime(evento.fecha));
-
+          // Eliminados los console.log de fecha
           return {
             id: evento.id,
             nombre: evento.nombre,
