@@ -21,8 +21,6 @@ export default function OAuthButton() {
       // Primero verificamos la cuenta antes de mostrar cualquier mensaje de éxito
       const processAuth = async () => {
         try {
-          console.log("Verificando usuario con email:", user.email);
-
           const verifyResponse = await fetch(`${API_URL}/api/users/verificar`, {
             method: "POST",
             headers: {
@@ -33,13 +31,9 @@ export default function OAuthButton() {
             }),
           });
 
-          console.log("Respuesta de verificación:", verifyResponse.status);
           const verifyData = await verifyResponse.json();
-          console.log("Datos de verificación:", verifyData);
 
           if (!verifyResponse.ok || !verifyData.registrado) {
-            console.log("Usuario no registrado, procediendo con registro...");
-
             const registerUser = async () => {
               try {
                 const response = await fetch(`${API_URL}/api/users/register`, {
@@ -64,8 +58,6 @@ export default function OAuthButton() {
                   );
                 }
 
-                console.log("Usuario registrado exitosamente");
-
                 // Verificar nuevamente después del registro
                 const newVerifyResponse = await fetch(
                   `${API_URL}/api/users/verificar`,
@@ -85,14 +77,12 @@ export default function OAuthButton() {
                 }
 
                 const newVerifyData = await newVerifyResponse.json();
-                console.log("Nueva verificación:", newVerifyData);
 
                 if (newVerifyResponse.ok && newVerifyData.registrado) {
                   verifyData.usuario = newVerifyData.usuario;
                   return newVerifyData;
                 }
               } catch (error) {
-                console.error("Error en el registro:", error);
                 Swal.fire({
                   icon: "error",
                   title: "Error de registro",
@@ -167,7 +157,6 @@ export default function OAuthButton() {
             router.push("/users");
           }
         } catch (error) {
-          console.error("Error en la solicitud de verificación:", error);
           setAuthData(null); // Limpiar contexto en errores
           Swal.fire({
             icon: "error",
