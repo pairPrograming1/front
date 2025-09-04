@@ -6,55 +6,55 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [authData, setAuthData] = useState(() => {
     if (typeof window !== "undefined") {
-      const storedAuthData = localStorage.getItem("authData");
-      return storedAuthData ? JSON.parse(storedAuthData) : null;
+      try {
+        const storedAuthData = localStorage.getItem("authData");
+        // Solo guardar datos mínimos y validados
+        if (storedAuthData) {
+          const parsed = JSON.parse(storedAuthData);
+          return {
+            user: {
+              id: typeof parsed?.user?.id === "string" ? parsed.user.id : null,
+              rol:
+                typeof parsed?.user?.rol === "string" ? parsed.user.rol : null,
+            },
+          };
+        }
+      } catch {
+        localStorage.removeItem("authData");
+      }
     }
     return null;
   });
 
-  // Efecto para persistir en localStorage y guardar 'a' y 'b'
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if (authData) {
-        localStorage.setItem("authData", JSON.stringify(authData));
-
-        //modificacion en login para guardar id y rol
-        const userId = authData?.user?.id || null;
-        const userRole = authData?.user?.rol || null;
-
-        if (userId) {
-          localStorage.setItem("a", userId);
-        } else {
-          localStorage.removeItem("a");
-        }
-
-        if (userRole) {
-          localStorage.setItem("b", userRole);
-        } else {
-          localStorage.removeItem("b");
-        }
+      if (authData?.user?.id && authData?.user?.rol) {
+        // Solo guardar datos mínimos y validados
+        localStorage.setItem(
+          "authData",
+          JSON.stringify({
+            user: {
+              id: authData.user.id,
+              rol: authData.user.rol,
+            },
+          })
+        );
+        localStorage.setItem("a", authData.user.id);
+        localStorage.setItem("b", authData.user.rol);
       } else {
         localStorage.removeItem("authData");
-        localStorage.removeItem("a"); // Limpiar 'a' si no hay authData
-        localStorage.removeItem("b"); // Limpiar 'b' si no hay authData
+        localStorage.removeItem("a");
+        localStorage.removeItem("b");
       }
     }
   }, [authData]);
 
-  // Efecto para verificar cambios en el rol y cerrar sesión si es necesario
   useEffect(() => {
     if (authData?.user?.rol !== undefined && authData?.roleChanged) {
-      // Si el rol ha cambiado, cerrar sesión
       setAuthData(null);
-      // Opcional: redirigir al usuario a la página de login
       // window.location.href = '/login';
     }
   }, [authData?.user?.rol, authData?.roleChanged]);
-
-  // Efecto para loguear los datos cuando cambian
-  useEffect(() => {
-    // Eliminados los console.log
-  }, [authData]);
 
   return (
     <AuthContext.Provider value={{ authData, setAuthData }}>
