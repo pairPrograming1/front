@@ -174,9 +174,7 @@ export default function OAuthButton() {
 
   return (
     <div className="text-center mt-4">
-      <p className="text-[#EDEEF0] text-sm mb-2">
-        Registrate e Inicia Sesion con Google
-      </p>
+      <p className="text-[#EDEEF0] text-sm mb-2">Continua con Google</p>
       <button
         className="transparent flex items-center justify-center mx-auto border-0 hover:opacity-80 transition-opacity cursor-pointer"
         type="button"

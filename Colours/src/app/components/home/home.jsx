@@ -73,7 +73,7 @@ const Home = () => {
             href="/register"
             className="text-[#FFFFFF] hover:underline text-sm font-medium"
           >
-            Registrarte de forma tradicional
+            Registrarte
           </Link>
         </div>
       </div>
