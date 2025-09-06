@@ -2,7 +2,11 @@
 
 import { X } from "lucide-react";
 import { useState, useEffect } from "react";
+import axios from "axios";
 import Swal from "sweetalert2";
+import apiUrls from "../../components/utils/apiConfig";
+
+const API_URL = apiUrls;
 
 export default function UsuarioModal({ onClose, onSave, userData }) {
   const [formData, setFormData] = useState({
@@ -18,6 +22,8 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     dni: "",
     roleId: null,
   });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (userData) {
@@ -37,22 +43,181 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     }
   }, [userData]);
 
-  // Elimina las validaciones en handleBlur
   const handleBlur = (e) => {
-    // Ya no se valida nada en el blur
+    const { name, value } = e.target;
+
+    // Validación especial para WhatsApp al perder el foco
+    if (name === "whatsapp") {
+      const numericValue = value.replace(/\D/g, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El WhatsApp debe tener entre 9 y 14 dígitos.",
+        });
+      }
+    }
+
+    // Validación especial para DNI al perder el foco
+    if (name === "dni") {
+      const numericValue = value.replace(/[MF]/gi, "");
+      if (
+        numericValue.length > 0 &&
+        (numericValue.length < 9 || numericValue.length > 14)
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "El DNI debe tener entre 9 y 14 caracteres.",
+        });
+      }
+    }
   };
 
-  // Elimina las validaciones en handleChange para WhatsApp y DNI
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Validación especial para DNI
+    if (name === "dni") {
+      const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
+      setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
+    }
+    // Validación especial para WhatsApp
+    else if (name === "whatsapp") {
+      const sanitizedValue = value.replace(/[^0-9+]/g, "");
+      setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  // Elimina las validaciones en handleSubmit para WhatsApp y DNI
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onSave(formData);
-    onClose();
+
+    // Validación de campos obligatorios
+    if (
+      !formData.nombre ||
+      !formData.apellido ||
+      !formData.usuario ||
+      (!userData && !formData.password)
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Los campos marcados como obligatorios son requeridos.",
+      });
+      return;
+    }
+
+    // Validación específica del DNI solo si se proporciona
+    if (formData.dni) {
+      const dniRegex = /^[0-9]+[MF]?$/;
+      if (!dniRegex.test(formData.dni)) {
+        Swal.fire({
+          icon: "warning",
+          title: "DNI inválido",
+          text: "El DNI debe contener solo números, opcionalmente seguido por la letra M o F.",
+        });
+        return;
+      }
+    }
+
+    // Validación de email solo si se proporciona
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Correo inválido",
+          text: "Por favor, ingresa un correo electrónico válido.",
+        });
+        return;
+      }
+    }
+
+    // Validación de contraseña para nuevos usuarios
+    if (!userData) {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Contraseña inválida",
+          text: "La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas, números y caracteres especiales.",
+        });
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      // Si es un nuevo usuario, registrar en Auth0 primero
+      let auth0Id = formData.auth0Id;
+
+      if (!userData) {
+        // Registro en Auth0
+        let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
+        const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
+
+        if (!domain || !clientId) {
+          console.error(
+            "Las variables de entorno de Auth0 no están configuradas."
+          );
+          Swal.fire({
+            icon: "error",
+            title: "Error interno",
+            text: "Por favor, contacta al administrador.",
+          });
+          return;
+        }
+
+        domain = domain.replace(/^https?:\/\//, "");
+
+        const auth0Response = await axios.post(
+          `https://${domain}/dbconnections/signup`,
+          {
+            client_id: clientId,
+            email: formData.email || `${formData.usuario}@temp.com`,
+            password: formData.password,
+            connection: "Username-Password-Authentication",
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        auth0Id = auth0Response.data._id;
+
+        if (!auth0Id) {
+          throw new Error("El ID de Auth0 es nulo o no válido.");
+        }
+      }
+
+      // Preparar datos para guardar
+      const userToSave = {
+        ...formData,
+        auth0Id,
+        // No enviar la contraseña en caso de edición
+        password: userData ? undefined : formData.password,
+      };
+
+      await onSave(userToSave);
+      onClose();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.message ||
+          "Error al guardar el usuario. Por favor, inténtalo de nuevo.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -202,7 +367,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
                     className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
                     value={formData.password}
                     onChange={handleChange}
-                    required={!userData}
+                    required
                   />
                 </div>
               )}
@@ -211,9 +376,14 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
           <button
             type="submit"
-            className="w-full mt-4 bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300"
+            disabled={loading}
+            className={`w-full mt-4 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 ${
+              loading
+                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                : "bg-yellow-700 hover:bg-yellow-600"
+            }`}
           >
-            {userData ? "Guardar Cambios" : "Crear"}
+            {loading ? "Cargando..." : userData ? "Guardar Cambios" : "Crear"}
           </button>
         </form>
       </div>

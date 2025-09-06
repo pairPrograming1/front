@@ -73,7 +73,7 @@ export default function Salones() {
       }
 
       const data = await response.json();
-      console.log("fetchSalones data:", data); // <-- Mostrar datos por consola
+      // console.log("fetchSalones data:", data); // <-- Mostrar datos por consola
       let salonesData = [];
 
       // Handle different response formats
@@ -207,7 +207,7 @@ export default function Salones() {
         text: "El salón fue creado correctamente",
       });
     } catch (error) {
-      console.error("Error:", error);
+      // console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error al crear salón",
@@ -262,7 +262,7 @@ export default function Salones() {
         Swal.fire("Eliminado", data.message, "success");
         await refreshSalones();
       } catch (error) {
-        console.error("Error al eliminar:", error);
+        // console.error("Error al eliminar:", error);
         Swal.fire("Error", error.message, "error");
       }
     }
@@ -314,7 +314,7 @@ export default function Salones() {
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Error al cambiar estado:", error);
+      // console.error("Error al cambiar estado:", error);
       Swal.fire({
         title: "Error",
         text: error.message,
@@ -415,10 +415,10 @@ export default function Salones() {
         await refreshSalones();
         setSelectedSalones([]);
       } catch (err) {
-        console.error(
-          `Error al ${activate ? "activar" : "desactivar"} salones:`,
-          err
-        );
+        // console.error(
+        //   `Error al ${activate ? "activar" : "desactivar"} salones:`,
+        //   err
+        // );
         Swal.fire({
           title: "Error",
           text: `No se pudieron ${
@@ -460,7 +460,8 @@ export default function Salones() {
     setShowDetailModal(true);
     try {
       const response = await fetch(`${API_URL}/api/salon/${salonId}`);
-      if (!response.ok) throw new Error("Error al obtener el detalle del salón");
+      if (!response.ok)
+        throw new Error("Error al obtener el detalle del salón");
       const result = await response.json();
       setSalonDetalle(result.data || result);
     } catch (err) {
@@ -1084,8 +1085,9 @@ export default function Salones() {
                               : "badge-error"
                           }`}
                         >
-                          {(salonDetalle.isActive ?? salonDetalle.estatus ??
-                            salonDetalle.activo)
+                          {salonDetalle.isActive ??
+                          salonDetalle.estatus ??
+                          salonDetalle.activo
                             ? "Activo"
                             : "Inactivo"}
                         </span>
@@ -1095,7 +1097,9 @@ export default function Salones() {
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-300">No hay información para mostrar.</div>
+                <div className="text-gray-300">
+                  No hay información para mostrar.
+                </div>
               )}
             </div>
             <div className="flex justify-end mt-6">
