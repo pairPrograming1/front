@@ -294,13 +294,15 @@ export default function RegisterForm() {
 
   // ---------------- UI ----------------
   return (
-    <div className="min-h-screen flex items-center justify-center text-white px 2">
-      <div className="w-full max-w-3xl bg-[#1C1C1C] rounded-2xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-6 text-white">Registro</h2>
+    <div className="min-h-screen flex items-center justify-center text-white px-4 py-4">
+      <div className="w-full max-w-4xl sm:max-w-3xl bg-[#1C1C1C] rounded-2xl shadow-lg p-6 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-white text-center sm:text-left">
+          Registro
+        </h2>
 
-        <form className="flex flex-col gap-6">
+        <form className="flex flex-col gap-4">
           {/* Inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <InputField
               placeholder="Nombre *"
               id="nombre"
@@ -343,7 +345,7 @@ export default function RegisterForm() {
               onChange={handleChange}
               onBlur={handleBlur}
             />
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2">
               <InputField
                 placeholder="Dirección (Opcional)"
                 id="direccion"
@@ -370,23 +372,21 @@ export default function RegisterForm() {
           </div>
 
           {/* Botones */}
-          <div className="flex flex-col md:flex-row gap-4 mt-6">
-            {/* Google Login */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
               type="button"
-              className="flex-1 py-3 rounded-lg font-medium bg-white text-black flex items-center justify-center gap-2 shadow-md hover:bg-gray-200 transition"
+              className="flex-1 py-2.5 rounded-lg font-medium bg-white text-black flex items-center justify-center gap-2 shadow-md hover:bg-gray-200 transition"
               onClick={() => loginWithRedirect({ connection: "google-oauth2" })}
             >
               <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
               Continuar con Google
             </button>
 
-            {/* Registro manual */}
             <button
               type="button"
               onClick={handleRegister}
               disabled={loading}
-              className={`flex-1 py-3 rounded-lg font-medium transition-all duration-200 ${
+              className={`flex-1 py-2.5 rounded-lg font-medium transition-all duration-200 ${
                 loading
                   ? "bg-gray-600 text-gray-400 cursor-not-allowed"
                   : "bg-[#BF8D6B] hover:bg-[#BF8D6B]/90 text-white shadow-lg hover:shadow-xl"
@@ -396,21 +396,21 @@ export default function RegisterForm() {
             </button>
           </div>
 
-          <div className="mt-6 flex flex-col items-center gap-4">
+          <div className="mt-4 flex flex-col items-center gap-3">
             <TermsAndConditions />
           </div>
 
           {/* Imagen debajo de los botones */}
-          <div className="mt-6 flex justify-center">
+          <div className="mt-4 flex justify-center">
             <img
               src="https://res.cloudinary.com/dmjusy7sn/image/upload/v1753239784/Group_118_i3hj6p.png"
               alt="Decoración"
-              className="max-w-[100px] w-full h-auto"
+              className="max-w-[150px] w-full h-auto"
             />
           </div>
 
-          {/* Terms and Back */}
-          <div className="mt-6 flex flex-col items-center gap-4">
+          {/* Back button */}
+          <div className="mt-4 flex flex-col items-center gap-3">
             <BackButton />
           </div>
         </form>
