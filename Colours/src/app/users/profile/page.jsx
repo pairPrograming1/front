@@ -6,6 +6,9 @@ import { AuthContext } from "../../context/AuthContext";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 import { useAuth0 } from "@auth0/auth0-react"; // 🔹 Import Auth0
+import { useDispatch } from "react-redux"; // 🔹 Import Redux
+import { clearUserData } from "@/lib/slices/profileSlice"; // 🔹 Acción de Redux
+import { useRouter } from "next/navigation"; // 🔹 Router
 
 const API_URL = apiUrls;
 
@@ -23,7 +26,10 @@ export default function ProfilePage() {
     usuario: "",
   });
   const [errors, setErrors] = useState({});
-  const { loginWithRedirect } = useAuth0(); // 🔹 Hook de Auth0
+  const { loginWithRedirect, logout } = useAuth0(); // 🔹 Hook de Auth0
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const STORAGE_KEY = "app_session_ref";
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -184,12 +190,30 @@ export default function ProfilePage() {
     }
   };
 
-  // 🔹 Cambiar contraseña (Auth0, sin iniciar sesión)
+  // 🔹 Cambiar contraseña con logout + reset password
   const handleChangePassword = async () => {
     try {
-      await loginWithRedirect({
-        screen_hint: "reset_password",
+      // 1. Limpiar Redux y contexto
+      dispatch(clearUserData());
+      setAuthData(null);
+
+      // 2. Limpiar localStorage
+      localStorage.removeItem("authData");
+      localStorage.removeItem(STORAGE_KEY);
+
+      // 3. Hacer logout en Auth0 (sin redirigir a login todavía)
+      logout({
+        logoutParams: {
+          returnTo: window.location.origin,
+        },
       });
+
+      // 4. Redirigir a pantalla de reset password
+      setTimeout(async () => {
+        await loginWithRedirect({
+          screen_hint: "reset_password",
+        });
+      }, 500);
     } catch (error) {
       Swal.fire(
         "Error",
@@ -387,13 +411,13 @@ export default function ProfilePage() {
             >
               {submitting ? "Guardando..." : "Guardar Cambios"}
             </button>
-            {/* <button
+            <button
               type="button"
               onClick={handleChangePassword}
               className="flex-1 px-4 py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
             >
               Cambiar Contraseña
-            </button> */}
+            </button>
           </div>
         </form>
       </div>
