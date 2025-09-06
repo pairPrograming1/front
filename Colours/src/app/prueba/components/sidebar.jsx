@@ -79,7 +79,7 @@ export default function Sidebar() {
         <ul className="flex flex-col gap-1">
           {[
             { href: "/prueba/profile", icon: User, label: "Mi Perfil" },
-            { href: "/prueba/usuarios", icon: LucideHome, label: "Usuario" },
+            { href: "/prueba/usuarios", icon: LucideHome, label: "Usuarios" },
             {
               href: "/prueba/puntos-de-venta",
               icon: Store,

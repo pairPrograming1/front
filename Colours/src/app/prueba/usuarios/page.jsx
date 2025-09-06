@@ -43,7 +43,6 @@ export default function Usuarios() {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedUser, setExpandedUser] = useState(null);
 
   const itemsPerPage = 10;
@@ -155,7 +154,7 @@ export default function Usuarios() {
     }
   };
 
-  const handleAsignarRoles = () => {
+  const handleAsignarAdministrador = () => {
     if (selectedUsers.length === 0) {
       Swal.fire({
         icon: "warning",
@@ -195,12 +194,12 @@ export default function Usuarios() {
     });
   };
 
-  const handleQuitarRoles = () => {
+  const handleAsignarVendedor = () => {
     if (selectedUsers.length === 0) {
       Swal.fire({
         icon: "warning",
         title: "Ningún usuario seleccionado",
-        text: "Por favor selecciona al menos un usuario para quitar roles",
+        text: "Por favor selecciona al menos un usuario para asignar roles",
       });
       return;
     }
@@ -208,10 +207,12 @@ export default function Usuarios() {
     const currentUserInSelection = selectedUsers.some(isCurrentUser);
 
     Swal.fire({
-      title: "¿Asignar rol de vendedor?",
+      title: "Asignar rol de vendedor",
       html: `
         <div class="text-left">
-          <p>Esto cambiará el rol de los usuarios seleccionados a 'Vendedor'</p>
+          <p>¿Estás seguro de asignar el rol de <strong>vendedor</strong> a <strong>${
+            selectedUsers.length
+          }</strong> usuario(s) seleccionado(s)?</p>
           ${
             currentUserInSelection
               ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
@@ -223,8 +224,9 @@ export default function Usuarios() {
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, cambiar a vendor",
+      confirmButtonText: `Sí, asignar vendedor (${selectedUsers.length})`,
       cancelButtonText: "Cancelar",
+      reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {
         asignarRolMultiple("vendor");
@@ -557,7 +559,7 @@ export default function Usuarios() {
 
   if (loading) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4">
         <Header title="Usuarios" />
         <div className="flex justify-center items-center h-64">
           <p>Cargando usuarios...</p>
@@ -568,7 +570,7 @@ export default function Usuarios() {
 
   if (error) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4">
         <Header title="Usuarios" />
         <div className="alert alert-error">
           <p>Error: {error}</p>
@@ -584,103 +586,94 @@ export default function Usuarios() {
   }
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-2 md:p-4">
       <Header title="Usuarios" />
 
-      <div className="mb-6">
-        <div className="flex flex-wrap gap-2 w-full">
-          <div className="relative w-full md:w-1/3 lg:w-3/4 mb-4 ">
+      <div className="mb-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
+          {/* Campo de búsqueda */}
+          <div className="relative flex-grow">
             <input
               type="text"
               placeholder="    Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input pl-10 w-full py-1"
+              className="search-input pl-8 w-full py-1 text-sm"
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search className="text-gray-400 h-4 w-4" />
+              <Search className="text-gray-400 h-3 w-3" />
             </div>
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
-            <button
-              className={`btn ${
-                filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => setFilterMode("active")}
-            >
-              <Eye className="h-4 w-4" />
-              <span className="hidden sm:inline">Activos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => setFilterMode("inactive")}
-            >
-              <EyeOff className="h-4 w-4" />
-              <span className="hidden sm:inline">Inactivos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => setFilterMode("all")}
-            >
-              <ListFilter className="h-4 w-4" />
-              <span className="hidden sm:inline">Todos</span>
-            </button>
-          </div>
-        </div>
 
-        <div className="flex flex-col md:flex-row gap-4">
-          <button
-            className="btn btn-outline flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-            Asignacion de roles
-          </button>
-
-          <button
-            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Agregar usuario
-          </button>
-        </div>
-
-        {isMobileMenuOpen && (
-          <div className="mt-4 p-4 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Botones de filtro y acción */}
+          <div className="flex flex-wrap gap-2">
+            <div className="flex gap-1">
               <button
-                className="btn btn-secondary flex items-center gap-2"
-                onClick={handleQuitarRoles}
+                className={`btn btn-xs ${
+                  filterMode === "active" ? "btn-warning" : "btn-outline"
+                } flex items-center gap-1`}
+                onClick={() => setFilterMode("active")}
+              >
+                <Eye className="h-3 w-3" />
+                <span className="hidden sm:inline">Activos</span>
+              </button>
+              <button
+                className={`btn btn-xs ${
+                  filterMode === "inactive" ? "btn-warning" : "btn-outline"
+                } flex items-center gap-1`}
+                onClick={() => setFilterMode("inactive")}
+              >
+                <EyeOff className="h-3 w-3" />
+                <span className="hidden sm:inline">Inactivos</span>
+              </button>
+              <button
+                className={`btn btn-xs ${
+                  filterMode === "all" ? "btn-warning" : "btn-outline"
+                } flex items-center gap-1`}
+                onClick={() => setFilterMode("all")}
+              >
+                <ListFilter className="h-3 w-3" />
+                <span className="hidden sm:inline">Todos</span>
+              </button>
+            </div>
+
+            <div className="flex gap-1">
+              <button
+                className="btn btn-xs btn-secondary flex items-center gap-1"
+                onClick={handleAsignarVendedor}
                 disabled={selectedUsers.length === 0}
               >
-                <UserMinus className="h-4 w-4" />
-                Asignar rol Vendedor
+                <UserMinus className="h-3 w-3" />
+                <span className="hidden sm:inline">Asignar Vendedor</span>
               </button>
 
               <button
-                className="btn btn-primary flex items-center gap-2"
-                onClick={handleAsignarRoles}
+                className="btn btn-xs btn-primary flex items-center gap-1"
+                onClick={handleAsignarAdministrador}
                 disabled={selectedUsers.length === 0}
               >
-                <UserPlus className="h-4 w-4" />
-                Asignar rol Administrador
+                <UserPlus className="h-3 w-3" />
+                <span className="hidden sm:inline">Asignar Admin</span>
+              </button>
+
+              <button
+                className="btn btn-xs btn-primary flex items-center gap-1"
+                onClick={() => setShowModal(true)}
+              >
+                <Plus className="h-3 w-3" />
+                <span className="hidden sm:inline">Agregar</span>
               </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
         <div className="hidden md:block">
-          <table className="table min-w-full">
+          <table className="table table-sm min-w-full compact-table">
             <thead>
               <tr>
-                <th className="w-10">
+                <th className="w-8 px-1">
                   <input
                     type="checkbox"
                     checked={
@@ -688,14 +681,15 @@ export default function Usuarios() {
                       currentItems.length > 0
                     }
                     onChange={toggleSelectAll}
+                    className="checkbox checkbox-xs"
                   />
                 </th>
-                <th>Usuario</th>
-                <th>Nombre y Apellido</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th className="w-48">Acciones</th>
+                <th className="px-1 text-xs">Usuario</th>
+                <th className="px-1 text-xs">Nombre</th>
+                <th className="px-1 text-xs">Email</th>
+                <th className="px-1 text-xs">Rol</th>
+                <th className="px-1 text-xs">Estado</th>
+                <th className="px-1 text-xs w-32">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -704,21 +698,22 @@ export default function Usuarios() {
                   key={usuario.id}
                   className={!usuario.isActive ? "opacity-70 bg-gray-50" : ""}
                 >
-                  <td>
+                  <td className="px-1">
                     <input
                       type="checkbox"
                       checked={selectedUsers.includes(usuario.id)}
                       onChange={() => toggleUserSelection(usuario.id)}
+                      className="checkbox checkbox-xs"
                     />
                   </td>
-                  <td>{usuario.usuario || "-"}</td>
-                  <td>
+                  <td className="px-1 text-xs">{usuario.usuario || "-"}</td>
+                  <td className="px-1 text-xs">
                     {usuario.nombre} {usuario.apellido}
                   </td>
-                  <td>{usuario.email}</td>
-                  <td>
+                  <td className="px-1 text-xs">{usuario.email}</td>
+                  <td className="px-1">
                     <span
-                      className={`badge ${
+                      className={`badge badge-xs ${
                         usuario.rol === "admin"
                           ? "badge-primary"
                           : usuario.rol === "vendor"
@@ -727,53 +722,53 @@ export default function Usuarios() {
                       }`}
                     >
                       {usuario.rol === "admin"
-                        ? "Administrador"
+                        ? "Admin"
                         : usuario.rol === "vendor"
                         ? "Vendedor"
                         : "Común"}
                     </span>
                   </td>
-                  <td>
+                  <td className="px-1">
                     <span
-                      className={`badge ${
+                      className={`badge badge-xs ${
                         usuario.isActive ? "badge-success" : "badge-error"
                       }`}
                     >
                       {usuario.isActive ? "Activo" : "Inactivo"}
                     </span>
                   </td>
-                  <td>
-                    <div className="flex gap-2">
+                  <td className="px-1">
+                    <div className="flex gap-1">
                       <button
-                        className="btn btn-sm btn-outline btn-primary p-1"
+                        className="btn btn-xs btn-outline btn-primary p-0.5"
                         onClick={() => setUsuarioEditar(usuario)}
                         title="Editar"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3" />
                       </button>
 
                       <button
-                        className={`btn btn-sm btn-outline ${
+                        className={`btn btn-xs btn-outline ${
                           usuario.isActive ? "btn-warning" : "btn-success"
-                        } p-1`}
+                        } p-0.5`}
                         onClick={() =>
                           changeUserStatus(usuario.id, usuario.isActive)
                         }
                         title={usuario.isActive ? "Desactivar" : "Activar"}
                       >
                         {usuario.isActive ? (
-                          <Archive className="h-4 w-4" />
+                          <Archive className="h-3 w-3" />
                         ) : (
-                          <Power className="h-4 w-4" />
+                          <Power className="h-3 w-3" />
                         )}
                       </button>
 
                       <button
-                        className="btn btn-sm btn-outline btn-error p-1"
+                        className="btn btn-xs btn-outline btn-error p-0.5"
                         onClick={() => borrarUsuario(usuario.id)}
                         title="Eliminar permanentemente"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
                   </td>
@@ -783,11 +778,11 @@ export default function Usuarios() {
           </table>
         </div>
 
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-2">
           {currentItems.map((usuario) => (
             <div
               key={usuario.id}
-              className="border border-black rounded-lg p-4"
+              className="border border-gray-300 rounded p-2 text-sm"
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
@@ -795,13 +790,13 @@ export default function Usuarios() {
                     type="checkbox"
                     checked={selectedUsers.includes(usuario.id)}
                     onChange={() => toggleUserSelection(usuario.id)}
-                    className="mr-2"
+                    className="checkbox checkbox-xs mr-1"
                   />
                   <div>
-                    <div className="font-medium">
+                    <div className="font-medium text-xs">
                       {usuario.nombre} {usuario.apellido}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs text-gray-500">
                       {usuario.usuario || "-"}
                     </div>
                   </div>
@@ -812,39 +807,41 @@ export default function Usuarios() {
                       expandedUser === usuario.id ? null : usuario.id
                     )
                   }
-                  className="text-gray-500 flex items-center gap-1"
+                  className="text-gray-500 flex items-center gap-1 text-xs"
                 >
                   {expandedUser === usuario.id ? (
                     <>
-                      <span className="text-xs">Cerrar</span>
-                      <ChevronUp className="h-4 w-4" />
+                      <span>Cerrar</span>
+                      <ChevronUp className="h-3 w-3" />
                     </>
                   ) : (
                     <>
-                      <span className="text-xs">Detalles</span>
-                      <ChevronDown className="h-4 w-4" />
+                      <span>Detalles</span>
+                      <ChevronDown className="h-3 w-3" />
                     </>
                   )}
                 </button>
               </div>
 
               {expandedUser === usuario.id && (
-                <div className="mt-4 space-y-3 overflow-x-hidden">
-                  <div className="grid grid-cols-1 gap-2">
+                <div className="mt-2 space-y-2 overflow-x-hidden pt-2 border-t">
+                  <div className="grid grid-cols-1 gap-1">
                     <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Email:</span>
-                      <span className="break-words">{usuario.email}</span>
+                      <span className="text-gray-500 text-xs">Email:</span>
+                      <span className="break-words text-xs">
+                        {usuario.email}
+                      </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Rol:</span>
+                      <span className="text-gray-500 text-xs">Rol:</span>
                       <span
-                        className={`badge ${
+                        className={`badge badge-xs ${
                           usuario.rol === "admin"
                             ? "badge-primary"
                             : usuario.rol === "vendor"
                             ? "badge-secondary"
                             : "badge-neutral"
-                        } inline-block w-fit mt-1`}
+                        } inline-block w-fit mt-0.5`}
                       >
                         {usuario.rol === "admin"
                           ? "Administrador"
@@ -854,52 +851,44 @@ export default function Usuarios() {
                       </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-gray-500 text-sm">Estado:</span>
+                      <span className="text-gray-500 text-xs">Estado:</span>
                       <span
-                        className={`badge ${
+                        className={`badge badge-xs ${
                           usuario.isActive ? "badge-success" : "badge-error"
-                        } inline-block w-fit mt-1`}
+                        } inline-block w-fit mt-0.5`}
                       >
                         {usuario.isActive ? "Activo" : "Inactivo"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between pt-3 mt-2 border-t">
-                    <div className="grid grid-cols-3 gap-2 w-full">
+                  <div className="flex justify-between pt-2 mt-1 border-t">
+                    <div className="grid grid-cols-3 gap-1 w-full">
                       <button
-                        className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
+                        className="btn btn-xs btn-outline btn-primary flex items-center justify-center p-0.5"
                         onClick={() => setUsuarioEditar(usuario)}
                       >
-                        <Edit className="h-4 w-4 mr-1" />
-                        <span className="text-xs">Editar</span>
+                        <Edit className="h-3 w-3" />
                       </button>
                       <button
-                        className={`btn btn-sm btn-outline ${
+                        className={`btn btn-xs btn-outline ${
                           usuario.isActive ? "btn-warning" : "btn-success"
-                        } flex items-center justify-center`}
+                        } flex items-center justify-center p-0.5`}
                         onClick={() =>
                           changeUserStatus(usuario.id, usuario.isActive)
                         }
                       >
                         {usuario.isActive ? (
-                          <>
-                            <Archive className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Desactivar</span>
-                          </>
+                          <Archive className="h-3 w-3" />
                         ) : (
-                          <>
-                            <Power className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Activar</span>
-                          </>
+                          <Power className="h-3 w-3" />
                         )}
                       </button>
                       <button
-                        className="btn btn-sm btn-outline btn-error flex items-center justify-center"
+                        className="btn btn-xs btn-outline btn-error flex items-center justify-center p-0.5"
                         onClick={() => borrarUsuario(usuario.id)}
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        <span className="text-xs">Eliminar</span>
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
@@ -911,20 +900,17 @@ export default function Usuarios() {
       </div>
 
       {usuariosFiltrados.length === 0 && (
-        <div className="text-center py-10">
-          <p className="text-gray-500">
-            No se encontraron usuarios que coincidan con los criterios de
-            búsqueda
-          </p>
+        <div className="text-center py-6">
+          <p className="text-gray-500 text-sm">No se encontraron usuarios</p>
         </div>
       )}
 
       {totalPages > 1 && (
-        <div className="pagination mt-6 flex justify-center gap-2">
+        <div className="pagination mt-4 flex justify-center gap-1">
           {[...Array(totalPages)].map((_, index) => (
             <button
               key={index}
-              className={`btn btn-sm ${
+              className={`btn btn-xs ${
                 currentPage === index + 1 ? "btn-primary" : "btn-outline"
               }`}
               onClick={() => setCurrentPage(index + 1)}
@@ -934,10 +920,10 @@ export default function Usuarios() {
           ))}
           {currentPage < totalPages && (
             <button
-              className="btn btn-sm btn-outline"
+              className="btn btn-xs btn-outline"
               onClick={() => setCurrentPage((prev) => prev + 1)}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-3 w-3" />
             </button>
           )}
         </div>
@@ -957,6 +943,17 @@ export default function Usuarios() {
           onSave={modificarUsuario}
         />
       )}
+
+      <style jsx>{`
+        .compact-table th,
+        .compact-table td {
+          padding: 0.25rem;
+        }
+        .search-input {
+          height: 2rem;
+          font-size: 0.875rem;
+        }
+      `}</style>
     </div>
   );
 }
