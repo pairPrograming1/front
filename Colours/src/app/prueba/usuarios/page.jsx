@@ -585,10 +585,10 @@ export default function Usuarios() {
   }
 
   return (
-    <div className="p-2 md:p-4 min-h-screen">
-      <Header title="Usuarios" />
+    <div className="p-2 md:p-4 ">
+      {/* <Header title="Usuarios" /> */}
 
-      <div className="mb-4">
+      <div className="mb-4 space-y-10">
         <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
           {/* Campo de búsqueda */}
           <div className="relative flex-grow">
@@ -597,7 +597,7 @@ export default function Usuarios() {
               placeholder="    Buscar Usuario"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded"
+              className="w-90 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -610,23 +610,23 @@ export default function Usuarios() {
           </div>
 
           {/* Botones de filtro y acción */}
-          <div className="flex flex-wrap gap-2">
-            <div className="flex gap-1">
+          <div className="flex flex-wrap gap-8">
+            <div className="flex gap 1">
               <button
-                className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
                   filterMode === "active"
-                    ? "text-white"
+                    ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
                 }`}
                 style={
                   filterMode === "active"
-                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
                     : { borderColor: "#BF8D6B", color: "#ffffffff" }
                 }
                 onMouseEnter={(e) => {
                   if (filterMode !== "active") {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -637,24 +637,24 @@ export default function Usuarios() {
                 }}
                 onClick={() => setFilterMode("active")}
               >
-                <Eye className="h-3 w-3" />
+                {/* <Eye className="h-3 w-3" /> */}
                 <span className="hidden sm:inline">Usuarios Activos</span>
               </button>
               <button
-                className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-1 text-sm  flex items-center gap-1 transition-colors border-2 ${
                   filterMode === "inactive"
-                    ? "text-white"
+                    ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
                 }`}
                 style={
                   filterMode === "inactive"
-                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
                     : { borderColor: "#BF8D6B", color: "#ffffffff" }
                 }
                 onMouseEnter={(e) => {
                   if (filterMode !== "inactive") {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -665,24 +665,24 @@ export default function Usuarios() {
                 }}
                 onClick={() => setFilterMode("inactive")}
               >
-                <EyeOff className="h-3 w-3" />
+                {/* <EyeOff className="h-3 w-3" /> */}
                 <span className="hidden sm:inline">Usuarios Inactivos</span>
               </button>
               <button
-                className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
                   filterMode === "all"
-                    ? "text-white"
+                    ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
                 }`}
                 style={
                   filterMode === "all"
-                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
                     : { borderColor: "#BF8D6B", color: "#ffffffff" }
                 }
                 onMouseEnter={(e) => {
                   if (filterMode !== "all") {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -693,52 +693,54 @@ export default function Usuarios() {
                 }}
                 onClick={() => setFilterMode("all")}
               >
-                <ListFilter className="h-3 w-3" />
+                {/* <ListFilter className="h-3 w-3" /> */}
                 <span className="hidden sm:inline">Todos</span>
               </button>
             </div>
 
-            <div className="flex gap-1">
-              <button
-                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }}
-                onClick={handleAsignarVendedor}
-                disabled={selectedUsers.length === 0}
-              >
-                <UserMinus className="h-3 w-3" />
-                <span className="hidden sm:inline">Asignar rol Vendedor</span>
-              </button>
+            <div className="flex gap-6">
+              <div className="flex items-center gap 1">
+                <button
+                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={handleAsignarVendedor}
+                  disabled={selectedUsers.length === 0}
+                >
+                  {/* <UserMinus className="h-3 w-3" /> */}
+                  <span className="hidden sm:inline">Asignar rol Vendedor</span>
+                </button>
+
+                <button
+                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={handleAsignarAdministrador}
+                  disabled={selectedUsers.length === 0}
+                >
+                  {/* <UserPlus className="h-3 w-3" /> */}
+                  <span className="hidden sm:inline">
+                    Asignar rol Administrador
+                  </span>
+                </button>
+              </div>
 
               <button
-                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }}
-                onClick={handleAsignarAdministrador}
-                disabled={selectedUsers.length === 0}
-              >
-                <UserPlus className="h-3 w-3" />
-                <span className="hidden sm:inline">
-                  Asignar rol Administrador
-                </span>
-              </button>
-
-              <button
-                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                className="px-3 py-1 text-sm rounded flex items-center gap-4 transition-colors border-2 bg-black hover:text-black rounded-full"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -757,8 +759,8 @@ export default function Usuarios() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="hidden md:block">
+        <div className="overflow-x-auto ">
+          <div className="hidden md:block ">
             <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
               <thead className="bg-gray-900">
                 <tr>
@@ -783,8 +785,12 @@ export default function Usuarios() {
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-3 py-3">Rol</th>
-                  <th className="px-3 py-3">Estado</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
+                    TIPO DE USUARIO
+                  </th>
+                  {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
+                    ESTADO
+                  </th> */}
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
                     Acciones
                   </th>
@@ -835,7 +841,7 @@ export default function Usuarios() {
                           : "Común"}
                       </span>
                     </td>
-                    <td className="px-3 py-3">
+                    {/* <td className="px-3 py-3">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           usuario.isActive
@@ -848,7 +854,7 @@ export default function Usuarios() {
                       >
                         {usuario.isActive ? "Activo" : "Inactivo"}
                       </span>
-                    </td>
+                    </td> */}
                     <td className="px-3 py-3">
                       <div className="flex gap-1">
                         <button
@@ -856,19 +862,20 @@ export default function Usuarios() {
                           style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
+                            e.currentTarget.style.color = "white";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
+                            e.currentTarget.style.color = "#ffffffff";
                           }}
                           onClick={() => setUsuarioEditar(usuario)}
                           title="Editar"
                         >
-                          <Edit className="h-4 w-4" />
+                          {/* <Edit className="h-4 w-4" /> */}
+                          Editar
                         </button>
 
-                        <button
+                        {/* <button
                           className={`p-1 rounded transition-colors border-2 ${
                             usuario.isActive
                               ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
@@ -901,14 +908,25 @@ export default function Usuarios() {
                           ) : (
                             <Power className="h-4 w-4" />
                           )}
-                        </button>
+                        </button> */}
 
                         <button
-                          className="p-1 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded transition-colors border-2 border-red-400"
+                          className="p-1 rounded transition-colors border-2"
+                          style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
                           onClick={() => borrarUsuario(usuario.id)}
                           title="Borrar"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          Borrar
+                          {/* <Trash2 className="h-4 w-4" /> */}
                         </button>
                       </div>
                     </td>
