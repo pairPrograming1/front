@@ -16,7 +16,6 @@ import {
   UserMinus,
   ChevronDown,
   ChevronUp,
-  MoreHorizontal,
   ListFilter,
 } from "lucide-react";
 import UsuarioModal from "../components/usuario-modal";
@@ -40,7 +39,7 @@ export default function Usuarios() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState("active");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [expandedUser, setExpandedUser] = useState(null);
@@ -122,7 +121,7 @@ export default function Usuarios() {
   };
 
   const usuariosFiltrados = usuarios.filter((usuario) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
+    const searchText = removeAccents(busqueda.toLowerCase());
     return (
       (usuario.usuario &&
         removeAccents(usuario.usuario.toLowerCase()).includes(searchText)) ||
@@ -182,7 +181,7 @@ export default function Usuarios() {
       `,
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, asignar administrador (${selectedUsers.length})`,
       cancelButtonText: "Cancelar",
@@ -222,7 +221,7 @@ export default function Usuarios() {
       `,
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, asignar vendedor (${selectedUsers.length})`,
       cancelButtonText: "Cancelar",
@@ -319,7 +318,7 @@ export default function Usuarios() {
       text: `Estás a punto de ${actionText} este usuario.`,
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
       confirmButtonText: `Sí, ${actionText}`,
       cancelButtonText: "Cancelar",
@@ -559,10 +558,10 @@ export default function Usuarios() {
 
   if (loading) {
     return (
-      <div className="p-2 md:p-4">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Usuarios" />
         <div className="flex justify-center items-center h-64">
-          <p>Cargando usuarios...</p>
+          <p className="text-gray-300">Cargando usuarios...</p>
         </div>
       </div>
     );
@@ -570,12 +569,12 @@ export default function Usuarios() {
 
   if (error) {
     return (
-      <div className="p-2 md:p-4">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Usuarios" />
-        <div className="alert alert-error">
-          <p>Error: {error}</p>
+        <div className="alert alert-error bg-red-900 border-red-700">
+          <p className="text-red-200">Error: {error}</p>
           <button
-            className="btn btn-sm btn-outline mt-2"
+            className="btn btn-sm btn-outline border-red-600 text-red-200 hover:bg-red-700 mt-2"
             onClick={() => fetchUsuarios()}
           >
             Reintentar
@@ -586,7 +585,7 @@ export default function Usuarios() {
   }
 
   return (
-    <div className="p-2 md:p-4">
+    <div className="p-2 md:p-4 min-h-screen">
       <Header title="Usuarios" />
 
       <div className="mb-4">
@@ -595,13 +594,18 @@ export default function Usuarios() {
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input pl-8 w-full py-1 text-sm"
+              placeholder="    Buscar Usuario"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded"
+              style={{
+                borderColor: "#BF8D6B",
+                color: "#ffffffff",
+                "--tw-ring-color": "#BF8D6B",
+              }}
             />
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search className="text-gray-400 h-3 w-3" />
+              <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
             </div>
           </div>
 
@@ -609,27 +613,84 @@ export default function Usuarios() {
           <div className="flex flex-wrap gap-2">
             <div className="flex gap-1">
               <button
-                className={`btn btn-xs ${
-                  filterMode === "active" ? "btn-warning" : "btn-outline"
-                } flex items-center gap-1`}
+                className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-white"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
                 onClick={() => setFilterMode("active")}
               >
                 <Eye className="h-3 w-3" />
-                <span className="hidden sm:inline">Activos</span>
+                <span className="hidden sm:inline">Usuarios Activos</span>
               </button>
               <button
-                className={`btn btn-xs ${
-                  filterMode === "inactive" ? "btn-warning" : "btn-outline"
-                } flex items-center gap-1`}
+                className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-white"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
                 onClick={() => setFilterMode("inactive")}
               >
                 <EyeOff className="h-3 w-3" />
-                <span className="hidden sm:inline">Inactivos</span>
+                <span className="hidden sm:inline">Usuarios Inactivos</span>
               </button>
               <button
-                className={`btn btn-xs ${
-                  filterMode === "all" ? "btn-warning" : "btn-outline"
-                } flex items-center gap-1`}
+                className={`px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-white"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
                 onClick={() => setFilterMode("all")}
               >
                 <ListFilter className="h-3 w-3" />
@@ -639,25 +700,54 @@ export default function Usuarios() {
 
             <div className="flex gap-1">
               <button
-                className="btn btn-xs btn-secondary flex items-center gap-1"
+                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
                 onClick={handleAsignarVendedor}
                 disabled={selectedUsers.length === 0}
               >
                 <UserMinus className="h-3 w-3" />
-                <span className="hidden sm:inline">Asignar Vendedor</span>
+                <span className="hidden sm:inline">Asignar rol Vendedor</span>
               </button>
 
               <button
-                className="btn btn-xs btn-primary flex items-center gap-1"
+                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
                 onClick={handleAsignarAdministrador}
                 disabled={selectedUsers.length === 0}
               >
                 <UserPlus className="h-3 w-3" />
-                <span className="hidden sm:inline">Asignar Admin</span>
+                <span className="hidden sm:inline">
+                  Asignar rol Administrador
+                </span>
               </button>
 
               <button
-                className="btn btn-xs btn-primary flex items-center gap-1"
+                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
                 onClick={() => setShowModal(true)}
               >
                 <Plus className="h-3 w-3" />
@@ -666,182 +756,77 @@ export default function Usuarios() {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="overflow-x-auto">
-        <div className="hidden md:block">
-          <table className="table table-sm min-w-full compact-table">
-            <thead>
-              <tr>
-                <th className="w-8 px-1">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedUsers.length === currentItems.length &&
-                      currentItems.length > 0
-                    }
-                    onChange={toggleSelectAll}
-                    className="checkbox checkbox-xs"
-                  />
-                </th>
-                <th className="px-1 text-xs">Usuario</th>
-                <th className="px-1 text-xs">Nombre</th>
-                <th className="px-1 text-xs">Email</th>
-                <th className="px-1 text-xs">Rol</th>
-                <th className="px-1 text-xs">Estado</th>
-                <th className="px-1 text-xs w-32">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.map((usuario) => (
-                <tr
-                  key={usuario.id}
-                  className={!usuario.isActive ? "opacity-70 bg-gray-50" : ""}
-                >
-                  <td className="px-1">
+        <div className="overflow-x-auto">
+          <div className="hidden md:block">
+            <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+              <thead className="bg-gray-900">
+                <tr>
+                  <th className="w-8 px-3 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedUsers.includes(usuario.id)}
-                      onChange={() => toggleUserSelection(usuario.id)}
-                      className="checkbox checkbox-xs"
+                      checked={
+                        selectedUsers.length === currentItems.length &&
+                        currentItems.length > 0
+                      }
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                      style={{ accentColor: "#BF8D6B" }}
                     />
-                  </td>
-                  <td className="px-1 text-xs">{usuario.usuario || "-"}</td>
-                  <td className="px-1 text-xs">
-                    {usuario.nombre} {usuario.apellido}
-                  </td>
-                  <td className="px-1 text-xs">{usuario.email}</td>
-                  <td className="px-1">
-                    <span
-                      className={`badge badge-xs ${
-                        usuario.rol === "admin"
-                          ? "badge-primary"
-                          : usuario.rol === "vendor"
-                          ? "badge-secondary"
-                          : "badge-neutral"
-                      }`}
-                    >
-                      {usuario.rol === "admin"
-                        ? "Admin"
-                        : usuario.rol === "vendor"
-                        ? "Vendedor"
-                        : "Común"}
-                    </span>
-                  </td>
-                  <td className="px-1">
-                    <span
-                      className={`badge badge-xs ${
-                        usuario.isActive ? "badge-success" : "badge-error"
-                      }`}
-                    >
-                      {usuario.isActive ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td className="px-1">
-                    <div className="flex gap-1">
-                      <button
-                        className="btn btn-xs btn-outline btn-primary p-0.5"
-                        onClick={() => setUsuarioEditar(usuario)}
-                        title="Editar"
-                      >
-                        <Edit className="h-3 w-3" />
-                      </button>
-
-                      <button
-                        className={`btn btn-xs btn-outline ${
-                          usuario.isActive ? "btn-warning" : "btn-success"
-                        } p-0.5`}
-                        onClick={() =>
-                          changeUserStatus(usuario.id, usuario.isActive)
-                        }
-                        title={usuario.isActive ? "Desactivar" : "Activar"}
-                      >
-                        {usuario.isActive ? (
-                          <Archive className="h-3 w-3" />
-                        ) : (
-                          <Power className="h-3 w-3" />
-                        )}
-                      </button>
-
-                      <button
-                        className="btn btn-xs btn-outline btn-error p-0.5"
-                        onClick={() => borrarUsuario(usuario.id)}
-                        title="Eliminar permanentemente"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </td>
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Usuario
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Nombre y Apellido
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-3 py-3">Rol</th>
+                  <th className="px-3 py-3">Estado</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="md:hidden space-y-2">
-          {currentItems.map((usuario) => (
-            <div
-              key={usuario.id}
-              className="border border-gray-300 rounded p-2 text-sm"
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(usuario.id)}
-                    onChange={() => toggleUserSelection(usuario.id)}
-                    className="checkbox checkbox-xs mr-1"
-                  />
-                  <div>
-                    <div className="font-medium text-xs">
-                      {usuario.nombre} {usuario.apellido}
-                    </div>
-                    <div className="text-xs text-gray-500">
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {currentItems.map((usuario, index) => (
+                  <tr
+                    key={usuario.id}
+                    className={`${
+                      index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
+                    } ${
+                      !usuario.isActive ? "opacity-70" : ""
+                    } hover:bg-gray-700 transition-colors`}
+                  >
+                    <td className="px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(usuario.id)}
+                        onChange={() => toggleUserSelection(usuario.id)}
+                        className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                        style={{ accentColor: "#BF8D6B" }}
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
                       {usuario.usuario || "-"}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() =>
-                    setExpandedUser(
-                      expandedUser === usuario.id ? null : usuario.id
-                    )
-                  }
-                  className="text-gray-500 flex items-center gap-1 text-xs"
-                >
-                  {expandedUser === usuario.id ? (
-                    <>
-                      <span>Cerrar</span>
-                      <ChevronUp className="h-3 w-3" />
-                    </>
-                  ) : (
-                    <>
-                      <span>Detalles</span>
-                      <ChevronDown className="h-3 w-3" />
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {expandedUser === usuario.id && (
-                <div className="mt-2 space-y-2 overflow-x-hidden pt-2 border-t">
-                  <div className="grid grid-cols-1 gap-1">
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Email:</span>
-                      <span className="break-words text-xs">
-                        {usuario.email}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Rol:</span>
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.nombre} {usuario.apellido}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.email}
+                    </td>
+                    <td className="px-3 py-3">
                       <span
-                        className={`badge badge-xs ${
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           usuario.rol === "admin"
-                            ? "badge-primary"
+                            ? "bg-gray-700 text-gray-200"
                             : usuario.rol === "vendor"
-                            ? "badge-secondary"
-                            : "badge-neutral"
-                        } inline-block w-fit mt-0.5`}
+                            ? "bg-gray-600 text-gray-200"
+                            : "bg-gray-900 text-gray-200"
+                        }`}
                       >
                         {usuario.rol === "admin"
                           ? "Administrador"
@@ -849,111 +834,320 @@ export default function Usuarios() {
                           ? "Vendedor"
                           : "Común"}
                       </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 text-xs">Estado:</span>
+                    </td>
+                    <td className="px-3 py-3">
                       <span
-                        className={`badge badge-xs ${
-                          usuario.isActive ? "badge-success" : "badge-error"
-                        } inline-block w-fit mt-0.5`}
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          usuario.isActive
+                            ? "text-white"
+                            : "bg-red-900 text-red-200"
+                        }`}
+                        style={
+                          usuario.isActive ? { backgroundColor: "#BF8D6B" } : {}
+                        }
                       >
                         {usuario.isActive ? "Activo" : "Inactivo"}
                       </span>
-                    </div>
-                  </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex gap-1">
+                        <button
+                          className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                          onClick={() => setUsuarioEditar(usuario)}
+                          title="Editar"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
 
-                  <div className="flex justify-between pt-2 mt-1 border-t">
-                    <div className="grid grid-cols-3 gap-1 w-full">
-                      <button
-                        className="btn btn-xs btn-outline btn-primary flex items-center justify-center p-0.5"
-                        onClick={() => setUsuarioEditar(usuario)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </button>
-                      <button
-                        className={`btn btn-xs btn-outline ${
-                          usuario.isActive ? "btn-warning" : "btn-success"
-                        } flex items-center justify-center p-0.5`}
-                        onClick={() =>
-                          changeUserStatus(usuario.id, usuario.isActive)
-                        }
-                      >
-                        {usuario.isActive ? (
-                          <Archive className="h-3 w-3" />
-                        ) : (
-                          <Power className="h-3 w-3" />
-                        )}
-                      </button>
-                      <button
-                        className="btn btn-xs btn-outline btn-error flex items-center justify-center p-0.5"
-                        onClick={() => borrarUsuario(usuario.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                        <button
+                          className={`p-1 rounded transition-colors border-2 ${
+                            usuario.isActive
+                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                              : "bg-black hover:text-black"
+                          }`}
+                          style={
+                            !usuario.isActive
+                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                              : {}
+                          }
+                          onMouseEnter={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }
+                          }}
+                          onClick={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                          title={usuario.isActive ? "Desactivar" : "Activar"}
+                        >
+                          {usuario.isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button>
+
+                        <button
+                          className="p-1 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded transition-colors border-2 border-red-400"
+                          onClick={() => borrarUsuario(usuario.id)}
+                          title="Borrar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="md:hidden space-y-2">
+            {currentItems.map((usuario) => (
+              <div
+                key={usuario.id}
+                className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(usuario.id)}
+                      onChange={() => toggleUserSelection(usuario.id)}
+                      className="w-4 h-4 bg-gray-700 border-gray-600 rounded mr-1"
+                      style={{ accentColor: "#BF8D6B" }}
+                    />
+                    <div>
+                      <div className="font-medium text-sm text-gray-200">
+                        {usuario.nombre} {usuario.apellido}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {usuario.usuario || "-"}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() =>
+                      setExpandedUser(
+                        expandedUser === usuario.id ? null : usuario.id
+                      )
+                    }
+                    className="text-gray-400 hover:text-gray-300 flex items-center gap-1 text-sm transition-colors"
+                  >
+                    {expandedUser === usuario.id ? (
+                      <>
+                        <span>Cerrar</span>
+                        <ChevronUp className="h-3 w-3" />
+                      </>
+                    ) : (
+                      <>
+                        <span>Detalles</span>
+                        <ChevronDown className="h-3 w-3" />
+                      </>
+                    )}
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {expandedUser === usuario.id && (
+                  <div className="mt-3 space-y-2 pt-3 border-t border-gray-700">
+                    <div className="grid grid-cols-1 gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Email:</span>
+                        <span className="break-words text-sm text-gray-200">
+                          {usuario.email}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Rol:</span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
+                            usuario.rol === "admin"
+                              ? "bg-gray-700 text-gray-200"
+                              : usuario.rol === "vendor"
+                              ? "bg-gray-600 text-gray-200"
+                              : "bg-gray-900 text-gray-200"
+                          }`}
+                        >
+                          {usuario.rol === "admin"
+                            ? "Administrador"
+                            : usuario.rol === "vendor"
+                            ? "Vendedor"
+                            : "Común"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Estado:</span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
+                            usuario.isActive
+                              ? "text-white"
+                              : "bg-red-900 text-red-200"
+                          }`}
+                          style={
+                            usuario.isActive
+                              ? { backgroundColor: "#BF8D6B" }
+                              : {}
+                          }
+                        >
+                          {usuario.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between pt-2 mt-2 border-t border-gray-700">
+                      <div className="grid grid-cols-3 gap-2 w-full">
+                        <button
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                          onClick={() => setUsuarioEditar(usuario)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
+                            usuario.isActive
+                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                              : "bg-black hover:text-black"
+                          }`}
+                          style={
+                            !usuario.isActive
+                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                              : {}
+                          }
+                          onMouseEnter={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }
+                          }}
+                          onClick={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                        >
+                          {usuario.isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded transition-colors flex items-center justify-center border-2 border-red-400"
+                          onClick={() => borrarUsuario(usuario.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+
+        {usuariosFiltrados.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm">No se encontraron usuarios</p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center gap-1">
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={`px-3 py-2 text-sm rounded transition-colors border-2 ${
+                  currentPage === index + 1
+                    ? "text-black"
+                    : "bg-black hover:text-black"
+                }`}
+                style={
+                  currentPage === index + 1
+                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                }
+                onMouseEnter={(e) => {
+                  if (currentPage !== index + 1) {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "black";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== index + 1) {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onClick={() => setCurrentPage(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            {currentPage < totalPages && (
+              <button
+                className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "black";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#BF8D6B";
+                }}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {showModal && (
+          <UsuarioModal
+            onClose={() => setShowModal(false)}
+            onSave={agregarUsuario}
+          />
+        )}
+
+        {usuarioEditar && (
+          <UsuarioEditarModal
+            usuario={usuarioEditar}
+            onClose={() => setUsuarioEditar(null)}
+            onSave={modificarUsuario}
+          />
+        )}
       </div>
-
-      {usuariosFiltrados.length === 0 && (
-        <div className="text-center py-6">
-          <p className="text-gray-500 text-sm">No se encontraron usuarios</p>
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="pagination mt-4 flex justify-center gap-1">
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              className={`btn btn-xs ${
-                currentPage === index + 1 ? "btn-primary" : "btn-outline"
-              }`}
-              onClick={() => setCurrentPage(index + 1)}
-            >
-              {index + 1}
-            </button>
-          ))}
-          {currentPage < totalPages && (
-            <button
-              className="btn btn-xs btn-outline"
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              <ChevronRight className="h-3 w-3" />
-            </button>
-          )}
-        </div>
-      )}
-
-      {showModal && (
-        <UsuarioModal
-          onClose={() => setShowModal(false)}
-          onSave={agregarUsuario}
-        />
-      )}
-
-      {usuarioEditar && (
-        <UsuarioEditarModal
-          usuario={usuarioEditar}
-          onClose={() => setUsuarioEditar(null)}
-          onSave={modificarUsuario}
-        />
-      )}
-
-      <style jsx>{`
-        .compact-table th,
-        .compact-table td {
-          padding: 0.25rem;
-        }
-        .search-input {
-          height: 2rem;
-          font-size: 0.875rem;
-        }
-      `}</style>
     </div>
   );
 }
