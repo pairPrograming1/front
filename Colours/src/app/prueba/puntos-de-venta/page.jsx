@@ -722,11 +722,7 @@ export default function PuntosDeVenta() {
                   key={punto.id}
                   className={`${
                     index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
-                  } hover:bg-gray-700 transition-colors cursor-pointer`}
-                  onClick={() => {
-                    setSelectedPunto(punto);
-                    setShowEdicionCompleta(true);
-                  }}
+                  } hover:bg-gray-700 transition-colors`}
                 >
                   <td
                     className="px-3 py-3"
@@ -809,7 +805,9 @@ export default function PuntosDeVenta() {
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setPuntoAEditar(punto);
+                          // setPuntoAEditar(punto); // Elimina esta línea
+                          setSelectedPunto(punto); // Agrega esta línea
+                          setShowEdicionCompleta(true); // Agrega esta línea
                         }}
                         title="Editar"
                       >
@@ -1012,7 +1010,9 @@ export default function PuntosDeVenta() {
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setPuntoAEditar(punto);
+                          // setPuntoAEditar(punto); // Elimina esta línea
+                          setSelectedPunto(punto); // Agrega esta línea
+                          setShowEdicionCompleta(true); // Agrega esta línea
                         }}
                       >
                         <Edit className="h-4 w-4" />
