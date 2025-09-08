@@ -752,7 +752,7 @@ export default function Usuarios() {
                 }}
                 onClick={() => setShowModal(true)}
               >
-                <Plus className="h-3 w-3" />
+                {/* <Plus className="h-3 w-3" /> */}
                 <span className="hidden sm:inline">Agregar</span>
               </button>
             </div>
