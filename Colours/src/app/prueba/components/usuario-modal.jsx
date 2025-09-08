@@ -45,8 +45,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
-
-    // Validación especial para WhatsApp al perder el foco
     if (name === "whatsapp") {
       const numericValue = value.replace(/\D/g, "");
       if (
@@ -60,8 +58,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         });
       }
     }
-
-    // Validación especial para DNI al perder el foco
     if (name === "dni") {
       const numericValue = value.replace(/[MF]/gi, "");
       if (
@@ -79,14 +75,10 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Validación especial para DNI
     if (name === "dni") {
       const sanitizedValue = value.replace(/[^0-9MF]/gi, "");
       setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
-    }
-    // Validación especial para WhatsApp
-    else if (name === "whatsapp") {
+    } else if (name === "whatsapp") {
       const sanitizedValue = value.replace(/[^0-9+]/g, "");
       setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
     } else {
@@ -96,8 +88,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validación de campos obligatorios
     if (
       !formData.nombre ||
       !formData.apellido ||
@@ -111,8 +101,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
       });
       return;
     }
-
-    // Validación específica del DNI solo si se proporciona
     if (formData.dni) {
       const dniRegex = /^[0-9]+[MF]?$/;
       if (!dniRegex.test(formData.dni)) {
@@ -124,8 +112,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         return;
       }
     }
-
-    // Validación de email solo si se proporciona
     if (formData.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
@@ -137,8 +123,6 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
         return;
       }
     }
-
-    // Validación de contraseña para nuevos usuarios
     if (!userData) {
       const passwordRegex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
@@ -155,18 +139,11 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
     setLoading(true);
 
     try {
-      // Si es un nuevo usuario, registrar en Auth0 primero
       let auth0Id = formData.auth0Id;
-
       if (!userData) {
-        // Registro en Auth0
         let domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN;
         const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
-
         if (!domain || !clientId) {
-          console.error(
-            "Las variables de entorno de Auth0 no están configuradas."
-          );
           Swal.fire({
             icon: "error",
             title: "Error interno",
@@ -174,9 +151,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
           });
           return;
         }
-
         domain = domain.replace(/^https?:\/\//, "");
-
         const auth0Response = await axios.post(
           `https://${domain}/dbconnections/signup`,
           {
@@ -185,23 +160,15 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             password: formData.password,
             connection: "Username-Password-Authentication",
           },
-          {
-            headers: { "Content-Type": "application/json" },
-          }
+          { headers: { "Content-Type": "application/json" } }
         );
-
         auth0Id = auth0Response.data._id;
-
-        if (!auth0Id) {
-          throw new Error("El ID de Auth0 es nulo o no válido.");
-        }
+        if (!auth0Id) throw new Error("El ID de Auth0 es nulo o no válido.");
       }
 
-      // Preparar datos para guardar
       const userToSave = {
         ...formData,
         auth0Id,
-        // No enviar la contraseña en caso de edición
         password: userData ? undefined : formData.password,
       };
 
@@ -222,165 +189,120 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-2xl shadow-lg shadow-yellow-800/20">
+      <div className="bg-[#1a1a1a] rounded-lg p-6 w-full max-w-2xl shadow-lg">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-white">
+          <h2 className="text-xl font-bold text-white">
             {userData ? "Editar Usuario" : "Agregar Usuario"}
           </h2>
           <button
             onClick={onClose}
-            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            className="text-gray-400 hover:text-white transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Usuario field - full width in all screen sizes */}
           <div className="w-full">
-            <label htmlFor="usuario" className="block text-white mb-1">
-              Usuario *
-            </label>
             <input
               type="text"
               id="usuario"
               name="usuario"
-              placeholder="Ingrese el nombre de usuario"
-              className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+              placeholder="Usuario"
+              className="w-76 p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
               value={formData.usuario}
               onChange={handleChange}
               required
             />
           </div>
 
-          {/* Two-column grid for larger screens, single column for mobile */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* First column */}
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="nombre" className="block text-white mb-1">
-                  Nombre *
-                </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input
+              type="text"
+              name="nombre"
+              placeholder="Nombre"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              value={formData.nombre}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              type="text"
+              name="apellido"
+              placeholder="Apellido"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              value={formData.apellido}
+              onChange={handleChange}
+              required
+            />
+
+            <input
+              type="text"
+              name="dni"
+              placeholder="DNI"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              value={formData.dni}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              value={formData.email}
+              onChange={handleChange}
+            />
+
+            <input
+              type="text"
+              name="direccion"
+              placeholder="Dirección"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              value={formData.direccion}
+              onChange={handleChange}
+            />
+
+            <input
+              type="text"
+              name="whatsapp"
+              placeholder="WhatsApp"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              value={formData.whatsapp}
+              onChange={handleChange}
+              onBlur={handleBlur}
+            />
+
+            {!userData && (
+              <>
                 <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  placeholder="Ingrese el nombre"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.nombre}
+                  type="password"
+                  name="password"
+                  placeholder="Contraseña"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+                  value={formData.password}
                   onChange={handleChange}
                   required
                 />
-              </div>
 
-              <div>
-                <label htmlFor="dni" className="block text-white mb-1">
-                  DNI (Opcional)
-                </label>
                 <input
-                  type="text"
-                  id="dni"
-                  name="dni"
-                  placeholder="Solo números y M/F al final"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.dni}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
+                  type="password"
+                  placeholder="Repetir Contraseña"
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
                 />
-              </div>
-
-              <div>
-                <label htmlFor="direccion" className="block text-white mb-1">
-                  Dirección (Opcional)
-                </label>
-                <input
-                  type="text"
-                  id="direccion"
-                  name="direccion"
-                  placeholder="Ingrese la dirección"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.direccion}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="whatsapp" className="block text-white mb-1">
-                  WhatsApp (Opcional)
-                </label>
-                <input
-                  type="text"
-                  id="whatsapp"
-                  name="whatsapp"
-                  placeholder="Solo números, + al inicio"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.whatsapp}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-              </div>
-            </div>
-
-            {/* Second column */}
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="apellido" className="block text-white mb-1">
-                  Apellido *
-                </label>
-                <input
-                  type="text"
-                  id="apellido"
-                  name="apellido"
-                  placeholder="Ingrese el apellido"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-white mb-1">
-                  E-mail (Opcional)
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="Ingrese el correo electrónico"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-
-              {!userData && (
-                <div>
-                  <label htmlFor="password" className="block text-white mb-1">
-                    Contraseña *
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Ingrese la contraseña"
-                    className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full mt-4 text-white font-bold py-3 px-4 rounded-lg border border-yellow-600 transition-colors duration-300 ${
+            className={`w-full mt-4 font-bold py-2 px-4 rounded transition-colors ${
               loading
                 ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : "bg-yellow-700 hover:bg-yellow-600"
+                : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
             }`}
           >
             {loading ? "Cargando..." : userData ? "Guardar Cambios" : "Crear"}
