@@ -591,7 +591,7 @@ export default function Salones() {
               onClick={() => setShowModal(true)}
             >
               {/* <Plus className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Agregar</span>
+              <span className="hidden sm:inline">Agregar Salones</span>
             </button>
             <button
               className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"

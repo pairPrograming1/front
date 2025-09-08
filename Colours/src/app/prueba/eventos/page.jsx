@@ -404,11 +404,11 @@ export default function Eventos() {
       const secondConfirm = await Swal.fire({
         title: "¿Está completamente seguro?",
         html: `
-          <div class="text-left">
-            <p>No podrá recuperar estos ${selectedEventos.length} eventos después de eliminarlos.</p>
-            <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
-          </div>
-        `,
+        <div class="text-left">
+          <p>No podrá recuperar estos ${selectedEventos.length} eventos después de eliminarlos.</p>
+          <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
+        </div>
+      `,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
@@ -589,186 +589,191 @@ export default function Eventos() {
     <div className="p-2 md:p-4 ">
       <Header />
 
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-150 w-full">
-          {/* Campo de búsqueda */}
-          <div className="relative flex-grow">
-            <input
-              type="text"
-              placeholder="    Buscar eventos..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
-              style={{
-                borderColor: "#BF8D6B",
-                color: "#ffffffff",
-                "--tw-ring-color": "#BF8D6B",
-              }}
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-              <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
+      <div>
+        {/* Contenedor principal reorganizado */}
+        <div className="flex flex-col gap-3 w-full">
+          {/* Campo de búsqueda y botones en misma línea en desktop */}
+          <div className="flex flex-col md:flex-row md:items-center gap-30 w-full">
+            {/* Campo de búsqueda */}
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                placeholder="    Buscar eventos..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+                style={{
+                  borderColor: "#BF8D6B",
+                  color: "#ffffffff",
+                  "--tw-ring-color": "#BF8D6B",
+                }}
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
+              </div>
+            </div>
+
+            {/* Botones de filtro - AHORA justo después del buscador */}
+            <div className="flex gap-1 flex-nowrap ml-0 md:ml-4 mt-2 md:mt-0">
+              <button
+                className={`px-3 py-1.5 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("active")}
+              >
+                <span className="text-xs md:text-sm">Activos</span>
+              </button>
+              <button
+                className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("inactive")}
+              >
+                <span className="text-xs md:text-sm">Inactivos</span>
+              </button>
+              <button
+                className={`px-3 py-1.5 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("all")}
+              >
+                <span className="text-xs md:text-sm">Todos</span>
+              </button>
+            </div>
+
+            {/* Botones de acción principales - AHORA más alejados */}
+            <div className="flex gap-1">
+              <button
+                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Agregar eventos</span>
+              </button>
+              <button
+                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowUploadModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Cargar imagenes </span>
+              </button>
             </div>
           </div>
 
-          {/* Botones de filtro */}
-          <div className="flex gap-1">
-            <button
-              className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
-                filterMode === "active"
-                  ? "text-[#BF8D6B]"
-                  : "bg-black hover:text-white"
-              }`}
-              style={
-                filterMode === "active"
-                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
-              }
-              onMouseEnter={(e) => {
-                if (filterMode !== "active") {
-                  e.currentTarget.style.backgroundColor = "#000000ff";
-                  e.currentTarget.style.color = "#BF8D6B";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (filterMode !== "active") {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }
-              }}
-              onClick={() => setFilterMode("active")}
-            >
-              {/* <Eye className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Activos</span>
-            </button>
-            <button
-              className={`px-3 py-1 text-sm flex items-center gap-1 transition-colors border-2 ${
-                filterMode === "inactive"
-                  ? "text-[#BF8D6B]"
-                  : "bg-black hover:text-white"
-              }`}
-              style={
-                filterMode === "inactive"
-                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
-              }
-              onMouseEnter={(e) => {
-                if (filterMode !== "inactive") {
-                  e.currentTarget.style.backgroundColor = "#000000ff";
-                  e.currentTarget.style.color = "#BF8D6B";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (filterMode !== "inactive") {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }
-              }}
-              onClick={() => setFilterMode("inactive")}
-            >
-              {/* <EyeOff className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Inactivos</span>
-            </button>
-            <button
-              className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
-                filterMode === "all"
-                  ? "text-[#BF8D6B]"
-                  : "bg-black hover:text-white"
-              }`}
-              style={
-                filterMode === "all"
-                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
-              }
-              onMouseEnter={(e) => {
-                if (filterMode !== "all") {
-                  e.currentTarget.style.backgroundColor = "#000000ff";
-                  e.currentTarget.style.color = "#BF8D6B";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (filterMode !== "all") {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }
-              }}
-              onClick={() => setFilterMode("all")}
-            >
-              {/* <ListFilter className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Todos</span>
-            </button>
+          {/* Botones de acciones masivas - ahora debajo y alineados con el buscador */}
+          <div className="flex flex-wrap gap-2 pl-0 md:pl-0">
+            {selectedEventos.length > 0 && (
+              <>
+                <button
+                  className="px-3 py-1.5 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={bulkLogicalDelete}
+                >
+                  <Archive className="h-3 w-3" />
+                  Desactivar {selectedEventos.length}
+                </button>
+                <button
+                  className="px-3 py-1.5 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={bulkPhysicalDelete}
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Eliminar {selectedEventos.length}
+                </button>
+              </>
+            )}
           </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-2">
-          {selectedEventos.length > 0 && (
-            <>
-              <button
-                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }}
-                onClick={bulkLogicalDelete}
-              >
-                <Archive className="h-3 w-3" />
-                Desactivar {selectedEventos.length}
-              </button>
-              <button
-                className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }}
-                onClick={bulkPhysicalDelete}
-              >
-                <Trash2 className="h-3 w-3" />
-                Eliminar {selectedEventos.length}
-              </button>
-            </>
-          )}
-
-          <button
-            className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-            style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#BF8D6B";
-              e.currentTarget.style.color = "white";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "black";
-              e.currentTarget.style.color = "#ffffffff";
-            }}
-            onClick={() => setShowModal(true)}
-          >
-            {/* <Plus className="h-3 w-3" /> */}
-            Agregar evento
-          </button>
-          <button
-            className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-            style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#BF8D6B";
-              e.currentTarget.style.color = "white";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "black";
-              e.currentTarget.style.color = "#ffffffff";
-            }}
-            onClick={() => setShowUploadModal(true)}
-          >
-            {/* <Plus className="h-3 w-3" /> */}
-            Cargar imágenes
-          </button>
         </div>
       </div>
 
@@ -1144,7 +1149,10 @@ export default function Eventos() {
                         {evento.activo ? (
                           <button
                             className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            style={{
+                              borderColor: "#BF8D6B",
+                              color: "#BF8D6B",
+                            }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
                               e.currentTarget.style.color = "black";
@@ -1160,7 +1168,10 @@ export default function Eventos() {
                         ) : (
                           <button
                             className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                            style={{
+                              borderColor: "#BF8D6B",
+                              color: "#BF8D6B",
+                            }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
                               e.currentTarget.style.color = "black";
@@ -1180,6 +1191,7 @@ export default function Eventos() {
                           className="p-2 rounded transition-colors flex items-center justify-center border-2"
                           style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                           onClick={() => handlePhysicalDelete(evento.id)}
+                          title="Eliminar permanentemente"
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#BF8D6B";
                             e.currentTarget.style.color = "white";
