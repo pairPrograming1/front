@@ -590,7 +590,7 @@ export default function Salones() {
               }}
               onClick={() => setShowModal(true)}
             >
-              <Plus className="h-3 w-3" />
+              {/* <Plus className="h-3 w-3" /> */}
               <span className="hidden sm:inline">Agregar</span>
             </button>
             <button
@@ -606,7 +606,7 @@ export default function Salones() {
               }}
               onClick={() => setShowUploadModal(true)}
             >
-              <Plus className="h-3 w-3" />
+              {/* <Plus className="h-3 w-3" /> */}
               <span className="hidden sm:inline">Cargar imágenes</span>
             </button>
           </div>
