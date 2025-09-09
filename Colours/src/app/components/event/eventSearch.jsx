@@ -10,26 +10,23 @@ const API_URL = apiUrls;
 export default function EventSearchPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [allEvents, setAllEvents] = useState([]); // Almacena todos los eventos
-  const [filteredEvents, setFilteredEvents] = useState([]); // Eventos filtrados
-  const [displayedEvents, setDisplayedEvents] = useState([]); // Eventos mostrados en la página actual
+  const [allEvents, setAllEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [displayedEvents, setDisplayedEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Estados para los filtros
   const [searchName, setSearchName] = useState("");
   const [searchDate, setSearchDate] = useState("");
   const [searchType, setSearchType] = useState("graduacion");
   const [searchLocation, setSearchLocation] = useState("");
 
-  // Estados para la paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const eventsPerPage = 3;
 
   const { userRole } = useUserRoleFromLocalStorage();
 
-  // Función para formatear la fecha ISO a un formato más legible
   const formatDate = (isoDate) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString("es-ES", {
@@ -41,12 +38,9 @@ export default function EventSearchPage() {
     });
   };
 
-  // Función para obtener todos los eventos una sola vez
   const fetchAllEvents = async () => {
     try {
       setLoading(true);
-
-      // Construir la URL base para obtener todos los eventos de graduación
       const url = `${API_URL}/api/evento?activo=true&tipo=graduacion`;
 
       const response = await fetch(url, {
@@ -62,13 +56,9 @@ export default function EventSearchPage() {
       const resultData = await response.json();
 
       if (resultData.success && Array.isArray(resultData.data)) {
-        // Guardar todos los eventos
         setAllEvents(resultData.data);
-        // Inicialmente, los eventos filtrados son todos los eventos
         setFilteredEvents(resultData.data);
-        // Calcular el total de páginas
         setTotalPages(Math.ceil(resultData.data.length / eventsPerPage));
-        // Mostrar la primera página
         updateDisplayedEvents(resultData.data, 1);
         setError(null);
       } else {
@@ -90,18 +80,15 @@ export default function EventSearchPage() {
     }
   };
 
-  // Función para actualizar los eventos mostrados según la página actual
   const updateDisplayedEvents = (events, page) => {
     const startIndex = (page - 1) * eventsPerPage;
     const endIndex = startIndex + eventsPerPage;
     setDisplayedEvents(events.slice(startIndex, endIndex));
   };
 
-  // Función para filtrar eventos localmente
   const filterEvents = () => {
     let filtered = [...allEvents];
 
-    // Filtrar por nombre
     if (searchName && searchName.trim() !== "") {
       const searchTermLower = searchName.trim().toLowerCase();
       filtered = filtered.filter((event) =>
@@ -109,7 +96,6 @@ export default function EventSearchPage() {
       );
     }
 
-    // Filtrar por fecha
     if (searchDate && searchDate !== "") {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -144,7 +130,6 @@ export default function EventSearchPage() {
       });
     }
 
-    // Filtrar por ubicación/salón
     if (searchLocation && searchLocation.trim() !== "") {
       const locationLower = searchLocation.trim().toLowerCase();
       filtered = filtered.filter(
@@ -154,86 +139,77 @@ export default function EventSearchPage() {
       );
     }
 
-    // Actualizar los eventos filtrados
     setFilteredEvents(filtered);
-    // Calcular el nuevo total de páginas
     setTotalPages(Math.ceil(filtered.length / eventsPerPage));
-    // Resetear a la primera página cuando se aplica un nuevo filtro
     setCurrentPage(1);
-    // Actualizar los eventos mostrados
     updateDisplayedEvents(filtered, 1);
   };
 
-  // Cargar todos los eventos cuando el componente se monta
   useEffect(() => {
     if (mounted) {
       fetchAllEvents();
     }
   }, [mounted]);
 
-  // Montar el componente
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Función para buscar al presionar Enter o al hacer clic en el botón de búsqueda
   const handleSearch = (e) => {
     if (e) {
-      e.preventDefault(); // Prevenir el comportamiento por defecto si es un evento
+      e.preventDefault();
     }
     filterEvents();
   };
 
-  // Función para cambiar de página
   const handlePageChange = (page) => {
     setCurrentPage(page);
     updateDisplayedEvents(filteredEvents, page);
   };
 
-  // No renderizar nada hasta que el componente esté montado
   if (!mounted) {
     return (
       <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-4">
-        <div className="w-full max-w-md bg-[#1E2330]/80 p-6 rounded-xl shadow-lg">
-          <p className="text-white">Cargando...</p>
+        <div className="w-full max-w-md bg-[#1a1a1a] p-4 rounded-lg shadow-lg">
+          <p className="text-white text-sm">Cargando...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center  p-4">
-      <div className="w-full max-w-md bg-[#1E2330]/80 p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold text-white mb-4">Buscar Evento</h2>
+    <main className=" w-full flex items-center justify-center p-4">
+      <div className="w-full max-w-md  p-4 rounded-lg shadow-lg">
+        <h2 className="text-lg font-bold text-white mb-3">Buscar Evento</h2>
 
-        <form onSubmit={handleSearch} className="space-y-3 mb-8">
+        <form onSubmit={handleSearch} className="space-y-2 mb-4">
           <input
             type="text"
             placeholder="Por nombre"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
-            className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#b3964c]"
+            className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <select
               value={searchDate}
               onChange={(e) => setSearchDate(e.target.value)}
-              className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white focus:outline-none focus:ring-1 focus:ring-[#b3964c] appearance-none"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs appearance-none"
             >
-              <option value="" className="bg-[#1e2130]">
+              <option value="" className="bg-[#1a1a1a]">
                 Fecha
               </option>
-              <option value="today" className="bg-[#1e2130]">
+              <option value="today" className="bg-[#1a1a1a]">
                 Hoy
               </option>
-              <option value="tomorrow" className="bg-[#1e2130]">
+              <option value="tomorrow" className="bg-[#1a1a1a]">
                 Mañana
               </option>
-              <option value="weekend" className="bg-[#1e2130]">
+              <option value="weekend" className="bg-[#1a1a1a]">
                 Este fin de semana
               </option>
-              <option value="month" className="bg-[#1e2130]">
+              <option value="month" className="bg-[#1a1a1a]">
                 Este mes
               </option>
             </select>
@@ -241,12 +217,12 @@ export default function EventSearchPage() {
             <select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
-              className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white focus:outline-none focus:ring-1 focus:ring-[#b3964c] appearance-none"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs appearance-none"
             >
-              <option value="" className="bg-[#1e2130]">
+              <option value="" className="bg-[#1a1a1a]">
                 Tipo
               </option>
-              <option value="graduacion" className="bg-[#1e2130]">
+              <option value="graduacion" className="bg-[#1a1a1a]">
                 Graduación
               </option>
             </select>
@@ -257,12 +233,12 @@ export default function EventSearchPage() {
             placeholder="Salón del Evento"
             value={searchLocation}
             onChange={(e) => setSearchLocation(e.target.value)}
-            className="w-full px-3 py-2 bg-transparent border border-[#b3964c] rounded-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#b3964c]"
+            className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
           />
 
           <button
             type="submit"
-            className="w-full px-3 py-2 bg-[#b3964c] hover:bg-[#9a7f41] text-black font-medium rounded-md transition-colors"
+            className="w-full font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm"
           >
             Buscar
           </button>
@@ -271,31 +247,31 @@ export default function EventSearchPage() {
           </p>
         </form>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-[#b3964c] to-transparent my-6"></div>
+        <div className="h-px bg-gradient-to-r from-transparent via-[#BF8D6B] to-transparent my-4"></div>
 
         {loading ? (
-          <div className="text-center py-4">
-            <p className="text-white">Cargando eventos...</p>
+          <div className="text-center py-3">
+            <p className="text-white text-sm">Cargando eventos...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-4">
-            <p className="text-red-400">{error}</p>
+          <div className="text-center py-3">
+            <p className="text-red-400 text-sm">{error}</p>
           </div>
         ) : displayedEvents.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="text-white">No se encontraron eventos</p>
+          <div className="text-center py-3">
+            <p className="text-white text-sm">No se encontraron eventos</p>
           </div>
         ) : (
           <>
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2 mb-3">
               {displayedEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex justify-between items-center border border-[#b3964c] rounded-md p-3 w-full"
+                  className="flex justify-between items-center border border-[#BF8D6B] rounded p-2 w-full"
                 >
                   <div className="text-white">
-                    <p className="font-medium">{event.nombre}</p>
-                    <p className="text-sm text-gray-400">
+                    <p className="font-medium text-sm">{event.nombre}</p>
+                    <p className="text-xs text-gray-400">
                       {event.salonNombre} - {formatDate(event.fecha)}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
@@ -313,7 +289,7 @@ export default function EventSearchPage() {
                         router.push(path);
                       }
                     }}
-                    className="px-3 py-1 bg-[#b3964c] hover:bg-[#9a7f41] text-black font-medium rounded-md transition-colors ml-auto"
+                    className="px-2 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white font-medium rounded text-xs transition-colors ml-2"
                   >
                     Vender
                   </button>
@@ -321,22 +297,21 @@ export default function EventSearchPage() {
               ))}
             </div>
 
-            {/* Paginación */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-4">
+              <div className="flex justify-center items-center space-x-2 mt-3">
                 <button
                   onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
-                  className={`px-2 py-1 rounded ${
+                  className={`px-2 py-1 rounded text-xs ${
                     currentPage === 1
                       ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                      : "bg-[#b3964c] text-black hover:bg-[#9a7f41]"
+                      : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
                   }`}
                 >
                   &lt;
                 </button>
 
-                <span className="text-white">
+                <span className="text-white text-xs">
                   Página {currentPage} de {totalPages}
                 </span>
 
@@ -345,10 +320,10 @@ export default function EventSearchPage() {
                     handlePageChange(Math.min(totalPages, currentPage + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className={`px-2 py-1 rounded ${
+                  className={`px-2 py-1 rounded text-xs ${
                     currentPage === totalPages
                       ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                      : "bg-[#b3964c] text-black hover:bg-[#9a7f41]"
+                      : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
                   }`}
                 >
                   &gt;
