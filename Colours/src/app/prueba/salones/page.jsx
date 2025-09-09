@@ -1219,17 +1219,17 @@ export default function Salones() {
       {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Info className="h-5 w-5 text-yellow-400" /> Detalle del Salón
+          <div className="bg-[#1a1a1a] rounded-lg p-5 w-full max-w-xl shadow-lg max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Info className="h-5 w-5 text-[#BF8D6B]" /> Detalle del Salón
               </h2>
               <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setSalonDetalle(null);
                 }}
-                className="text-yellow-500 hover:text-yellow-300 transition-colors"
+                className="text-gray-400 hover:text-white"
                 aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
@@ -1237,86 +1237,86 @@ export default function Salones() {
             </div>
             <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
               {loadingDetail ? (
-                <div className="text-center py-8 text-gray-300">
+                <div className="text-center py-6 text-gray-300 text-sm">
                   Cargando detalle...
                 </div>
               ) : salonDetalle?.error ? (
-                <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+                <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
                   {salonDetalle.error}
                 </div>
               ) : salonDetalle ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white text-sm">
+                  <div className="space-y-3">
                     {(salonDetalle.image || salonDetalle.imagen) && (
                       <div>
-                        <span className="block text-sm text-yellow-400 mb-1">
+                        <span className="block text-xs text-[#BF8D6B] mb-1">
                           Imagen
                         </span>
-                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
+                        <div className="p-2 bg-transparent rounded border border-[#BF8D6B] flex justify-center">
                           <img
                             src={salonDetalle.image || salonDetalle.imagen}
                             alt="Imagen del salón"
-                            className="max-h-48 rounded shadow"
+                            className="max-h-32 rounded"
                             style={{ maxWidth: "100%", objectFit: "contain" }}
                           />
                         </div>
                       </div>
                     )}
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         Salón
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         {salonDetalle.salon || salonDetalle.nombre}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         CUIT
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         {salonDetalle.cuit}
                       </div>
                     </div>
+                  </div>
+                  <div className="space-y-3">
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         Contacto
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         {salonDetalle.contacto || salonDetalle.nombre}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         Email
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         {salonDetalle.email}
                       </div>
                     </div>
-                  </div>
-                  <div className="space-y-4">
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         WhatsApp
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         {salonDetalle.whatsapp}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         Capacidad
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         {salonDetalle.capacidad}
                       </div>
                     </div>
                     <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
+                      <span className="block text-xs text-[#BF8D6B] mb-1">
                         Estado
                       </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
+                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B]">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             salonDetalle.isActive ||
@@ -1344,18 +1344,18 @@ export default function Salones() {
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-300">
+                <div className="text-gray-300 text-sm">
                   No hay información para mostrar.
                 </div>
               )}
             </div>
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-end mt-4">
               <button
                 onClick={() => {
                   setShowDetailModal(false);
                   setSalonDetalle(null);
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
+                className="font-bold py-1.5 px-4 rounded bg-transparent text-white border border-[#BF8D6B] text-sm"
               >
                 Cerrar
               </button>
