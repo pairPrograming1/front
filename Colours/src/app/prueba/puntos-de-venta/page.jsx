@@ -773,7 +773,7 @@ export default function PuntosDeVenta() {
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1">
-                      <button
+                      {/* <button
                         className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                         onMouseEnter={(e) => {
@@ -791,7 +791,7 @@ export default function PuntosDeVenta() {
                         title="Detalle"
                       >
                         <Info className="h-4 w-4" />
-                      </button>
+                      </button> */}
                       <button
                         className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
@@ -811,9 +811,11 @@ export default function PuntosDeVenta() {
                         }}
                         title="Editar"
                       >
-                        <Edit className="h-4 w-4" />
+                        {" "}
+                        EDITAR
+                        {/* <Edit className="h-4 w-4" /> */}
                       </button>
-                      <button
+                      {/* <button
                         className={`p-1 rounded transition-colors border-2 ${
                           punto.isActive
                             ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
@@ -847,7 +849,7 @@ export default function PuntosDeVenta() {
                         ) : (
                           <Power className="h-4 w-4" />
                         )}
-                      </button>
+                      </button> */}
                       <button
                         className="p-1 rounded transition-colors border-2"
                         style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
@@ -865,7 +867,9 @@ export default function PuntosDeVenta() {
                           e.currentTarget.style.color = "#BF8D6B";
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {" "}
+                        BORRAR
+                        {/* <Trash2 className="h-4 w-4" /> */}
                       </button>
                     </div>
                   </td>

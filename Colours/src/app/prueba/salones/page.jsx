@@ -771,7 +771,7 @@ export default function Salones() {
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex gap-1">
-                          <button
+                          {/* <button
                             className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
                             style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                             onMouseEnter={(e) => {
@@ -789,7 +789,7 @@ export default function Salones() {
                             title="Detalle"
                           >
                             <Info className="h-4 w-4" />
-                          </button>
+                          </button> */}
 
                           <button
                             className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
@@ -808,9 +808,11 @@ export default function Salones() {
                             }}
                             title="Editar"
                           >
-                            <Edit className="h-4 w-4" />
+                            {" "}
+                            EDITAR
+                            {/* <Edit className="h-4 w-4" /> */}
                           </button>
-
+                          {/* 
                           <button
                             className={`p-1 rounded transition-colors border-2 ${
                               isActive
@@ -846,7 +848,7 @@ export default function Salones() {
                             ) : (
                               <Power className="h-4 w-4" />
                             )}
-                          </button>
+                          </button> */}
 
                           <button
                             className="p-1 rounded transition-colors border-2"
@@ -869,7 +871,9 @@ export default function Salones() {
                               e.currentTarget.style.color = "#BF8D6B";
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            {" "}
+                            BORRAR
+                            {/* <Trash2 className="h-4 w-4" /> */}
                           </button>
                         </div>
                       </td>
