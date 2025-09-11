@@ -117,6 +117,11 @@ export default function Usuarios() {
     }
   }, [filterMode, isClient]);
 
+  // Agrega este console.log para ver los datos de usuarios en la tabla
+  useEffect(() => {
+    console.log("Usuarios cargados en la tabla:", usuarios);
+  }, [usuarios]);
+
   const removeAccents = (str) => {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
@@ -824,11 +829,12 @@ export default function Usuarios() {
                     Email
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Teléfono
+                    Whatsapp
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
                     TIPO DE USUARIO
                   </th>
+
                   {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
                     ESTADO
                   </th> */}
@@ -866,7 +872,7 @@ export default function Usuarios() {
                       {usuario.email}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
-                      {usuario.telefono || "-"}
+                      {usuario.whatsapp || "-"}
                     </td>
                     <td className="px-3 py-3">
                       <span
@@ -885,6 +891,7 @@ export default function Usuarios() {
                           : "Común"}
                       </span>
                     </td>
+
                     {/* <td className="px-3 py-3">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -1070,10 +1077,11 @@ export default function Usuarios() {
                           {usuario.isActive ? "Activo" : "Inactivo"}
                         </span>
                       </div>
+
                       <div className="flex flex-col">
-                        <span className="text-gray-400 text-sm">Teléfono:</span>
+                        <span className="text-gray-400 text-sm">Whatsapp:</span>
                         <span className="break-words text-sm text-gray-200">
-                          {usuario.telefono || "-"}
+                          {usuario.whatsapp || "-"}
                         </span>
                       </div>
                     </div>

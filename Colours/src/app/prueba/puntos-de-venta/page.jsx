@@ -45,7 +45,6 @@ export default function PuntosDeVenta() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [puntoDetalle, setPuntoDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -492,11 +491,96 @@ export default function PuntosDeVenta() {
           </div>
 
           {/* Botones de filtro y acción - ahora con más espacio */}
-          <div className="flex flex-wrap gap-2 md:gap-6">
-            {/* Botón para mostrar/ocultar filtros en móvil */}
-            <div className="md:hidden w-full">
+          <div className="flex flex-wrap gap-4 md:gap-6">
+            {/* Botones de filtro */}
+            <div className="flex gap-1 mr-2 md:mr-4">
               <button
-                className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("active")}
+              >
+                <span className="hidden sm:inline">Activos</span>
+              </button>
+              <button
+                className={`px-3 py-1 text-sm flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("inactive")}
+              >
+                <span className="hidden sm:inline">Inactivos</span>
+              </button>
+              <button
+                className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => setFilterMode("all")}
+              >
+                <span className="hidden sm:inline">Todos</span>
+              </button>
+            </div>
+
+            {/* Botones de acción */}
+            <div className="flex gap-2">
+              <button
+                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -506,154 +590,25 @@ export default function PuntosDeVenta() {
                   e.currentTarget.style.backgroundColor = "black";
                   e.currentTarget.style.color = "#ffffffff";
                 }}
-                onClick={() => setShowFilters(!showFilters)}
+                onClick={() => setShowModal(true)}
               >
-                <ListFilter className="h-4 w-4" />
-                <span>Filtros</span>
-                {showFilters ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-
-            {/* Contenedor de filtros (siempre visible en desktop, condicional en móvil) */}
-            <div
-              className={`${
-                showFilters ? "flex" : "hidden"
-              } md:flex flex-col md:flex-row gap-1 w-full md:w-auto`}
-            >
-              <button
-                className={`px-3 py-2 text-sm rounded-l flex items-center justify-center gap-1 transition-colors border-2 ${
-                  filterMode === "active"
-                    ? "text-[#BF8D6B]"
-                    : "bg-black hover:text-white"
-                }`}
-                style={
-                  filterMode === "active"
-                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
-                }
-                onMouseEnter={(e) => {
-                  if (filterMode !== "active") {
-                    e.currentTarget.style.backgroundColor = "#000000ff";
-                    e.currentTarget.style.color = "#BF8D6B";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (filterMode !== "active") {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }
-                }}
-                onClick={() => {
-                  setFilterMode("active");
-                  setShowFilters(false);
-                }}
-              >
-                {/* <Eye className="h-3 w-3 md:mr-1" /> */}
-                <span className="text-xs md:text-sm">Activos</span>
+                Agregar
               </button>
               <button
-                className={`px-3 py-2 text-sm flex items-center justify-center gap-1 transition-colors border-2 ${
-                  filterMode === "inactive"
-                    ? "text-[#BF8D6B]"
-                    : "bg-black hover:text-white"
-                }`}
-                style={
-                  filterMode === "inactive"
-                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
-                }
+                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
-                  if (filterMode !== "inactive") {
-                    e.currentTarget.style.backgroundColor = "#000000ff";
-                    e.currentTarget.style.color = "#BF8D6B";
-                  }
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
                 }}
                 onMouseLeave={(e) => {
-                  if (filterMode !== "inactive") {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
                 }}
-                onClick={() => {
-                  setFilterMode("inactive");
-                  setShowFilters(false);
-                }}
+                onClick={() => setShowUploadModal(true)}
               >
-                {/* <EyeOff className="h-3 w-3 md:mr-1" /> */}
-                <span className="text-xs md:text-sm">Inactivos</span>
+                Cargar imágenes
               </button>
-              <button
-                className={`px-3 py-2 text-sm rounded-r flex items-center justify-center gap-1 transition-colors border-2 ${
-                  filterMode === "all"
-                    ? "text-[#BF8D6B]"
-                    : "bg-black hover:text-white"
-                }`}
-                style={
-                  filterMode === "all"
-                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
-                }
-                onMouseEnter={(e) => {
-                  if (filterMode !== "all") {
-                    e.currentTarget.style.backgroundColor = "#000000ff";
-                    e.currentTarget.style.color = "#BF8D6B";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (filterMode !== "all") {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }
-                }}
-                onClick={() => {
-                  setFilterMode("all");
-                  setShowFilters(false);
-                }}
-              >
-                {/* <ListFilter className="h-3 w-3 md:mr-1" /> */}
-                <span className="text-xs md:text-sm">Todos</span>
-              </button>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-              <div className="flex flex-col md:flex-row gap-2 w-full">
-                <button
-                  className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
-                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }}
-                  onClick={() => setShowModal(true)}
-                >
-                  {/* <Plus className="h-3 w-3 md:mr-1" /> */}
-                  <span className="text-xs md:text-sm">Agregar</span>
-                </button>
-
-                <button
-                  className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
-                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }}
-                  onClick={() => setShowUploadModal(true)}
-                >
-                  <span className="text-xs md:text-sm">Cargar imágenes</span>
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -662,7 +617,7 @@ export default function PuntosDeVenta() {
         {selectedPuntos.length > 0 && (
           <div className="flex flex-col md:flex-row gap-3 mt-4">
             <button
-              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
+              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -675,12 +630,10 @@ export default function PuntosDeVenta() {
               onClick={() => bulkToggleStatus(true)}
             >
               <Power className="h-3 w-3" />
-              <span className="text-xs md:text-sm">
-                Activar {selectedPuntos.length}
-              </span>
+              Activar {selectedPuntos.length}
             </button>
             <button
-              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
+              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -693,12 +646,10 @@ export default function PuntosDeVenta() {
               onClick={() => bulkToggleStatus(false)}
             >
               <Archive className="h-3 w-3" />
-              <span className="text-xs md:text-sm">
-                Desactivar {selectedPuntos.length}
-              </span>
+              Desactivar {selectedPuntos.length}
             </button>
             <button
-              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
+              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -711,9 +662,7 @@ export default function PuntosDeVenta() {
               onClick={bulkDeletePuntos}
             >
               <Trash2 className="h-3 w-3" />
-              <span className="text-xs md:text-sm">
-                Eliminar {selectedPuntos.length}
-              </span>
+              Eliminar {selectedPuntos.length}
             </button>
           </div>
         )}
@@ -824,6 +773,25 @@ export default function PuntosDeVenta() {
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-1">
+                      {/* <button
+                        className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                        style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#BF8D6B";
+                          e.currentTarget.style.color = "white";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "black";
+                          e.currentTarget.style.color = "#BF8D6B";
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShowDetail(punto.id);
+                        }}
+                        title="Detalle"
+                      >
+                        <Info className="h-4 w-4" />
+                      </button> */}
                       <button
                         className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
@@ -847,6 +815,41 @@ export default function PuntosDeVenta() {
                         EDITAR
                         {/* <Edit className="h-4 w-4" /> */}
                       </button>
+                      {/* <button
+                        className={`p-1 rounded transition-colors border-2 ${
+                          punto.isActive
+                            ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                            : "bg-black hover:text-black"
+                        }`}
+                        style={
+                          !punto.isActive
+                            ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                            : {}
+                        }
+                        onMouseEnter={(e) => {
+                          if (!punto.isActive) {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "black";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!punto.isActive) {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePuntoStatus(punto.id, punto.isActive);
+                        }}
+                        title={punto.isActive ? "Desactivar" : "Activar"}
+                      >
+                        {punto.isActive ? (
+                          <Archive className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
+                      </button> */}
                       <button
                         className="p-1 rounded transition-colors border-2"
                         style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
@@ -1201,6 +1204,7 @@ export default function PuntosDeVenta() {
         />
       )}
 
+      {/* Modal de Detalle */}
       {/* Modal de Detalle */}
       {showDetailModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
