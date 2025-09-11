@@ -823,6 +823,9 @@ export default function Usuarios() {
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Email
                   </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Teléfono
+                  </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
                     TIPO DE USUARIO
                   </th>
@@ -861,6 +864,9 @@ export default function Usuarios() {
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
                       {usuario.email}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.telefono || "-"}
                     </td>
                     <td className="px-3 py-3">
                       <span
@@ -1062,6 +1068,12 @@ export default function Usuarios() {
                           }
                         >
                           {usuario.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Teléfono:</span>
+                        <span className="break-words text-sm text-gray-200">
+                          {usuario.telefono || "-"}
                         </span>
                       </div>
                     </div>
