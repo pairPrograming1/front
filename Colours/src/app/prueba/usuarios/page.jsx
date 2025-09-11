@@ -829,7 +829,7 @@ export default function Usuarios() {
                     Email
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Whatsapp
+                    TELEFONO
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
                     TIPO DE USUARIO

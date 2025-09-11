@@ -44,6 +44,7 @@ export default function Salones() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [salonDetalle, setSalonDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -212,7 +213,7 @@ export default function Salones() {
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      cancelButtonColor: "##3085d6",
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
@@ -467,7 +468,7 @@ export default function Salones() {
 
       {/* Filtros y búsqueda - Reorganizados */}
       <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center gap-40 w-full mb-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full mb-4">
           {/* Campo de búsqueda */}
           <div className="relative flex-grow">
             <input
@@ -487,128 +488,169 @@ export default function Salones() {
             </div>
           </div>
 
-          {/* Botones de filtro - Ahora entre búsqueda y acciones */}
-          <div className="flex gap-1">
-            <button
-              className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
-                filterMode === "active"
-                  ? "text-[#BF8D6B]"
-                  : "bg-black hover:text-white"
-              }`}
-              style={
-                filterMode === "active"
-                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
-              }
-              onMouseEnter={(e) => {
-                if (filterMode !== "active") {
-                  e.currentTarget.style.backgroundColor = "#000000ff";
-                  e.currentTarget.style.color = "#BF8D6B";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (filterMode !== "active") {
+          {/* Botones de filtro y acción - ahora con más espacio */}
+          <div className="flex flex-wrap gap-2 md:gap-6">
+            {/* Botón para mostrar/ocultar filtros en móvil */}
+            <div className="md:hidden w-full">
+              <button
+                className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = "black";
                   e.currentTarget.style.color = "#ffffffff";
-                }
-              }}
-              onClick={() => handleFilterChange("active")}
-            >
-              {/* <Eye className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Activos</span>
-            </button>
-            <button
-              className={`px-3 py-1 text-sm flex items-center gap-1 transition-colors border-2 ${
-                filterMode === "inactive"
-                  ? "text-[#BF8D6B]"
-                  : "bg-black hover:text-white"
-              }`}
-              style={
-                filterMode === "inactive"
-                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
-              }
-              onMouseEnter={(e) => {
-                if (filterMode !== "inactive") {
-                  e.currentTarget.style.backgroundColor = "#000000ff";
-                  e.currentTarget.style.color = "#BF8D6B";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (filterMode !== "inactive") {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }
-              }}
-              onClick={() => handleFilterChange("inactive")}
-            >
-              {/* <EyeOff className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Inactivos</span>
-            </button>
-            <button
-              className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
-                filterMode === "all"
-                  ? "text-[#BF8D6B]"
-                  : "bg-black hover:text-white"
-              }`}
-              style={
-                filterMode === "all"
-                  ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                  : { borderColor: "#BF8D6B", color: "#ffffffff" }
-              }
-              onMouseEnter={(e) => {
-                if (filterMode !== "all") {
-                  e.currentTarget.style.backgroundColor = "#000000ff";
-                  e.currentTarget.style.color = "#BF8D6B";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (filterMode !== "all") {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }
-              }}
-              onClick={() => handleFilterChange("all")}
-            >
-              {/* <ListFilter className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Todos</span>
-            </button>
-          </div>
+                }}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <ListFilter className="h-4 w-4" />
+                <span>Filtros</span>
+                {showFilters ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+            </div>
 
-          {/* Botones de acción principales */}
-          <div className="flex gap-1">
-            <button
-              className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-              style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#BF8D6B";
-                e.currentTarget.style.color = "white";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "black";
-                e.currentTarget.style.color = "#ffffffff";
-              }}
-              onClick={() => setShowModal(true)}
+            {/* Contenedor de filtros (siempre visible en desktop, condicional en móvil) */}
+            <div
+              className={`${
+                showFilters ? "flex" : "hidden"
+              } md:flex flex-col md:flex-row gap-1 w-full md:w-auto`}
             >
-              {/* <Plus className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Agregar Salones</span>
-            </button>
-            <button
-              className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-              style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#BF8D6B";
-                e.currentTarget.style.color = "white";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "black";
-                e.currentTarget.style.color = "#ffffffff";
-              }}
-              onClick={() => setShowUploadModal(true)}
-            >
-              {/* <Plus className="h-3 w-3" /> */}
-              <span className="hidden sm:inline">Cargar imágenes</span>
-            </button>
+              <button
+                className={`px-3 py-2 text-sm rounded-l flex items-center justify-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => {
+                  handleFilterChange("active");
+                  setShowFilters(false);
+                }}
+              >
+                {/* <Eye className="h-3 w-3" /> */}
+                <span className="text-xs md:text-sm">Activos</span>
+              </button>
+              <button
+                className={`px-3 py-2 text-sm flex items-center justify-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => {
+                  handleFilterChange("inactive");
+                  setShowFilters(false);
+                }}
+              >
+                {/* <EyeOff className="h-3 w-3" /> */}
+                <span className="text-xs md:text-sm">Inactivos</span>
+              </button>
+              <button
+                className={`px-3 py-2 text-sm rounded-r flex items-center justify-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => {
+                  handleFilterChange("all");
+                  setShowFilters(false);
+                }}
+              >
+                {/* <ListFilter className="h-3 w-3" /> */}
+                <span className="text-xs md:text-sm">Todos</span>
+              </button>
+            </div>
+
+            {/* Botones de acción principales */}
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              <button
+                className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="text-xs md:text-sm">Agregar</span>
+              </button>
+              <button
+                className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
+                }}
+                onClick={() => setShowUploadModal(true)}
+              >
+                {/* <Plus className="h-3 w-3" /> */}
+                <span className="text-xs md:text-sm">Cargar imágenes</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -616,7 +658,7 @@ export default function Salones() {
         {selectedSalones.length > 0 && (
           <div className="flex flex-col md:flex-row gap-2">
             <button
-              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -629,10 +671,12 @@ export default function Salones() {
               onClick={() => bulkToggleStatus(true)}
             >
               <Power className="h-3 w-3" />
-              Activar {selectedSalones.length}
+              <span className="text-xs md:text-sm">
+                Activar {selectedSalones.length}
+              </span>
             </button>
             <button
-              className="px-3 py-1 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+              className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
               style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -645,7 +689,9 @@ export default function Salones() {
               onClick={() => bulkToggleStatus(false)}
             >
               <Archive className="h-3 w-3" />
-              Desactivar {selectedSalones.length}
+              <span className="text-xs md:text-sm">
+                Desactivar {selectedSalones.length}
+              </span>
             </button>
           </div>
         )}
