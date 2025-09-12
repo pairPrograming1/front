@@ -43,6 +43,7 @@ export default function Usuarios() {
   const [error, setError] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [expandedUser, setExpandedUser] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -115,6 +116,11 @@ export default function Usuarios() {
       fetchUsuarios();
     }
   }, [filterMode, isClient]);
+
+  // Agrega este console.log para ver los datos de usuarios en la tabla
+  useEffect(() => {
+    console.log("Usuarios cargados en la tabla:", usuarios);
+  }, [usuarios]);
 
   const removeAccents = (str) => {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -597,7 +603,7 @@ export default function Usuarios() {
               placeholder="    Buscar Usuario"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-90 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              className="w-full md:w-90 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -610,98 +616,137 @@ export default function Usuarios() {
           </div>
 
           {/* Botones de filtro y acción */}
-          <div className="flex flex-wrap gap-8">
-            <div className="flex gap 1">
+          <div className="flex flex-wrap gap-2 md:gap-8">
+            {/* Botón para mostrar/ocultar filtros en móvil */}
+            <div className="md:hidden w-full">
               <button
-                className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
-                  filterMode === "active"
-                    ? "text-[#BF8D6B]"
-                    : "bg-black hover:text-white"
-                }`}
-                style={
-                  filterMode === "active"
-                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
-                }
+                className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
-                  if (filterMode !== "active") {
-                    e.currentTarget.style.backgroundColor = "#000000ff";
-                    e.currentTarget.style.color = "#BF8D6B";
-                  }
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "white";
                 }}
                 onMouseLeave={(e) => {
-                  if (filterMode !== "active") {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#ffffffff";
                 }}
-                onClick={() => setFilterMode("active")}
+                onClick={() => setShowFilters(!showFilters)}
               >
-                {/* <Eye className="h-3 w-3" /> */}
-                <span className="hidden sm:inline">Usuarios Activos</span>
-              </button>
-              <button
-                className={`px-3 py-1 text-sm  flex items-center gap-1 transition-colors border-2 ${
-                  filterMode === "inactive"
-                    ? "text-[#BF8D6B]"
-                    : "bg-black hover:text-white"
-                }`}
-                style={
-                  filterMode === "inactive"
-                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
-                }
-                onMouseEnter={(e) => {
-                  if (filterMode !== "inactive") {
-                    e.currentTarget.style.backgroundColor = "#000000ff";
-                    e.currentTarget.style.color = "#BF8D6B";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (filterMode !== "inactive") {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }
-                }}
-                onClick={() => setFilterMode("inactive")}
-              >
-                {/* <EyeOff className="h-3 w-3" /> */}
-                <span className="hidden sm:inline">Usuarios Inactivos</span>
-              </button>
-              <button
-                className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
-                  filterMode === "all"
-                    ? "text-[#BF8D6B]"
-                    : "bg-black hover:text-white"
-                }`}
-                style={
-                  filterMode === "all"
-                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
-                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
-                }
-                onMouseEnter={(e) => {
-                  if (filterMode !== "all") {
-                    e.currentTarget.style.backgroundColor = "#000000ff";
-                    e.currentTarget.style.color = "#BF8D6B";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (filterMode !== "all") {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }
-                }}
-                onClick={() => setFilterMode("all")}
-              >
-                {/* <ListFilter className="h-3 w-3" /> */}
-                <span className="hidden sm:inline">Todos</span>
+                <ListFilter className="h-4 w-4" />
+                <span>Filtros</span>
+                {showFilters ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </button>
             </div>
 
-            <div className="flex gap-6">
-              <div className="flex items-center gap 1">
+            {/* Contenedor de filtros (siempre visible en desktop, condicional en móvil) */}
+            <div
+              className={`${
+                showFilters ? "flex" : "hidden"
+              } md:flex flex-col md:flex-row gap-1 w-full md:w-auto`}
+            >
+              <button
+                className={`px-3 py-2 text-sm rounded-l flex items-center justify-center gap-1 transition-colors border-2 ${
+                  filterMode === "active"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "active"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "active") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => {
+                  setFilterMode("active");
+                  setShowFilters(false);
+                }}
+              >
+                {/* <Eye className="h-3 w-3 md:mr-1" /> */}
+                <span className="text-xs md:text-sm">Activos</span>
+              </button>
+              <button
+                className={`px-3 py-2 text-sm flex items-center justify-center gap-1 transition-colors border-2 ${
+                  filterMode === "inactive"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "inactive"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "inactive") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => {
+                  setFilterMode("inactive");
+                  setShowFilters(false);
+                }}
+              >
+                {/* <EyeOff className="h-3 w-3 md:mr-1" /> */}
+                <span className="text-xs md:text-sm">Inactivos</span>
+              </button>
+              <button
+                className={`px-3 py-2 text-sm rounded-r flex items-center justify-center gap-1 transition-colors border-2 ${
+                  filterMode === "all"
+                    ? "text-[#BF8D6B]"
+                    : "bg-black hover:text-white"
+                }`}
+                style={
+                  filterMode === "all"
+                    ? { backgroundColor: "#000000ff", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                }
+                onMouseEnter={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "#000000ff";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (filterMode !== "all") {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }
+                }}
+                onClick={() => {
+                  setFilterMode("all");
+                  setShowFilters(false);
+                }}
+              >
+                {/* <ListFilter className="h-3 w-3 md:mr-1" /> */}
+                <span className="text-xs md:text-sm">Todos</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              <div className="flex flex-col md:flex-row gap-2 w-full">
                 <button
-                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                   style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -714,12 +759,12 @@ export default function Usuarios() {
                   onClick={handleAsignarVendedor}
                   disabled={selectedUsers.length === 0}
                 >
-                  {/* <UserMinus className="h-3 w-3" /> */}
-                  <span className="hidden sm:inline">Asignar rol Vendedor</span>
+                  {/* <UserMinus className="h-3 w-3 md:mr-1" /> */}
+                  <span className="text-xs md:text-sm">Vendedor</span>
                 </button>
 
                 <button
-                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                   style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -732,15 +777,13 @@ export default function Usuarios() {
                   onClick={handleAsignarAdministrador}
                   disabled={selectedUsers.length === 0}
                 >
-                  {/* <UserPlus className="h-3 w-3" /> */}
-                  <span className="hidden sm:inline">
-                    Asignar rol Administrador
-                  </span>
+                  {/* <UserPlus className="h-3 w-3 md:mr-1" /> */}
+                  <span className="text-xs md:text-sm">Administrador</span>
                 </button>
               </div>
 
               <button
-                className="px-3 py-1 text-sm rounded flex items-center gap-4 transition-colors border-2 bg-black hover:text-black rounded-full"
+                className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -752,8 +795,8 @@ export default function Usuarios() {
                 }}
                 onClick={() => setShowModal(true)}
               >
-                {/* <Plus className="h-3 w-3" /> */}
-                <span className="hidden sm:inline">Agregar</span>
+                {/* <Plus className="h-3 w-3 md:mr-1" /> */}
+                <span className="text-xs md:text-sm">Agregar</span>
               </button>
             </div>
           </div>
@@ -785,9 +828,13 @@ export default function Usuarios() {
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Email
                   </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    TELEFONO
+                  </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
                     TIPO DE USUARIO
                   </th>
+
                   {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
                     ESTADO
                   </th> */}
@@ -824,6 +871,9 @@ export default function Usuarios() {
                     <td className="px-3 py-3 text-sm text-gray-200">
                       {usuario.email}
                     </td>
+                    <td className="px-3 py-3 text-sm text-gray-200">
+                      {usuario.whatsapp || "-"}
+                    </td>
                     <td className="px-3 py-3">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -841,6 +891,7 @@ export default function Usuarios() {
                           : "Común"}
                       </span>
                     </td>
+
                     {/* <td className="px-3 py-3">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -1024,6 +1075,13 @@ export default function Usuarios() {
                           }
                         >
                           {usuario.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Whatsapp:</span>
+                        <span className="break-words text-sm text-gray-200">
+                          {usuario.whatsapp || "-"}
                         </span>
                       </div>
                     </div>

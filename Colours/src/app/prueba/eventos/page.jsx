@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Plus,
@@ -11,48 +12,39 @@ import {
   Power,
   Archive,
   Edit,
+  UserPlus,
+  UserMinus,
   ChevronDown,
   ChevronUp,
-  Calendar,
-  Clock,
-  Users,
   ListFilter,
-  Info,
-  X,
-  FileText,
 } from "lucide-react";
+import UsuarioModal from "../components/usuario-modal";
+import UsuarioEditarModal from "../components/usuario-editar-modal";
 import Header from "../components/header";
-import EventoModal from "../components/evento-modal";
-import EventoEditarModal from "../components/evento-editar-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
-import EntradasModal from "../components/entradas-modal";
-import UploadImageModal from "../components/upload-image-modal";
+import { AuthContext } from "../../context/AuthContext";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const API_URL = apiUrls;
 
-export default function Eventos() {
+export default function Usuarios() {
+  const { authData, setAuthData } = useContext(AuthContext);
+  const { logout } = useAuth0();
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [usuarioEditar, setUsuarioEditar] = useState(null);
+  const [usuarios, setUsuarios] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [filterMode, setFilterMode] = useState("active");
-  const [selectedEventos, setSelectedEventos] = useState([]);
-  const [eventoEditar, setEventoEditar] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedEvento, setExpandedEvento] = useState(null);
-  const [showEntradasModal, setShowEntradasModal] = useState(false);
-  const [eventoEntradas, setEventoEntradas] = useState(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [eventoDetalle, setEventoDetalle] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [entradasDetalle, setEntradasDetalle] = useState([]);
-  const [loadingEntradas, setLoadingEntradas] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [error, setError] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [expandedUser, setExpandedUser] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -60,514 +52,506 @@ export default function Eventos() {
     setIsClient(true);
   }, []);
 
-  useEffect(() => {
-    if (isClient) {
-      fetchEventos();
-    }
-  }, [filterMode, isClient]);
-
-  const removeAccents = (str) => {
-    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
+  const isCurrentUser = (userId) => {
+    return authData?.user?.id === userId;
   };
 
-  const fetchEventos = async () => {
+  const handleLogout = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(
-        `${API_URL}/api/evento?activo=${
-          filterMode !== "all" ? filterMode === "active" : ""
-        }`
-      );
+      setAuthData(null);
+      localStorage.removeItem("authData");
+      await logout({ returnTo: window.location.origin });
+      router.push("/login");
+    } catch (error) {
+      console.error("Error durante el logout:", error);
+      window.location.href = "/login";
+    }
+  };
+
+  const fetchUsuarios = async () => {
+    setLoading(true);
+    try {
+      let url = `${API_URL}/api/users/usuarios?`;
+
+      if (filterMode === "active") {
+        url += "status=true";
+      } else if (filterMode === "inactive") {
+        url += "status=false";
+      } else {
+        url += "includeAll=true";
+      }
+
+      const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error("Error al cargar los eventos");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error del servidor (${response.status}): No se pudieron cargar los usuarios`
+        );
       }
 
-      const resultData = await response.json();
+      const data = await response.json();
 
-      if (resultData.success && Array.isArray(resultData.data)) {
-        const mappedEventos = resultData.data.map((evento) => {
-          return {
-            id: evento.id,
-            nombre: evento.nombre,
-            descripcion: evento.descripcion || "Sin descripción",
-            fecha: evento.fecha,
-            fechaFormateada: formatDateTime(evento.fecha),
-            duracion: evento.duracion,
-            capacidad: evento.capacidad,
-            activo: evento.activo,
-            salon: evento.salonNombre || "Sin salón asignado",
-          };
-        });
-
-        setEventos(mappedEventos);
+      if (filterMode === "all" && Array.isArray(data)) {
+        setUsuarios(data);
       } else {
-        setEventos([]);
-        throw new Error("Formato de respuesta incorrecto");
+        setUsuarios(data);
       }
-
-      setError(null);
     } catch (err) {
-      setError(
-        "No se pudieron cargar los eventos. Por favor intente nuevamente."
-      );
+      setError(err.message);
       Swal.fire({
         icon: "error",
-        title: "Error al cargar eventos",
-        text: err.message || "Hubo un problema al cargar los eventos",
+        title: "Error al cargar usuarios",
+        text: err.message || "No se pudo establecer conexión con el servidor",
+        footer:
+          "Intente refrescar la página o contacte al administrador del sistema",
       });
-      setEventos([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
-
-  const formatDateTime = (dateString) => {
-    try {
-      if (!dateString) return "Fecha no disponible";
-
-      const date = new Date(dateString);
-
-      const day = String(date.getUTCDate()).padStart(2, "0");
-      const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-      const year = date.getUTCFullYear();
-      const hours = String(date.getUTCHours()).padStart(2, "0");
-      const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-
-      return `${day}/${month}/${year}, ${hours}:${minutes}`;
-    } catch (e) {
-      console.error("Error formateando fecha:", e, dateString);
-      return dateString || "Fecha no disponible";
+  useEffect(() => {
+    if (isClient) {
+      fetchUsuarios();
     }
+  }, [filterMode, isClient]);
+
+  const removeAccents = (str) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
 
-  const formatDateForInput = (dateString) => {
-    if (!dateString) return "";
-
-    const date = new Date(dateString);
-
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    const hours = String(date.getUTCHours()).padStart(2, "0");
-    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  const eventosFiltrados = eventos.filter((evento) => {
-    const searchText = removeAccents(searchTerm.toLowerCase());
+  const usuariosFiltrados = usuarios.filter((usuario) => {
+    const searchText = removeAccents(busqueda.toLowerCase());
     return (
-      removeAccents(evento.nombre?.toLowerCase()).includes(searchText) ||
-      removeAccents(evento.salon?.toLowerCase()).includes(searchText) ||
-      formatDateTime(evento.fecha)
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (evento.duracion?.toString() || "").includes(searchTerm) ||
-      (evento.capacidad?.toString() || "").includes(searchTerm)
+      (usuario.usuario &&
+        removeAccents(usuario.usuario.toLowerCase()).includes(searchText)) ||
+      (usuario.email &&
+        removeAccents(usuario.email.toLowerCase()).includes(searchText)) ||
+      (usuario.nombre &&
+        removeAccents(usuario.nombre.toLowerCase()).includes(searchText)) ||
+      (usuario.apellido &&
+        removeAccents(usuario.apellido.toLowerCase()).includes(searchText)) ||
+      (usuario.nombre &&
+        usuario.apellido &&
+        removeAccents(
+          `${usuario.nombre} ${usuario.apellido}`.toLowerCase()
+        ).includes(searchText))
     );
   });
 
-  const toggleEventoSelection = (id) => {
-    setSelectedEventos((prev) =>
-      prev.includes(id)
-        ? prev.filter((eventoId) => eventoId !== id)
-        : [...prev, id]
+  const toggleUserSelection = (id) => {
+    setSelectedUsers((prev) =>
+      prev.includes(id) ? prev.filter((userId) => userId !== id) : [...prev, id]
     );
   };
 
-  const toggleAllSelection = () => {
-    if (selectedEventos.length === currentItems.length) {
-      setSelectedEventos([]);
+  const toggleSelectAll = () => {
+    if (selectedUsers.length === currentItems.length) {
+      setSelectedUsers([]);
     } else {
-      setSelectedEventos(currentItems.map((evento) => evento.id));
+      setSelectedUsers(currentItems.map((user) => user.id));
     }
   };
 
-  const handleEventoAdded = async (eventoData) => {
-    try {
-      if (!eventoData.nombre) {
-        throw new Error("El campo 'nombre' es obligatorio.");
+  const handleAsignarAdministrador = () => {
+    if (selectedUsers.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Ningún usuario seleccionado",
+        text: "Por favor selecciona al menos un usuario para asignar roles",
+      });
+      return;
+    }
+
+    const currentUserInSelection = selectedUsers.some(isCurrentUser);
+
+    Swal.fire({
+      title: `Asignar rol de administrador`,
+      html: `
+        <div class="text-left">
+          <p>¿Estás seguro de asignar el rol de <strong>administrador</strong> a <strong>${
+            selectedUsers.length
+          }</strong> usuario(s) seleccionado(s)?</p>
+          ${
+            currentUserInSelection
+              ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
+              : ""
+          }
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#BF8D6B",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, asignar administrador (${selectedUsers.length})`,
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        asignarRolMultiple("admin");
       }
-      const response = await fetch(`${API_URL}/api/evento`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventoData),
+    });
+  };
+
+  const handleAsignarVendedor = () => {
+    if (selectedUsers.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Ningún usuario seleccionado",
+        text: "Por favor selecciona al menos un usuario para asignar roles",
+      });
+      return;
+    }
+
+    const currentUserInSelection = selectedUsers.some(isCurrentUser);
+
+    Swal.fire({
+      title: "Asignar rol de vendedor",
+      html: `
+        <div class="text-left">
+          <p>¿Estás seguro de asignar el rol de <strong>vendedor</strong> a <strong>${
+            selectedUsers.length
+          }</strong> usuario(s) seleccionado(s)?</p>
+          ${
+            currentUserInSelection
+              ? '<div class="mt-2 text-red-500">Nota: Serás desconectado automáticamente si cambias tu propio rol</div>'
+              : ""
+          }
+        </div>
+      `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#BF8D6B",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, asignar vendedor (${selectedUsers.length})`,
+      cancelButtonText: "Cancelar",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        asignarRolMultiple("vendor");
+      }
+    });
+  };
+
+  const asignarRolMultiple = async (rol) => {
+    try {
+      const promises = selectedUsers.map(async (userId) => {
+        const response = await fetch(
+          `${API_URL}/api/users/change-role/${userId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rol }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.message ||
+              `Error al asignar rol al usuario ID: ${userId} (${response.status})`
+          );
+        }
+
+        return response;
+      });
+
+      const results = await Promise.allSettled(promises);
+
+      const exitosos = results.filter(
+        (result) => result.status === "fulfilled"
+      ).length;
+      const fallidos = results.length - exitosos;
+
+      const errores = results
+        .filter((result) => result.status === "rejected")
+        .map((result) => result.reason.message);
+
+      await fetchUsuarios();
+      setSelectedUsers([]);
+
+      Swal.fire({
+        icon: exitosos > 0 ? "success" : "error",
+        title: exitosos > 0 ? "Roles asignados" : "Error",
+        text: `${exitosos} usuario(s) actualizados con éxito. ${
+          fallidos > 0
+            ? `${fallidos} usuario(s) no pudieron ser actualizados.`
+            : ""
+        }`,
+        ...(errores.length > 0 && {
+          footer: `<ul class="text-left"><li>${errores
+            .slice(0, 3)
+            .join("</li><li>")}</li>${
+            errores.length > 3 ? "<li>...</li>" : ""
+          }</ul>`,
+        }),
+      });
+
+      if (selectedUsers.some(isCurrentUser)) {
+        Swal.fire({
+          title: "Tu rol ha cambiado",
+          text: "Serás redirigido al login para aplicar los cambios",
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+        }).then(() => {
+          handleLogout();
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al asignar roles",
+        text: error.message || "Ocurrió un error al asignar los roles",
+        footer:
+          "Verifica que los usuarios seleccionados existan y tengan los permisos adecuados",
+      });
+    }
+  };
+
+  const changeUserStatus = async (id, currentStatus) => {
+    const newStatus = !currentStatus;
+    const actionText = newStatus ? "activar" : "desactivar";
+
+    const confirmResult = await Swal.fire({
+      title: `¿${newStatus ? "Activar" : "Desactivar"} usuario?`,
+      text: `Estás a punto de ${actionText} este usuario.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#BF8D6B",
+      cancelButtonColor: "#d33",
+      confirmButtonText: `Sí, ${actionText}`,
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/users/soft-delete/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: newStatus }),
       });
 
       if (!response.ok) {
-        throw new Error("Error al agregar el evento");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al ${actionText} el usuario (${response.status}: ${response.statusText})`
+        );
       }
 
-      const result = await response.json();
+      await fetchUsuarios();
 
-      Swal.fire({
-        title: "¡Éxito!",
-        text: result.message || "El evento ha sido agregado correctamente",
+      await Swal.fire({
+        title: `Usuario ${newStatus ? "activado" : "desactivado"}`,
         icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
       });
-
-      fetchEventos();
-      setShowModal(false);
-    } catch (err) {
+    } catch (error) {
       Swal.fire({
         title: "Error",
-        text: err.message || "No se pudo agregar el evento.",
+        text: error.message,
         icon: "error",
+        footer: `No se pudo ${actionText} el usuario. Intente nuevamente o contacte al administrador.`,
       });
     }
   };
 
-  const handleEventoUpdated = async (id, eventoData) => {
+  const agregarUsuario = async (nuevoUsuario) => {
     try {
-      if (!id) {
-        throw new Error("El ID del evento no es válido.");
+      const response = await fetch(`${API_URL}/api/users/create-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoUsuario),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al crear usuario (${response.status}: ${response.statusText})`
+        );
       }
 
-      const response = await fetch(`${API_URL}/api/evento/${id}`, {
+      await fetchUsuarios();
+      setShowModal(false);
+      Swal.fire({
+        icon: "success",
+        title: "Usuario creado",
+        text: "El usuario fue creado correctamente",
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al crear usuario",
+        text:
+          error.message ||
+          "Hubo un problema con el servidor al intentar crear el usuario",
+        footer:
+          "Comprueba que todos los campos sean válidos y que el correo no esté duplicado",
+      });
+    }
+  };
+
+  const modificarUsuario = async (id, datosActualizados) => {
+    try {
+      Swal.fire({
+        title: "Guardando cambios...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const response = await fetch(`${API_URL}/api/users/perfil/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(eventoData),
+        body: JSON.stringify(datosActualizados),
       });
 
       if (!response.ok) {
-        throw new Error("Error al actualizar el evento");
-      }
-
-      const result = await response.json();
-
-      Swal.fire({
-        title: "¡Éxito!",
-        text: result.message || "El evento ha sido actualizado correctamente",
-        icon: "success",
-      });
-
-      fetchEventos();
-      setShowEditModal(false);
-    } catch (err) {
-      fetchEventos();
-    }
-  };
-
-  const handleLogicalDelete = async (id) => {
-    try {
-      const response = await fetch(`${API_URL}/api/evento/${id}`, {
-        method: "PATCH",
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al desactivar el evento");
-      }
-
-      const result = await response.json();
-
-      Swal.fire({
-        title: "¡Completado!",
-        text: result.message || "El evento ha sido desactivado correctamente",
-        icon: "success",
-      });
-
-      fetchEventos();
-    } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo desactivar el evento.",
-        icon: "error",
-      });
-    }
-  };
-
-  const handlePhysicalDelete = async (id) => {
-    try {
-      const response = await fetch(`${API_URL}/api/evento/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar el evento");
-      }
-
-      const result = await response.json();
-
-      Swal.fire({
-        title: "¡Eliminado!",
-        text: result.message || "El evento ha sido eliminado permanentemente",
-        icon: "success",
-      });
-
-      fetchEventos();
-    } catch (err) {
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo eliminar el evento.",
-        icon: "error",
-      });
-    }
-  };
-
-  const bulkLogicalDelete = async () => {
-    if (selectedEventos.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Ningún evento seleccionado",
-        text: "Por favor selecciona al menos un evento para desactivar",
-      });
-      return;
-    }
-
-    const result = await Swal.fire({
-      title: "¿Desactivar eventos seleccionados?",
-      text: `¿Desea desactivar los ${selectedEventos.length} eventos seleccionados?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#BF8D6B",
-      cancelButtonColor: "#d33",
-      confirmButtonText: `Sí, desactivar (${selectedEventos.length})`,
-      cancelButtonText: "Cancelar",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        Swal.fire({
-          title: "Procesando...",
-          text: "Desactivando eventos seleccionados",
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        const updatePromises = selectedEventos.map((id) =>
-          fetch(`${API_URL}/api/evento/${id}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al modificar usuario (${response.status}: ${response.statusText})`
         );
+      }
 
-        await Promise.all(updatePromises);
+      await fetchUsuarios();
 
+      Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Los datos del usuario se actualizaron correctamente",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      // Solo cerrar sesión si es el usuario actual Y se modificó el rol
+      if (isCurrentUser(id) && datosActualizados.rol) {
         Swal.fire({
-          title: "¡Completado!",
-          text: "Los eventos seleccionados han sido desactivados",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
-
-        fetchEventos();
-        setSelectedEventos([]);
-      } catch (err) {
-        console.error("Error al desactivar eventos:", err);
-        Swal.fire({
-          title: "Error",
-          text: "No se pudieron desactivar los eventos seleccionados.",
-          icon: "error",
-          confirmButtonText: "OK",
+          title: "Tu rol ha cambiado",
+          text: "Serás redirigido al login para aplicar los cambios",
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+        }).then(() => {
+          handleLogout();
         });
       }
+    } catch (error) {
+      console.error("Error al modificar usuario:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Hubo un problema al actualizar el usuario",
+        footer: "Por favor verifique los datos e intente nuevamente",
+      });
+
+      throw error;
     }
   };
 
-  const bulkPhysicalDelete = async () => {
-    if (selectedEventos.length === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "Ningún evento seleccionado",
-        text: "Por favor selecciona al menos un evento para eliminar",
-      });
-      return;
-    }
-
-    const result = await Swal.fire({
+  const borrarUsuario = async (id) => {
+    const confirmResult = await Swal.fire({
       title: "¿Eliminar permanentemente?",
-      text: `¿Desea eliminar permanentemente los ${selectedEventos.length} eventos seleccionados? Esta acción no se puede deshacer.`,
-      icon: "error",
+      text: "Esta acción no se puede deshacer. ¿Deseas continuar?",
+      icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#BF8D6B",
-      confirmButtonText: `Sí, eliminar (${selectedEventos.length})`,
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
 
-    if (result.isConfirmed) {
-      const secondConfirm = await Swal.fire({
-        title: "¿Está completamente seguro?",
-        html: `
-        <div class="text-left">
-          <p>No podrá recuperar estos ${selectedEventos.length} eventos después de eliminarlos.</p>
-          <p class="text-red-500 font-bold mt-2">Esta acción es IRREVERSIBLE.</p>
-        </div>
-      `,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#BF8D6B",
-        confirmButtonText: "Sí, eliminar definitivamente",
-        cancelButtonText: "Cancelar",
-      });
-
-      if (!secondConfirm.isConfirmed) return;
-
+    if (confirmResult.isConfirmed) {
       try {
-        Swal.fire({
-          title: "Procesando...",
-          text: "Eliminando eventos seleccionados",
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-
-        const deletePromises = selectedEventos.map((id) =>
-          fetch(`${API_URL}/api/evento/${id}`, {
-            method: "DELETE",
-          })
-        );
-
-        await Promise.all(deletePromises);
-
-        Swal.fire({
-          title: "¡Eliminados!",
-          text: "Los eventos seleccionados han sido eliminados permanentemente",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
-
-        fetchEventos();
-        setSelectedEventos([]);
-      } catch (err) {
-        console.error("Error al eliminar eventos:", err);
-        Swal.fire({
-          title: "Error",
-          text: "No se pudieron eliminar los eventos seleccionados.",
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      }
-    }
-  };
-
-  const handleEventoToggleActive = async (id, currentActiveState) => {
-    const action = currentActiveState ? "desactivar" : "activar";
-
-    const result = await Swal.fire({
-      title: `¿${currentActiveState ? "Desactivar" : "Activar"} evento?`,
-      text: `¿Desea ${action} este evento?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#BF8D6B",
-      cancelButtonColor: "#d33",
-      confirmButtonText: `Sí, ${action}`,
-      cancelButtonText: "Cancelar",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const response = await fetch(`${API_URL}/api/evento/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ activo: !currentActiveState }),
+        const response = await fetch(`${API_URL}/api/users/delete/${id}`, {
+          method: "DELETE",
         });
 
         if (!response.ok) {
-          throw new Error(`Error al ${action} el evento`);
+          const errorData = await response.json().catch(() => null);
+          throw new Error(
+            errorData?.message ||
+              `Error al eliminar el usuario (${response.status}: ${response.statusText})`
+          );
         }
 
-        Swal.fire({
-          title: "¡Completado!",
-          text: `El evento ha sido ${action}do correctamente`,
-          icon: "success",
-          confirmButtonText: "OK",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-
-        fetchEventos();
-      } catch (err) {
-        console.error(`Error al ${action} evento:`, err);
-        Swal.fire({
-          title: "Error",
-          text: `No se pudo ${action} el evento.`,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-        setError(`No se pudo ${action} el evento.`);
-      }
-    }
-  };
-
-  const handleEditEvento = (evento) => {
-    if (!evento?.id) {
-      Swal.fire({
-        title: "Error",
-        text: "El evento seleccionado no tiene un ID válido.",
-        icon: "error",
-      });
-      return;
-    }
-    setEventoEditar(evento);
-    setShowEditModal(true);
-  };
-
-  const handleAddEntradas = (evento) => {
-    if (!evento?.id) {
-      Swal.fire({
-        title: "Error",
-        text: "El evento seleccionado no tiene un ID válido.",
-        icon: "error",
-      });
-      return;
-    }
-    setEventoEntradas(evento);
-    setShowEntradasModal(true);
-  };
-
-  const handleShowDetail = async (eventoId) => {
-    setLoadingDetail(true);
-    setShowDetailModal(true);
-    setEntradasDetalle([]);
-    try {
-      const response = await fetch(`${API_URL}/api/evento/${eventoId}`);
-      if (!response.ok)
-        throw new Error("Error al obtener el detalle del evento");
-      const result = await response.json();
-      setEventoDetalle(result.data || result);
-
-      setLoadingEntradas(true);
-      const entradasRes = await fetch(`${API_URL}/api/entrada/${eventoId}`);
-      if (entradasRes.ok) {
-        const entradasData = await entradasRes.json();
-        setEntradasDetalle(
-          Array.isArray(entradasData.data) ? entradasData.data : []
+        await fetchUsuarios();
+        Swal.fire(
+          "Eliminado",
+          "El usuario ha sido eliminado correctamente",
+          "success"
         );
-      } else {
-        setEntradasDetalle([]);
+      } catch (error) {
+        Swal.fire({
+          title: "Error al eliminar",
+          text: error.message,
+          icon: "error",
+          footer:
+            "El usuario podría estar vinculado a registros existentes o no tienes los permisos necesarios para eliminarlo",
+        });
       }
-    } catch (err) {
-      setEventoDetalle({ error: err.message });
-      setEntradasDetalle([]);
-    } finally {
-      setLoadingDetail(false);
-      setLoadingEntradas(false);
     }
   };
 
-  const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
-  const currentItems = eventosFiltrados.slice(
+  const cambiarRolUsuario = async (id, rol) => {
+    try {
+      const response = await fetch(`${API_URL}/api/users/change-role/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rol }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message ||
+            `Error al cambiar el rol del usuario (${response.status}: ${response.statusText})`
+        );
+      }
+
+      await fetchUsuarios();
+
+      if (isCurrentUser(id)) {
+        Swal.fire({
+          title: "Tu rol ha cambiado",
+          text: "Serás redirigido al login para aplicar los cambios",
+          icon: "info",
+          timer: 3000,
+          showConfirmButton: false,
+        }).then(() => {
+          handleLogout();
+        });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Rol actualizado",
+          text: `El rol ha sido actualizado a ${rol}`,
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al cambiar rol",
+        text: error.message || "Ocurrió un error al cambiar el rol",
+        footer:
+          "Verifica que tengas los permisos adecuados para realizar esta acción",
+      });
+    }
+  };
+
+  const totalPages = Math.ceil(usuariosFiltrados.length / itemsPerPage);
+  const currentItems = usuariosFiltrados.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -577,9 +561,26 @@ export default function Eventos() {
   if (loading) {
     return (
       <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
-        <Header title="Eventos" />
+        <Header title="Usuarios" />
         <div className="flex justify-center items-center h-64">
-          <p className="text-gray-300">Cargando eventos...</p>
+          <p className="text-gray-300">Cargando usuarios...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
+        <Header title="Usuarios" />
+        <div className="alert alert-error bg-red-900 border-red-700">
+          <p className="text-red-200">Error: {error}</p>
+          <button
+            className="btn btn-sm btn-outline border-red-600 text-red-200 hover:bg-red-700 mt-2"
+            onClick={() => fetchUsuarios()}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
@@ -587,36 +588,161 @@ export default function Eventos() {
 
   return (
     <div className="p-2 md:p-4 ">
-      <Header />
+      {/* <Header title="Usuarios" /> */}
 
-      <div>
-        {/* Contenedor principal reorganizado */}
-        <div className="flex flex-col gap-3 w-full">
-          {/* Campo de búsqueda y botones en misma línea en desktop */}
-          <div className="flex flex-col md:flex-row md:items-center gap-30 w-full">
-            {/* Campo de búsqueda */}
-            <div className="relative flex-grow">
-              <input
-                type="text"
-                placeholder="    Buscar eventos..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
-                style={{
-                  borderColor: "#BF8D6B",
-                  color: "#ffffffff",
-                  "--tw-ring-color": "#BF8D6B",
-                }}
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
-              </div>
+      <div className="mb-4 space-y-10">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
+          {/* Campo de búsqueda */}
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="    Buscar Usuario"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              style={{
+                borderColor: "#BF8D6B",
+                color: "#ffffffff",
+                "--tw-ring-color": "#BF8D6B",
+              }}
+            />
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <Search className="h-4 w-4" style={{ color: "#BF8D6B" }} />
+            </div>
+          </div>
+
+          {/* Botones de filtro y acción - Versión móvil con menús desplegables */}
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            {/* Botón para mostrar/ocultar filtros en móvil */}
+            <div className="md:hidden w-full">
+              <button
+                className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <ListFilter className="h-4 w-4" />
+                <span>Filtros</span>
+                {showFilters ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+
+              {showFilters && (
+                <div className="mt-2 grid grid-cols-1 gap-2 p-2 bg-gray-800 rounded-lg">
+                  <button
+                    className={`px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 ${
+                      filterMode === "active"
+                        ? "text-black"
+                        : "bg-black hover:text-black"
+                    }`}
+                    style={
+                      filterMode === "active"
+                        ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                        : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                    }
+                    onClick={() => {
+                      setFilterMode("active");
+                      setShowFilters(false);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>Activos</span>
+                  </button>
+                  <button
+                    className={`px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 ${
+                      filterMode === "inactive"
+                        ? "text-black"
+                        : "bg-black hover:text-black"
+                    }`}
+                    style={
+                      filterMode === "inactive"
+                        ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                        : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                    }
+                    onClick={() => {
+                      setFilterMode("inactive");
+                      setShowFilters(false);
+                    }}
+                  >
+                    <EyeOff className="h-4 w-4" />
+                    <span>Inactivos</span>
+                  </button>
+                  <button
+                    className={`px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 ${
+                      filterMode === "all"
+                        ? "text-black"
+                        : "bg-black hover:text-black"
+                    }`}
+                    style={
+                      filterMode === "all"
+                        ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                        : { borderColor: "#BF8D6B", color: "#ffffffff" }
+                    }
+                    onClick={() => {
+                      setFilterMode("all");
+                      setShowFilters(false);
+                    }}
+                  >
+                    <ListFilter className="h-4 w-4" />
+                    <span>Todos</span>
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Botones de filtro - AHORA justo después del buscador */}
-            <div className="flex gap-1 flex-nowrap ml-0 md:ml-4 mt-2 md:mt-0">
+            {/* Botón para mostrar/ocultar acciones en móvil */}
+            <div className="md:hidden w-full mt-2">
               <button
-                className={`px-3 py-1.5 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
+                className="w-full px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                onClick={() => setShowActions(!showActions)}
+              >
+                <span>Acciones</span>
+                {showActions ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+
+              {showActions && (
+                <div className="mt-2 grid grid-cols-1 gap-2 p-2 bg-gray-800 rounded-lg">
+                  <button
+                    className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                    style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                    onClick={handleAsignarVendedor}
+                    disabled={selectedUsers.length === 0}
+                  >
+                    <UserMinus className="h-4 w-4" />
+                    <span>Asignar Vendedor</span>
+                  </button>
+                  <button
+                    className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                    style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                    onClick={handleAsignarAdministrador}
+                    disabled={selectedUsers.length === 0}
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Asignar Administrador</span>
+                  </button>
+                  <button
+                    className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                    style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                    onClick={() => setShowModal(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Agregar Usuario</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Versión desktop (oculta en móvil) */}
+            <div className="hidden md:flex gap-1">
+              <button
+                className={`px-3 py-1 text-sm rounded-l flex items-center gap-1 transition-colors border-2 ${
                   filterMode === "active"
                     ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
@@ -640,10 +766,11 @@ export default function Eventos() {
                 }}
                 onClick={() => setFilterMode("active")}
               >
-                <span className="text-xs md:text-sm">Activos</span>
+                {/* <Eye className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Usuarios Activos</span>
               </button>
               <button
-                className={`px-3 py-1.5 text-sm flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-1 text-sm  flex items-center gap-1 transition-colors border-2 ${
                   filterMode === "inactive"
                     ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
@@ -667,10 +794,11 @@ export default function Eventos() {
                 }}
                 onClick={() => setFilterMode("inactive")}
               >
-                <span className="text-xs md:text-sm">Inactivos</span>
+                {/* <EyeOff className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Usuarios Inactivos</span>
               </button>
               <button
-                className={`px-3 py-1.5 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
+                className={`px-3 py-1 text-sm rounded-r flex items-center gap-1 transition-colors border-2 ${
                   filterMode === "all"
                     ? "text-[#BF8D6B]"
                     : "bg-black hover:text-white"
@@ -694,14 +822,54 @@ export default function Eventos() {
                 }}
                 onClick={() => setFilterMode("all")}
               >
-                <span className="text-xs md:text-sm">Todos</span>
+                {/* <ListFilter className="h-3 w-3" /> */}
+                <span className="hidden sm:inline">Todos</span>
               </button>
             </div>
 
-            {/* Botones de acción principales - AHORA más alejados */}
-            <div className="flex gap-1">
+            <div className="hidden md:flex gap-6">
+              <div className="flex items-center gap 1">
+                <button
+                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={handleAsignarVendedor}
+                  disabled={selectedUsers.length === 0}
+                >
+                  {/* <UserMinus className="h-3 w-3" /> */}
+                  <span className="hidden sm:inline">Asignar rol Vendedor</span>
+                </button>
+
+                <button
+                  className="px-3 py-1 text-sm rounded flex items-center transition-colors border-2 bg-black hover:text-black"
+                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "white";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#ffffffff";
+                  }}
+                  onClick={handleAsignarAdministrador}
+                  disabled={selectedUsers.length === 0}
+                >
+                  {/* <UserPlus className="h-3 w-3" /> */}
+                  <span className="hidden sm:inline">
+                    Asignar rol Administrador
+                  </span>
+                </button>
+              </div>
+
               <button
-                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
+                className="px-3 py-1 text-sm rounded flex items-center gap-4 transition-colors border-2 bg-black hover:text-black rounded-full"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -714,342 +882,222 @@ export default function Eventos() {
                 onClick={() => setShowModal(true)}
               >
                 {/* <Plus className="h-3 w-3" /> */}
-                <span className="hidden sm:inline">Agregar eventos</span>
-              </button>
-              <button
-                className="px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BF8D6B";
-                  e.currentTarget.style.color = "white";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "black";
-                  e.currentTarget.style.color = "#ffffffff";
-                }}
-                onClick={() => setShowUploadModal(true)}
-              >
-                {/* <Plus className="h-3 w-3" /> */}
-                <span className="hidden sm:inline">Cargar imagenes </span>
+                <span className="hidden sm:inline">Agregar</span>
               </button>
             </div>
           </div>
-
-          {/* Botones de acciones masivas - ahora debajo y alineados con el buscador */}
-          <div className="flex flex-wrap gap-2 pl-0 md:pl-0">
-            {selectedEventos.length > 0 && (
-              <>
-                <button
-                  className="px-3 py-1.5 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }}
-                  onClick={bulkLogicalDelete}
-                >
-                  <Archive className="h-3 w-3" />
-                  Desactivar {selectedEventos.length}
-                </button>
-                <button
-                  className="px-3 py-1.5 text-sm rounded flex items-center gap-1 transition-colors border-2 bg-black hover:text-black"
-                  style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#BF8D6B";
-                    e.currentTarget.style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "black";
-                    e.currentTarget.style.color = "#ffffffff";
-                  }}
-                  onClick={bulkPhysicalDelete}
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Eliminar {selectedEventos.length}
-                </button>
-              </>
-            )}
-          </div>
         </div>
-      </div>
 
-      {error && (
-        <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
-
-      <div className="overflow-x-auto">
-        <div className="hidden md:block">
-          <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
-            <thead className="bg-gray-900">
-              <tr>
-                <th className="w-8 px-3 py-3 text-left">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedEventos.length === currentItems.length &&
-                      currentItems.length > 0
-                    }
-                    onChange={toggleAllSelection}
-                    className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
-                    style={{ accentColor: "#BF8D6B" }}
-                  />
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Nombre del Evento
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Descripción
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Salón
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Fecha y Hora
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Duración
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Capacidad
-                </th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Estado
-                </th>
-                {currentItems.length > 0 && (
-                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-52">
+        <div className="overflow-x-auto ">
+          <div className="hidden md:block ">
+            <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+              <thead className="bg-gray-900">
+                <tr>
+                  <th className="w-8 px-3 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={
+                        selectedUsers.length === currentItems.length &&
+                        currentItems.length > 0
+                      }
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
+                      style={{ accentColor: "#BF8D6B" }}
+                    />
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Usuario
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Nombre y Apellido
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
+                    TIPO DE USUARIO
+                  </th>
+                  {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
+                    ESTADO
+                  </th> */}
+                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
                     Acciones
                   </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {currentItems.length > 0 ? (
-                currentItems.map((evento, index) => (
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {currentItems.map((usuario, index) => (
                   <tr
-                    key={evento.id}
+                    key={usuario.id}
                     className={`${
                       index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
                     } ${
-                      !evento.activo ? "opacity-70" : ""
+                      !usuario.isActive ? "opacity-70" : ""
                     } hover:bg-gray-700 transition-colors`}
                   >
                     <td className="px-3 py-3">
                       <input
                         type="checkbox"
-                        checked={selectedEventos.includes(evento.id)}
-                        onChange={() => toggleEventoSelection(evento.id)}
+                        checked={selectedUsers.includes(usuario.id)}
+                        onChange={() => toggleUserSelection(usuario.id)}
                         className="w-4 h-4 bg-gray-700 border-gray-600 rounded"
                         style={{ accentColor: "#BF8D6B" }}
                       />
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
-                      {evento.nombre}
+                      {usuario.usuario || "-"}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
-                      {evento.descripcion}
+                      {usuario.nombre} {usuario.apellido}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
-                      {evento.salon}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-200">
-                      {formatDateTime(evento.fecha)}
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-200">
-                      {evento.duracion || "N/A"} minutos
-                    </td>
-                    <td className="px-3 py-3 text-sm text-gray-200">
-                      {evento.capacidad || "Sin límite"}
+                      {usuario.email}
                     </td>
                     <td className="px-3 py-3">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          evento.activo
+                          usuario.rol === "admin"
+                            ? "bg-gray-700 text-gray-200"
+                            : usuario.rol === "vendor"
+                            ? "bg-gray-600 text-gray-200"
+                            : "bg-gray-900 text-gray-200"
+                        }`}
+                      >
+                        {usuario.rol === "admin"
+                          ? "Administrador"
+                          : usuario.rol === "vendor"
+                          ? "Vendedor"
+                          : "Común"}
+                      </span>
+                    </td>
+                    {/* <td className="px-3 py-3">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          usuario.isActive
                             ? "text-white"
                             : "bg-red-900 text-red-200"
                         }`}
                         style={
-                          evento.activo ? { backgroundColor: "#BF8D6B" } : {}
+                          usuario.isActive ? { backgroundColor: "#BF8D6B" } : {}
                         }
                       >
-                        {evento.activo ? "Activo" : "Inactivo"}
+                        {usuario.isActive ? "Activo" : "Inactivo"}
                       </span>
-                    </td>
-                    {currentItems.length > 0 && (
-                      <td className="px-3 py-3">
-                        <div className="flex gap-1 flex-wrap">
-                          <button
-                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={() => handleEditEvento(evento)}
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={() => handleShowDetail(evento.id)}
-                            title="Detalle"
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={() => handleAddEntradas(evento)}
-                            title="Agregar Entradas"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </button>
-                          {evento.activo ? (
-                            <button
-                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                              style={{
-                                borderColor: "#BF8D6B",
-                                color: "#BF8D6B",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  "#BF8D6B";
-                                e.currentTarget.style.color = "white";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }}
-                              onClick={() => handleLogicalDelete(evento.id)}
-                              title="Desactivar"
-                            >
-                              <Archive className="h-4 w-4" />
-                            </button>
-                          ) : (
-                            <button
-                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                              style={{
-                                borderColor: "#BF8D6B",
-                                color: "#BF8D6B",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  "#BF8D6B";
-                                e.currentTarget.style.color = "white";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }}
-                              onClick={() =>
-                                handleEventoToggleActive(
-                                  evento.id,
-                                  evento.activo
-                                )
-                              }
-                              title="Activar"
-                            >
-                              <Power className="h-4 w-4" />
-                            </button>
-                          )}
-                          <button
-                            className="p-1 rounded transition-colors border-2"
-                            style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
-                            onClick={() => handlePhysicalDelete(evento.id)}
-                            title="Eliminar permanentemente"
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="9"
-                    className="text-center py-10 text-gray-400 text-sm"
-                  >
-                    No se encontraron eventos que coincidan con los criterios de
-                    búsqueda
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </td> */}
+                    <td className="px-3 py-3">
+                      <div className="flex gap-1">
+                        <button
+                          className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#ffffffff";
+                          }}
+                          onClick={() => setUsuarioEditar(usuario)}
+                          title="Editar"
+                        >
+                          {/* <Edit className="h-4 w-4" /> */}
+                          Editar
+                        </button>
 
-        <div className="md:hidden space-y-2">
-          {currentItems.length > 0 ? (
-            currentItems.map((evento) => (
+                        {/* <button
+                          className={`p-1 rounded transition-colors border-2 ${
+                            usuario.isActive
+                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                              : "bg-black hover:text-black"
+                          }`}
+                          style={
+                            !usuario.isActive
+                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                              : {}
+                          }
+                          onMouseEnter={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "#BF8D6B";
+                              e.currentTarget.style.color = "black";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }
+                          }}
+                          onClick={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                          title={usuario.isActive ? "Desactivar" : "Activar"}
+                        >
+                          {usuario.isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button> */}
+
+                        <button
+                          className="p-1 rounded transition-colors border-2"
+                          style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                          onClick={() => borrarUsuario(usuario.id)}
+                          title="Borrar"
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                            e.currentTarget.style.color = "#BF8D6B";
+                          }}
+                        >
+                          Borrar
+                          {/* <Trash2 className="h-4 w-4" /> */}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="md:hidden space-y-2">
+            {currentItems.map((usuario) => (
               <div
-                key={evento.id}
+                key={usuario.id}
                 className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={selectedEventos.includes(evento.id)}
-                      onChange={() => toggleEventoSelection(evento.id)}
+                      checked={selectedUsers.includes(usuario.id)}
+                      onChange={() => toggleUserSelection(usuario.id)}
                       className="w-4 h-4 bg-gray-700 border-gray-600 rounded mr-1"
                       style={{ accentColor: "#BF8D6B" }}
                     />
                     <div>
                       <div className="font-medium text-sm text-gray-200">
-                        {evento.nombre}
+                        {usuario.nombre} {usuario.apellido}
                       </div>
                       <div className="text-sm text-gray-400">
-                        {evento.salon}
+                        {usuario.usuario || "-"}
                       </div>
                     </div>
                   </div>
                   <button
                     onClick={() =>
-                      setExpandedEvento(
-                        expandedEvento === evento.id ? null : evento.id
+                      setExpandedUser(
+                        expandedUser === usuario.id ? null : usuario.id
                       )
                     }
                     className="text-gray-400 hover:text-gray-300 flex items-center gap-1 text-sm transition-colors"
                   >
-                    {expandedEvento === evento.id ? (
+                    {expandedUser === usuario.id ? (
                       <>
                         <span>Cerrar</span>
                         <ChevronUp className="h-3 w-3" />
@@ -1063,38 +1111,48 @@ export default function Eventos() {
                   </button>
                 </div>
 
-                {expandedEvento === evento.id && (
+                {expandedUser === usuario.id && (
                   <div className="mt-3 space-y-2 pt-3 border-t border-gray-700">
                     <div className="grid grid-cols-1 gap-2">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-400 text-sm">Duración:</span>
-                        <span className="ml-2 text-gray-200">
-                          {evento.duracion || "N/A"} minutos
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Email:</span>
+                        <span className="break-words text-sm text-gray-200">
+                          {usuario.email}
                         </span>
                       </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="text-gray-400 text-sm">
-                          Capacidad:
-                        </span>
-                        <span className="ml-2 text-gray-200">
-                          {evento.capacidad || "Sin límite"}
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Rol:</span>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
+                            usuario.rol === "admin"
+                              ? "bg-gray-700 text-gray-200"
+                              : usuario.rol === "vendor"
+                              ? "bg-gray-600 text-gray-200"
+                              : "bg-gray-900 text-gray-200"
+                          }`}
+                        >
+                          {usuario.rol === "admin"
+                            ? "Administrador"
+                            : usuario.rol === "vendor"
+                            ? "Vendedor"
+                            : "Común"}
                         </span>
                       </div>
-                      <div className="flex items-center">
+                      <div className="flex flex-col">
                         <span className="text-gray-400 text-sm">Estado:</span>
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ml-2 ${
-                            evento.activo
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
+                            usuario.isActive
                               ? "text-white"
                               : "bg-red-900 text-red-200"
                           }`}
                           style={
-                            evento.activo ? { backgroundColor: "#BF8D6B" } : {}
+                            usuario.isActive
+                              ? { backgroundColor: "#BF8D6B" }
+                              : {}
                           }
                         >
-                          {evento.activo ? "Activo" : "Inactivo"}
+                          {usuario.isActive ? "Activo" : "Inactivo"}
                         </span>
                       </div>
                     </div>
@@ -1112,95 +1170,46 @@ export default function Eventos() {
                             e.currentTarget.style.backgroundColor = "black";
                             e.currentTarget.style.color = "#BF8D6B";
                           }}
-                          onClick={() => handleEditEvento(evento)}
+                          onClick={() => setUsuarioEditar(usuario)}
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
-                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                          className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
+                            usuario.isActive
+                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
+                              : "bg-black hover:text-black"
+                          }`}
+                          style={
+                            !usuario.isActive
+                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                              : {}
+                          }
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
-                          }}
-                          onClick={() => handleShowDetail(evento.id)}
-                        >
-                          <Info className="h-4 w-4" />
-                        </button>
-                        <button
-                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                          style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
-                          }}
-                          onClick={() => handleAddEntradas(evento)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </button>
-                        {evento.activo ? (
-                          <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                            style={{
-                              borderColor: "#BF8D6B",
-                              color: "#BF8D6B",
-                            }}
-                            onMouseEnter={(e) => {
+                            if (!usuario.isActive) {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
                               e.currentTarget.style.color = "black";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={() => handleLogicalDelete(evento.id)}
-                          >
-                            <Archive className="h-4 w-4" />
-                          </button>
-                        ) : (
-                          <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                            style={{
-                              borderColor: "#BF8D6B",
-                              color: "#BF8D6B",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "black";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={() =>
-                              handleEventoToggleActive(evento.id, evento.activo)
                             }
-                          >
-                            <Power className="h-4 w-4" />
-                          </button>
-                        )}
-                        <button
-                          className="p-2 rounded transition-colors flex items-center justify-center border-2"
-                          style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
-                          onClick={() => handlePhysicalDelete(evento.id)}
-                          title="Eliminar permanentemente"
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "white";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
-                            e.currentTarget.style.color = "#BF8D6B";
+                            if (!usuario.isActive) {
+                              e.currentTarget.style.backgroundColor = "black";
+                              e.currentTarget.style.color = "#BF8D6B";
+                            }
                           }}
+                          onClick={() =>
+                            changeUserStatus(usuario.id, usuario.isActive)
+                          }
+                        >
+                          {usuario.isActive ? (
+                            <Archive className="h-4 w-4" />
+                          ) : (
+                            <Power className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded transition-colors flex items-center justify-center border-2 border-red-400"
+                          onClick={() => borrarUsuario(usuario.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -1209,331 +1218,83 @@ export default function Eventos() {
                   </div>
                 )}
               </div>
-            ))
-          ) : (
-            <div className="text-center py-10 border border-gray-700 rounded-lg">
-              <p className="text-gray-400 text-sm">
-                No se encontraron eventos que coincidan con los criterios de
-                búsqueda
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-center gap-1">
-          {currentPage > 1 && (
-            <button
-              className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
-              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#BF8D6B";
-                e.currentTarget.style.color = "black";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "black";
-                e.currentTarget.style.color = "#BF8D6B";
-              }}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              <ChevronRight className="h-4 w-4 rotate-180" />
-            </button>
-          )}
-          {[...Array(totalPages)].map((_, index) => {
-            if (
-              index === 0 ||
-              index === totalPages - 1 ||
-              (index >= currentPage - 2 && index <= currentPage + 0)
-            ) {
-              return (
-                <button
-                  key={index}
-                  className={`px-3 py-2 text-sm rounded transition-colors border-2 ${
-                    currentPage === index + 1
-                      ? "text-black"
-                      : "bg-black hover:text-black"
-                  }`}
-                  style={
-                    currentPage === index + 1
-                      ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
-                      : { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                  }
-                  onMouseEnter={(e) => {
-                    if (currentPage !== index + 1) {
-                      e.currentTarget.style.backgroundColor = "#BF8D6B";
-                      e.currentTarget.style.color = "black";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== index + 1) {
-                      e.currentTarget.style.backgroundColor = "black";
-                      e.currentTarget.style.color = "#BF8D6B";
-                    }
-                  }}
-                  onClick={() => setCurrentPage(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              );
-            } else if (
-              (index === currentPage - 3 && currentPage > 3) ||
-              (index === currentPage + 1 && currentPage < totalPages - 2)
-            ) {
-              return (
-                <span
-                  key={index}
-                  className="flex items-center justify-center px-2 text-gray-400"
-                >
-                  ...
-                </span>
-              );
-            }
-            return null;
-          })}
-          {currentPage < totalPages && (
-            <button
-              className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
-              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#BF8D6B";
-                e.currentTarget.style.color = "black";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "black";
-                e.currentTarget.style.color = "#BF8D6B";
-              }}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      )}
-
-      {showModal && (
-        <EventoModal
-          onClose={() => setShowModal(false)}
-          onEventoAdded={handleEventoAdded}
-        />
-      )}
-
-      {showEditModal && eventoEditar && (
-        <EventoEditarModal
-          evento={eventoEditar}
-          onClose={() => {
-            setShowEditModal(false);
-            setEventoEditar(null);
-          }}
-          onEventoUpdated={handleEventoUpdated}
-        />
-      )}
-      {showEntradasModal && eventoEntradas && (
-        <EntradasModal
-          evento={eventoEntradas}
-          onClose={() => {
-            setShowEntradasModal(false);
-            setEventoEntradas(null);
-          }}
-        />
-      )}
-      {showUploadModal && (
-        <UploadImageModal
-          onClose={() => setShowUploadModal(false)}
-          API_URL={`${API_URL}/api/upload/image`}
-        />
-      )}
-
-      {showDetailModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-3xl shadow-lg max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Info className="h-5 w-5 text-[#BF8D6B]" /> Detalle del Evento
-              </h2>
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setEventoDetalle(null);
-                  setEntradasDetalle([]);
-                }}
-                className="text-gray-400 hover:text-white"
-                aria-label="Cerrar"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
-              {loadingDetail ? (
-                <div className="text-center py-6 text-gray-300 text-sm">
-                  Cargando detalle...
-                </div>
-              ) : eventoDetalle?.error ? (
-                <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
-                  {eventoDetalle.error}
-                </div>
-              ) : eventoDetalle ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-white">
-                  <div className="space-y-3">
-                    {(eventoDetalle.image || eventoDetalle.imagen) && (
-                      <div>
-                        <span className="block text-sm text-[#BF8D6B] mb-1">
-                          Imagen
-                        </span>
-                        <div className="p-2 bg-transparent rounded border border-[#BF8D6B] flex justify-center">
-                          <img
-                            src={eventoDetalle.image || eventoDetalle.imagen}
-                            alt="Imagen del evento"
-                            className="max-h-40 rounded"
-                            style={{ maxWidth: "100%", objectFit: "contain" }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Nombre
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        {eventoDetalle.nombre}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Descripción
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        {eventoDetalle.descripcion}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Salón
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        {eventoDetalle.salonNombre || eventoDetalle.salon}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Fecha
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        {formatDateTime(eventoDetalle.fecha)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Duración
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        {eventoDetalle.duracion} minutos
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Capacidad
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        {eventoDetalle.capacidad}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Estado
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] text-sm">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            eventoDetalle.activo
-                              ? "text-white"
-                              : "bg-red-900 text-red-200"
-                          }`}
-                          style={
-                            eventoDetalle.activo
-                              ? { backgroundColor: "#BF8D6B" }
-                              : {}
-                          }
-                        >
-                          {eventoDetalle.activo ? "Activo" : "Inactivo"}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-[#BF8D6B] mb-1">
-                        Entradas
-                      </span>
-                      <div className="p-2 bg-transparent rounded border border-[#BF8D6B] max-h-32 overflow-y-auto">
-                        {loadingEntradas ? (
-                          <span className="text-gray-300 text-xs">
-                            Cargando entradas...
-                          </span>
-                        ) : entradasDetalle.length === 0 ? (
-                          <span className="text-gray-400 text-xs">
-                            No hay entradas para este evento.
-                          </span>
-                        ) : (
-                          <ul className="space-y-2">
-                            {entradasDetalle.map((entrada, idx) => (
-                              <li
-                                key={entrada.id || idx}
-                                className="text-gray-200 text-xs border-b border-gray-700 pb-2 last:border-b-0"
-                              >
-                                <div>
-                                  <span className="font-semibold text-[#BF8D6B]">
-                                    Tipo:
-                                  </span>{" "}
-                                  {entrada.tipo_entrada}
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-[#BF8D6B]">
-                                    Precio:
-                                  </span>{" "}
-                                  ${entrada.precio}
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-[#BF8D6B]">
-                                    Cantidad:
-                                  </span>{" "}
-                                  {entrada.cantidad}
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-[#BF8D6B]">
-                                    Estatus:
-                                  </span>{" "}
-                                  {entrada.estatus}
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-300 text-sm">
-                  No hay información para mostrar.
-                </div>
-              )}
-            </div>
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setEventoDetalle(null);
-                  setEntradasDetalle([]);
-                }}
-                className="font-bold py-2 px-2 rounded bg-transparent text-white border border-[#BF8D6B] text-sm"
-              >
-                Cerrar
-              </button>
-            </div>
+            ))}
           </div>
         </div>
-      )}
+
+        {usuariosFiltrados.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400 text-sm">No se encontraron usuarios</p>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center gap-1 flex-wrap">
+            {[...Array(totalPages)].map((_, index) => (
+              <button
+                key={index}
+                className={`px-3 py-2 text-sm rounded transition-colors border-2 ${
+                  currentPage === index + 1
+                    ? "text-black"
+                    : "bg-black hover:text-black"
+                }`}
+                style={
+                  currentPage === index + 1
+                    ? { backgroundColor: "#BF8D6B", borderColor: "#BF8D6B" }
+                    : { borderColor: "#BF8D6B", color: "#BF8D6B" }
+                }
+                onMouseEnter={(e) => {
+                  if (currentPage !== index + 1) {
+                    e.currentTarget.style.backgroundColor = "#BF8D6B";
+                    e.currentTarget.style.color = "black";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== index + 1) {
+                    e.currentTarget.style.backgroundColor = "black";
+                    e.currentTarget.style.color = "#BF8D6B";
+                  }
+                }}
+                onClick={() => setCurrentPage(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            {currentPage < totalPages && (
+              <button
+                className="px-3 py-2 text-sm rounded transition-colors border-2 bg-black hover:text-black"
+                style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#BF8D6B";
+                  e.currentTarget.style.color = "black";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "black";
+                  e.currentTarget.style.color = "#BF8D6B";
+                }}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {showModal && (
+          <UsuarioModal
+            onClose={() => setShowModal(false)}
+            onSave={agregarUsuario}
+          />
+        )}
+
+        {usuarioEditar && (
+          <UsuarioEditarModal
+            usuario={usuarioEditar}
+            onClose={() => setUsuarioEditar(null)}
+            onSave={modificarUsuario}
+          />
+        )}
+      </div>
     </div>
   );
 }
