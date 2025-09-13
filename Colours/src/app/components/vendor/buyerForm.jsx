@@ -58,37 +58,39 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
 
   if (!mounted || eventId === null || userRole === null) {
     return (
-      <main className="min-h-screen w-full flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-[#1a1a1a] p-4 rounded-lg shadow-lg">
-          <p className="text-white text-sm">Cargando...</p>
+      <main className="min-h-screen w-full flex items-center justify-center p-2">
+        <div className="w-full max-w-md bg-[#1a1a1a] p-3 rounded-lg">
+          <p className="text-white text-xs">Cargando...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="w-full flex items-center justify-center p-8">
-      <div className="w-full max-w-md p-8 rounded-lg ">
-        <h2 className="text-xl font-bold text-white mb-8">
+    <main className="w-full flex items-center justify-center p-4">
+      <div className="w-full max-w-md p-4 rounded-lg">
+        <h2 className="text-lg font-bold text-white mb-4">
           Datos del Graduado
         </h2>
-        <div className="space-y-6 mb-8">
+
+        <div className="space-y-3 mb-4">
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
             placeholder="Nombre y Apellido"
-            className="w-full p-4 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-base"
+            className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-2">
             <input
               type="text"
               name="dni"
               value={formData.dni}
               onChange={handleInputChange}
               placeholder="DNI"
-              className="w-full p-4 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-base"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
             />
             <input
               type="text"
@@ -96,62 +98,62 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
               value={formData.whatsapp}
               onChange={handleInputChange}
               placeholder="WhatsApp"
-              className="w-full p-4 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-base"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
             />
           </div>
+
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
             placeholder="Email"
-            className="w-full p-4 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-base"
+            className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
           />
         </div>
-        <div className="space-y-4">
-          <div className="border border-[#BF8D6B] rounded p-6 w-full">
-            <div className="text-white mb-4">
-              <p className="font-medium text-base">Nombre del Graduado</p>
-            </div>
-            {isFormValid() && (
-              <div className="bg-transparent p-4 rounded mb-4 text-base text-white">
-                <div className="flex flex-col space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[#BF8D6B]">Graduado:</p>
-                      <p className="truncate">{formData.name}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#BF8D6B]">DNI:</p>
-                      <p className="truncate">{formData.dni}</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[#BF8D6B]">WhatsApp:</p>
-                      <p className="truncate">{formData.whatsapp}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#BF8D6B]">Email:</p>
-                      <p className="truncate">{formData.email}</p>
-                    </div>
-                  </div>
+
+        <div className="border border-[#BF8D6B] rounded p-3 w-full">
+          <div className="text-white mb-3">
+            <p className="font-medium text-xs">Resumen del Graduado</p>
+          </div>
+
+          {isFormValid() && (
+            <div className="bg-transparent p-2 rounded mb-3 text-xs text-white">
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <p className="text-[#BF8D6B] text-xs">Nombre:</p>
+                  <p className="truncate">{formData.name}</p>
+                </div>
+                <div>
+                  <p className="text-[#BF8D6B] text-xs">DNI:</p>
+                  <p className="truncate">{formData.dni}</p>
                 </div>
               </div>
-            )}
-            <div className="flex justify-end mt-4">
-              <button
-                onClick={handleSell}
-                disabled={!isFormValid()}
-                className={`font-bold py-2 px-4 rounded text-base ${
-                  isFormValid()
-                    ? "bg-[#BF8D6B] text-white"
-                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                Vender
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-[#BF8D6B] text-xs">WhatsApp:</p>
+                  <p className="truncate">{formData.whatsapp}</p>
+                </div>
+                <div>
+                  <p className="text-[#BF8D6B] text-xs">Email:</p>
+                  <p className="truncate">{formData.email}</p>
+                </div>
+              </div>
             </div>
+          )}
+
+          <div className="flex justify-end">
+            <button
+              onClick={handleSell}
+              disabled={!isFormValid()}
+              className={`font-bold py-1 px-3 rounded text-xs ${
+                isFormValid()
+                  ? "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
+                  : "bg-gray-600 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Continuar
+            </button>
           </div>
         </div>
       </div>
