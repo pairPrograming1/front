@@ -100,16 +100,18 @@ export default function EntradasModal({ evento, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-2xl shadow-lg">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-bold text-white">Agregar Entradas</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+        <div className="flex justify-between items-center mb-3 md:mb-3">
+          <h2 className="text-base md:text-lg font-bold text-white">
+            Agregar Entradas
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white p-1 md:p-0"
             aria-label="Cerrar"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
@@ -133,18 +135,18 @@ export default function EntradasModal({ evento, onClose }) {
         </div>
 
         {error && (
-          <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3 flex items-start">
-            <AlertCircle className="h-4 w-4 mr-1 mt-0.5 flex-shrink-0" />
+          <div className="p-2 md:p-2 bg-red-900/50 text-red-300 text-xs md:text-sm rounded border border-red-700 mb-3 md:mb-3 flex items-start">
+            <AlertCircle className="h-3 w-3 md:h-4 md:w-4 mr-1 mt-0.5 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-3"
+          className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-3"
         >
           <div className="md:col-span-2">
-            <label className="block text-sm text-white mb-1">
+            <label className="block text-xs md:text-sm text-white mb-1">
               Tipo de Entrada
             </label>
             <div className="relative">
@@ -153,46 +155,50 @@ export default function EntradasModal({ evento, onClose }) {
                 name="tipo_entrada"
                 value={formData.tipo_entrada}
                 onChange={handleChange}
-                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
                 placeholder="Ej: General, VIP, Estudiante"
                 required
               />
-              <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
+              <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
             </div>
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm text-white mb-1">Precio</label>
+            <label className="block text-xs md:text-sm text-white mb-1">
+              Precio
+            </label>
             <div className="relative">
               <input
                 type="number"
                 name="precio"
                 value={formData.precio}
                 onChange={handleChange}
-                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
                 placeholder="0.00"
                 step="0.01"
                 min="0"
                 required
               />
-              <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
+              <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
             </div>
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm text-white mb-1">Estatus</label>
+            <label className="block text-xs md:text-sm text-white mb-1">
+              Estatus
+            </label>
             <div className="relative">
               <select
                 name="estatus"
                 value={formData.estatus}
                 onChange={handleChange}
-                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8 appearance-none"
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8 appearance-none"
               >
                 <option value="disponible">Disponible</option>
                 <option value="agotado">Agotado</option>
                 <option value="reservado">Reservado</option>
               </select>
-              <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-4 w-4" />
+              <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -204,7 +210,7 @@ export default function EntradasModal({ evento, onClose }) {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="h-4 w-4 text-[#BF8D6B]"
+                  className="h-3 w-3 md:h-4 md:w-4 text-[#BF8D6B]"
                 >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
@@ -213,7 +219,7 @@ export default function EntradasModal({ evento, onClose }) {
           </div>
 
           <div className="md:col-span-2">
-            <div className="p-2 bg-[#BF8D6B]/20 border border-[#BF8D6B] rounded text-[#BF8D6B] text-xs mb-3">
+            <div className="p-2 bg-[#BF8D6B]/20 border border-[#BF8D6B] rounded text-[#BF8D6B] text-xs md:text-sm mb-3">
               <p>
                 Se crearán <strong>{evento.capacidad}</strong> entradas de tipo{" "}
                 <strong>{formData.tipo_entrada || "[Tipo de entrada]"}</strong>{" "}
@@ -229,14 +235,14 @@ export default function EntradasModal({ evento, onClose }) {
           <div className="md:col-span-2">
             <button
               type="submit"
-              className="w-full font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm flex items-center justify-center gap-2"
+              className="w-full font-bold py-2 md:py-2 px-2 rounded bg-[#BF8D6B] text-white text-xs md:text-sm flex items-center justify-center gap-2"
               disabled={loading}
             >
               {loading ? (
                 "Creando..."
               ) : (
                 <>
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3 w-3 md:h-4 md:w-4" />
                   <span>Crear Entradas</span>
                 </>
               )}
