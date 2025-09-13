@@ -92,42 +92,47 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-3xl shadow-lg">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg">
         {/* Header */}
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-bold text-white">Editar Usuario</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="h-5 w-5" />
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h2 className="text-base md:text-lg font-bold text-white">
+            Editar Usuario
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white p-1 md:p-0"
+          >
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
+          <div className="p-2 md:p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3 md:mb-3">
             {error}
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3">
           {/* Usuario */}
           <input
             type="text"
             name="usuario"
-            placeholder="Usuario"
-            className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+            placeholder="Usuario *"
+            className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             value={formData.usuario}
             onChange={handleChange}
             required
           />
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
             <input
               type="text"
               name="nombre"
-              placeholder="Nombre"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              placeholder="Nombre *"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               value={formData.nombre}
               onChange={handleChange}
               required
@@ -135,8 +140,8 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
             <input
               type="text"
               name="apellido"
-              placeholder="Apellido"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              placeholder="Apellido *"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               value={formData.apellido}
               onChange={handleChange}
               required
@@ -145,7 +150,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
               type="text"
               name="dni"
               placeholder="DNI"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               value={formData.dni}
               onChange={handleChange}
             />
@@ -153,7 +158,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
               type="email"
               name="email"
               placeholder="Email"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               value={formData.email}
               onChange={handleChange}
             />
@@ -161,7 +166,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
               type="text"
               name="direccion"
               placeholder="Dirección"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               value={formData.direccion}
               onChange={handleChange}
             />
@@ -169,7 +174,7 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
               type="text"
               name="whatsapp"
               placeholder="WhatsApp"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               value={formData.whatsapp}
               onChange={handleChange}
             />
@@ -177,28 +182,28 @@ export default function UsuarioEditarModal({ usuario, onClose, onSave }) {
               type="password"
               name="password"
               placeholder="Contraseña"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
             <input
               type="password"
               name="repeatPassword"
               placeholder="Repetir Contraseña"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
           </div>
 
           {/* Buttons */}
-          <div className="grid grid-cols-2 gap-2 pt-3">
+          <div className="grid grid-cols-2 gap-2 md:gap-3 pt-2 md:pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="w-full font-bold py-2 px-2 rounded bg-transparent text-white border border-[#BF8D6B] text-sm"
+              className="w-full font-bold py-2 md:py-2 px-2 rounded bg-transparent text-white border border-[#BF8D6B] text-xs md:text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="w-full font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm"
+              className="w-full font-bold py-2 md:py-2 px-2 rounded bg-[#BF8D6B] text-white text-xs md:text-sm"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Guardando..." : "Guardar Cambios"}

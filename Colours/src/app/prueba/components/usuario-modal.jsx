@@ -188,40 +188,40 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] rounded-lg p-6 w-full max-w-2xl shadow-lg">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-white">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-6 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+        <div className="flex justify-between items-center mb-3 md:mb-6">
+          <h2 className="text-base md:text-xl font-bold text-white">
             {userData ? "Editar Usuario" : "Agregar Usuario"}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors p-1 md:p-0"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2 md:space-y-4">
           <div className="w-full">
             <input
               type="text"
               id="usuario"
               name="usuario"
-              placeholder="Usuario"
-              className="w-76 p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              placeholder="Usuario *"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.usuario}
               onChange={handleChange}
               required
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
             <input
               type="text"
               name="nombre"
-              placeholder="Nombre"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              placeholder="Nombre *"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.nombre}
               onChange={handleChange}
               required
@@ -230,8 +230,8 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
             <input
               type="text"
               name="apellido"
-              placeholder="Apellido"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              placeholder="Apellido *"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.apellido}
               onChange={handleChange}
               required
@@ -241,7 +241,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               type="text"
               name="dni"
               placeholder="DNI"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.dni}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -251,7 +251,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               type="email"
               name="email"
               placeholder="Email"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.email}
               onChange={handleChange}
             />
@@ -260,7 +260,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               type="text"
               name="direccion"
               placeholder="Dirección"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.direccion}
               onChange={handleChange}
             />
@@ -269,7 +269,7 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
               type="text"
               name="whatsapp"
               placeholder="WhatsApp"
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
               value={formData.whatsapp}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -280,8 +280,8 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
                 <input
                   type="password"
                   name="password"
-                  placeholder="Contraseña"
-                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+                  placeholder="Contraseña *"
+                  className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -289,24 +289,33 @@ export default function UsuarioModal({ onClose, onSave, userData }) {
 
                 <input
                   type="password"
-                  placeholder="Repetir Contraseña"
-                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B]"
+                  placeholder="Repetir Contraseña *"
+                  className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
                 />
               </>
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full mt-4 font-bold py-2 px-4 rounded transition-colors ${
-              loading
-                ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
-            }`}
-          >
-            {loading ? "Cargando..." : userData ? "Guardar Cambios" : "Crear"}
-          </button>
+          <div className="flex flex-col-reverse md:flex-row md:justify-end gap-2 md:gap-3 mt-3 md:mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm text-white bg-gray-600 rounded hover:bg-gray-700 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded transition-colors ${
+                loading
+                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
+              }`}
+            >
+              {loading ? "Cargando..." : userData ? "Guardar" : "Crear"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
