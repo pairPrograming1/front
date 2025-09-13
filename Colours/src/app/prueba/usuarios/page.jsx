@@ -600,10 +600,10 @@ export default function Usuarios() {
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar Usuario"
+              placeholder="Buscar Usuario"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full md:w-90 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              className="w-full md:w-64 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -616,7 +616,7 @@ export default function Usuarios() {
           </div>
 
           {/* Botones de filtro y acción */}
-          <div className="flex flex-wrap gap-2 md:gap-8">
+          <div className="flex flex-wrap gap-2 md:gap-2">
             {/* Botón para mostrar/ocultar filtros en móvil */}
             <div className="md:hidden w-full">
               <button
@@ -676,7 +676,6 @@ export default function Usuarios() {
                   setShowFilters(false);
                 }}
               >
-                {/* <Eye className="h-3 w-3 md:mr-1" /> */}
                 <span className="text-xs md:text-sm">Activos</span>
               </button>
               <button
@@ -707,7 +706,6 @@ export default function Usuarios() {
                   setShowFilters(false);
                 }}
               >
-                {/* <EyeOff className="h-3 w-3 md:mr-1" /> */}
                 <span className="text-xs md:text-sm">Inactivos</span>
               </button>
               <button
@@ -738,12 +736,12 @@ export default function Usuarios() {
                   setShowFilters(false);
                 }}
               >
-                {/* <ListFilter className="h-3 w-3 md:mr-1" /> */}
                 <span className="text-xs md:text-sm">Todos</span>
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            {/* Botones de acción a la derecha */}
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <div className="flex flex-col md:flex-row gap-2 w-full">
                 <button
                   className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
@@ -759,7 +757,6 @@ export default function Usuarios() {
                   onClick={handleAsignarVendedor}
                   disabled={selectedUsers.length === 0}
                 >
-                  {/* <UserMinus className="h-3 w-3 md:mr-1" /> */}
                   <span className="text-xs md:text-sm">Vendedor</span>
                 </button>
 
@@ -777,7 +774,6 @@ export default function Usuarios() {
                   onClick={handleAsignarAdministrador}
                   disabled={selectedUsers.length === 0}
                 >
-                  {/* <UserPlus className="h-3 w-3 md:mr-1" /> */}
                   <span className="text-xs md:text-sm">Administrador</span>
                 </button>
               </div>
@@ -795,7 +791,6 @@ export default function Usuarios() {
                 }}
                 onClick={() => setShowModal(true)}
               >
-                {/* <Plus className="h-3 w-3 md:mr-1" /> */}
                 <span className="text-xs md:text-sm">Agregar</span>
               </button>
             </div>
@@ -829,15 +824,11 @@ export default function Usuarios() {
                     Email
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    TELEFONO
+                    Teléfono
                   </th>
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">
-                    TIPO DE USUARIO
+                    Tipo de Usuario
                   </th>
-
-                  {/* <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
-                    ESTADO
-                  </th> */}
                   <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
                     Acciones
                   </th>
@@ -851,7 +842,7 @@ export default function Usuarios() {
                       index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
                     } ${
                       !usuario.isActive ? "opacity-70" : ""
-                    } hover:bg-gray-700 transition-colors`}
+                    } hover:bg-gray-700 transition-colors group`}
                   >
                     <td className="px-3 py-3">
                       <input
@@ -869,10 +860,26 @@ export default function Usuarios() {
                       {usuario.nombre} {usuario.apellido}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
-                      {usuario.email}
+                      <a
+                        href={`mailto:${usuario.email}`}
+                        className="text-[#BF8D6B] hover:underline"
+                      >
+                        {usuario.email}
+                      </a>
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-200">
-                      {usuario.whatsapp || "-"}
+                      {usuario.whatsapp ? (
+                        <a
+                          href={`https://wa.me/${usuario.whatsapp}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#BF8D6B] hover:underline"
+                        >
+                          {usuario.whatsapp}
+                        </a>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="px-3 py-3">
                       <span
@@ -891,25 +898,10 @@ export default function Usuarios() {
                           : "Común"}
                       </span>
                     </td>
-
-                    {/* <td className="px-3 py-3">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          usuario.isActive
-                            ? "text-white"
-                            : "bg-red-900 text-red-200"
-                        }`}
-                        style={
-                          usuario.isActive ? { backgroundColor: "#BF8D6B" } : {}
-                        }
-                      >
-                        {usuario.isActive ? "Activo" : "Inactivo"}
-                      </span>
-                    </td> */}
                     <td className="px-3 py-3">
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                          className="px-2 py-1 rounded transition-colors border-2 bg-black hover:text-black text-xs"
                           style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -917,53 +909,17 @@ export default function Usuarios() {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#ffffffff";
+                            e.currentTarget.style.color = "#BF8D6B";
                           }}
                           onClick={() => setUsuarioEditar(usuario)}
                           title="Editar"
                         >
-                          {/* <Edit className="h-4 w-4" /> */}
                           Editar
                         </button>
 
-                        {/* <button
-                          className={`p-1 rounded transition-colors border-2 ${
-                            usuario.isActive
-                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                              : "bg-black hover:text-black"
-                          }`}
-                          style={
-                            !usuario.isActive
-                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                              : {}
-                          }
-                          onMouseEnter={(e) => {
-                            if (!usuario.isActive) {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "black";
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!usuario.isActive) {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }
-                          }}
-                          onClick={() =>
-                            changeUserStatus(usuario.id, usuario.isActive)
-                          }
-                          title={usuario.isActive ? "Desactivar" : "Activar"}
-                        >
-                          {usuario.isActive ? (
-                            <Archive className="h-4 w-4" />
-                          ) : (
-                            <Power className="h-4 w-4" />
-                          )}
-                        </button> */}
-
                         <button
-                          className="p-1 rounded transition-colors border-2"
-                          style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                          className="px-2 py-1 rounded transition-colors border-2 text-xs"
+                          style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                           onClick={() => borrarUsuario(usuario.id)}
                           title="Borrar"
                           onMouseEnter={(e) => {
@@ -971,13 +927,11 @@ export default function Usuarios() {
                             e.currentTarget.style.color = "white";
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              "transparent";
+                            e.currentTarget.style.backgroundColor = "black";
                             e.currentTarget.style.color = "#BF8D6B";
                           }}
                         >
                           Borrar
-                          {/* <Trash2 className="h-4 w-4" /> */}
                         </button>
                       </div>
                     </td>
@@ -1038,9 +992,29 @@ export default function Usuarios() {
                     <div className="grid grid-cols-1 gap-2">
                       <div className="flex flex-col">
                         <span className="text-gray-400 text-sm">Email:</span>
-                        <span className="break-words text-sm text-gray-200">
+                        <a
+                          href={`mailto:${usuario.email}`}
+                          className="break-words text-sm text-[#BF8D6B] hover:underline"
+                        >
                           {usuario.email}
-                        </span>
+                        </a>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-400 text-sm">Teléfono:</span>
+                        {usuario.whatsapp ? (
+                          <a
+                            href={`https://wa.me/${usuario.whatsapp}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="break-words text-sm text-[#BF8D6B] hover:underline"
+                          >
+                            {usuario.whatsapp}
+                          </a>
+                        ) : (
+                          <span className="break-words text-sm text-gray-200">
+                            -
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-col">
                         <span className="text-gray-400 text-sm">Rol:</span>
@@ -1060,36 +1034,12 @@ export default function Usuarios() {
                             : "Común"}
                         </span>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-gray-400 text-sm">Estado:</span>
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full w-fit mt-1 ${
-                            usuario.isActive
-                              ? "text-white"
-                              : "bg-red-900 text-red-200"
-                          }`}
-                          style={
-                            usuario.isActive
-                              ? { backgroundColor: "#BF8D6B" }
-                              : {}
-                          }
-                        >
-                          {usuario.isActive ? "Activo" : "Inactivo"}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col">
-                        <span className="text-gray-400 text-sm">Whatsapp:</span>
-                        <span className="break-words text-sm text-gray-200">
-                          {usuario.whatsapp || "-"}
-                        </span>
-                      </div>
                     </div>
 
                     <div className="flex justify-between pt-2 mt-2 border-t border-gray-700">
-                      <div className="grid grid-cols-3 gap-2 w-full">
+                      <div className="grid grid-cols-2 gap-2 w-full">
                         <button
-                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black text-xs"
                           style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -1101,46 +1051,22 @@ export default function Usuarios() {
                           }}
                           onClick={() => setUsuarioEditar(usuario)}
                         >
-                          <Edit className="h-4 w-4" />
+                          Editar
                         </button>
                         <button
-                          className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
-                            usuario.isActive
-                              ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                              : "bg-black hover:text-black"
-                          }`}
-                          style={
-                            !usuario.isActive
-                              ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                              : {}
-                          }
+                          className="p-2 rounded transition-colors flex items-center justify-center border-2 text-xs"
+                          style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
+                          onClick={() => borrarUsuario(usuario.id)}
                           onMouseEnter={(e) => {
-                            if (!usuario.isActive) {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "black";
-                            }
+                            e.currentTarget.style.backgroundColor = "#BF8D6B";
+                            e.currentTarget.style.color = "white";
                           }}
                           onMouseLeave={(e) => {
-                            if (!usuario.isActive) {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }
+                            e.currentTarget.style.backgroundColor = "black";
+                            e.currentTarget.style.color = "#BF8D6B";
                           }}
-                          onClick={() =>
-                            changeUserStatus(usuario.id, usuario.isActive)
-                          }
                         >
-                          {usuario.isActive ? (
-                            <Archive className="h-4 w-4" />
-                          ) : (
-                            <Power className="h-4 w-4" />
-                          )}
-                        </button>
-                        <button
-                          className="p-2 text-red-400 hover:text-red-300 hover:bg-gray-700 rounded transition-colors flex items-center justify-center border-2 border-red-400"
-                          onClick={() => borrarUsuario(usuario.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
+                          Borrar
                         </button>
                       </div>
                     </div>
