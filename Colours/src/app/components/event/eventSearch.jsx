@@ -23,7 +23,7 @@ export default function EventSearchPage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const eventsPerPage = 3;
+  const eventsPerPage = 5; // Aumentado para mejor uso del espacio
 
   const { userRole } = useUserRoleFromLocalStorage();
 
@@ -169,31 +169,31 @@ export default function EventSearchPage() {
 
   if (!mounted) {
     return (
-      <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-4">
-        <div className="w-full max-w-md bg-[#1a1a1a] p-4 rounded-lg shadow-lg">
-          <p className="text-white text-sm">Cargando...</p>
+      <main className="min-h-screen w-full flex items-center justify-center bg-[#12151f]/40 p-2">
+        <div className="w-full max-w-md bg-[#1a1a1a] p-3 rounded-lg">
+          <p className="text-white text-xs">Cargando...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="w-full flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-2xl p-4 md:p-8 rounded-2xl">
-        <form onSubmit={handleSearch} className="space-y-4 mb-6">
-          <input
-            type="text"
-            placeholder="Por nombre"
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)}
-            className="w-full p-3 md:p-4 bg-transparent text-white rounded-lg border border-[#BF8D6B] placeholder-gray-400 text-sm md:text-base"
-          />
+    <main className="w-full flex items-center justify-center p-2 md:p-4">
+      <div className="w-full max-w-2xl p-3 md:p-6 rounded-xl">
+        <form onSubmit={handleSearch} className="space-y-3 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="col-span-2 p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+            />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select
               value={searchDate}
               onChange={(e) => setSearchDate(e.target.value)}
-              className="w-full p-3 md:p-4 bg-transparent text-white rounded-lg border border-[#BF8D6B] text-sm md:text-base appearance-none"
+              className="p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
             >
               <option value="" className="bg-[#1a1a1a]">
                 Fecha
@@ -205,83 +205,78 @@ export default function EventSearchPage() {
                 Mañana
               </option>
               <option value="weekend" className="bg-[#1a1a1a]">
-                Este fin de semana
+                Fin de semana
               </option>
               <option value="month" className="bg-[#1a1a1a]">
                 Este mes
               </option>
             </select>
 
-            <select
-              value={searchType}
-              onChange={(e) => setSearchType(e.target.value)}
-              className="w-full p-3 md:p-4 bg-transparent text-white rounded-lg border border-[#BF8D6B] text-sm md:text-base appearance-none"
-            >
-              <option value="" className="bg-[#1a1a1a]">
-                Tipo
-              </option>
-              <option value="graduacion" className="bg-[#1a1a1a]">
-                Graduación
-              </option>
-            </select>
+            <input
+              type="text"
+              placeholder="Salón"
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+              className="p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+            />
           </div>
 
-          <input
-            type="text"
-            placeholder="Salón del Evento"
-            value={searchLocation}
-            onChange={(e) => setSearchLocation(e.target.value)}
-            className="w-full p-3 md:p-4 bg-transparent text-white rounded-lg border border-[#BF8D6B] placeholder-gray-400 text-sm md:text-base"
-          />
-
-          <button
-            type="submit"
-            className="w-full font-bold py-3 px-4 rounded-lg bg-[#BF8D6B] text-white text-sm md:text-base"
-          >
-            Buscar
-          </button>
-          <p className="text-gray-400 text-xs md:text-sm text-center mt-2">
-            Presiona Enter para buscar
-          </p>
+          <div className="flex justify-between items-center">
+            <button
+              type="submit"
+              className="font-bold py-2 px-3 rounded bg-[#BF8D6B] text-white text-xs"
+            >
+              Buscar
+            </button>
+            <p className="text-gray-400 text-xs">
+              {filteredEvents.length} eventos encontrados
+            </p>
+          </div>
         </form>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-[#BF8D6B] to-transparent my-6"></div>
+        <div className="h-px bg-gradient-to-r from-transparent via-[#BF8D6B] to-transparent my-4"></div>
 
         {loading ? (
-          <div className="text-center py-6">
-            <p className="text-white text-sm md:text-base">
-              Cargando eventos...
-            </p>
+          <div className="text-center py-4">
+            <p className="text-white text-xs">Cargando eventos...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-6">
-            <p className="text-red-400 text-sm md:text-base">{error}</p>
+          <div className="text-center py-4">
+            <p className="text-red-400 text-xs">{error}</p>
           </div>
         ) : displayedEvents.length === 0 ? (
-          <div className="text-center py-6">
-            <p className="text-white text-sm md:text-base">
-              No se encontraron eventos
-            </p>
+          <div className="text-center py-4">
+            <p className="text-white text-xs">No se encontraron eventos</p>
           </div>
         ) : (
           <>
-            <div className="space-y-4 mb-6">
+            <div className="space-y-2 mb-4">
               {displayedEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex flex-col md:flex-row md:justify-between md:items-center border border-[#BF8D6B] rounded-lg p-4 w-full"
+                  className="flex justify-between items-center border border-[#BF8D6B] rounded p-2 w-full hover:bg-[#222430] transition-colors"
                 >
-                  <div className="text-white mb-3 md:mb-0">
-                    <p className="font-semibold text-base md:text-lg">
+                  <div className="text-white flex-1 min-w-0 mr-2">
+                    <p className="font-semibold text-xs truncate">
                       {event.nombre}
                     </p>
-                    <p className="text-sm md:text-base text-gray-400">
-                      {event.salonNombre} - {formatDate(event.fecha)}
-                    </p>
-                    <p className="text-xs md:text-base text-gray-500 mt-2">
-                      Duración: {event.duracion} min | Capacidad:{" "}
-                      {event.capacidad} personas
-                    </p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <span className="text-gray-400 text-xs">
+                        {event.salonNombre}
+                      </span>
+                      <span className="text-gray-400 text-xs">•</span>
+                      <span className="text-gray-400 text-xs">
+                        {formatDate(event.fecha)}
+                      </span>
+                      <span className="text-gray-400 text-xs">•</span>
+                      <span className="text-gray-400 text-xs">
+                        {event.duracion}min
+                      </span>
+                      <span className="text-gray-400 text-xs">•</span>
+                      <span className="text-gray-400 text-xs">
+                        {event.capacidad} pers.
+                      </span>
+                    </div>
                   </div>
                   <button
                     onClick={() => {
@@ -293,7 +288,7 @@ export default function EventSearchPage() {
                         router.push(path);
                       }
                     }}
-                    className="px-4 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white font-semibold rounded-lg text-sm md:text-base transition-colors md:ml-4 w-full md:w-auto mt-2 md:mt-0"
+                    className="px-3 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white font-semibold rounded text-xs transition-colors whitespace-nowrap"
                   >
                     Vender
                   </button>
@@ -302,14 +297,14 @@ export default function EventSearchPage() {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4 mt-6">
-                <div className="flex space-x-4">
+              <div className="flex flex-col md:flex-row justify-center items-center gap-2 mt-4">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() =>
                       handlePageChange(Math.max(1, currentPage - 1))
                     }
                     disabled={currentPage === 1}
-                    className={`px-4 py-2 rounded-lg text-sm md:text-base ${
+                    className={`px-2 py-1 rounded text-xs ${
                       currentPage === 1
                         ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                         : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
@@ -318,8 +313,8 @@ export default function EventSearchPage() {
                     &lt;
                   </button>
 
-                  <span className="text-white text-sm md:text-base font-medium flex items-center">
-                    Página {currentPage} de {totalPages}
+                  <span className="text-white text-xs font-medium">
+                    {currentPage} / {totalPages}
                   </span>
 
                   <button
@@ -327,7 +322,7 @@ export default function EventSearchPage() {
                       handlePageChange(Math.min(totalPages, currentPage + 1))
                     }
                     disabled={currentPage === totalPages}
-                    className={`px-4 py-2 rounded-lg text-sm md:text-base ${
+                    className={`px-2 py-1 rounded text-xs ${
                       currentPage === totalPages
                         ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                         : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
@@ -337,24 +332,21 @@ export default function EventSearchPage() {
                   </button>
                 </div>
 
-                {/* Selector de página para móviles */}
-                <div className="md:hidden mt-4">
-                  <select
-                    value={currentPage}
-                    onChange={(e) => handlePageChange(Number(e.target.value))}
-                    className="w-full p-2 bg-transparent text-white rounded-lg border border-[#BF8D6B] text-sm"
-                  >
-                    {[...Array(totalPages)].map((_, index) => (
-                      <option
-                        key={index + 1}
-                        value={index + 1}
-                        className="bg-[#1a1a1a]"
-                      >
-                        Página {index + 1}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  value={currentPage}
+                  onChange={(e) => handlePageChange(Number(e.target.value))}
+                  className="p-1 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                >
+                  {[...Array(totalPages)].map((_, index) => (
+                    <option
+                      key={index + 1}
+                      value={index + 1}
+                      className="bg-[#1a1a1a]"
+                    >
+                      Página {index + 1}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
           </>
