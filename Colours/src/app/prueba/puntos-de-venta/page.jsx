@@ -1026,7 +1026,7 @@ export default function PuntosDeVenta() {
                   </div>
 
                   {/* Botón para ver detalles completos */}
-                  <button
+                  {/* <button
                     className="px-3 py-1 text-sm rounded flex items-center justify-center gap-2 transition-colors border-2 bg-black hover:text-black w-full mt-2"
                     style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                     onMouseEnter={(e) => {
@@ -1044,7 +1044,7 @@ export default function PuntosDeVenta() {
                   >
                     <Eye className="h-4 w-4" />
                     Ver detalles completos
-                  </button>
+                  </button> */}
                 </div>
               )}
             </div>

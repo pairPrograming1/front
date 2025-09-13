@@ -270,40 +270,42 @@ export default function SalonEditarModal({ salon, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] rounded-lg p-2 w-full max-w-xl shadow-lg">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-base font-bold text-white">Editar Salón</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-xl max-h-[95vh] overflow-y-auto shadow-lg">
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h2 className="text-base md:text-lg font-bold text-white">
+            Editar Salón
+          </h2>
           <button
             onClick={() => onClose(false)}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white p-1 md:p-0"
             disabled={isSubmitting}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="mb-2 p-1 bg-red-900/50 text-red-300 text-xs rounded border border-red-700">
+          <div className="mb-3 md:mb-4 p-2 md:p-3 bg-red-900/50 text-red-300 text-xs md:text-sm rounded border border-red-700">
             {error}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-2 p-1 bg-green-900/50 text-green-300 text-xs rounded border border-green-700">
+          <div className="mb-3 md:mb-4 p-2 md:p-3 bg-green-900/50 text-green-300 text-xs md:text-sm rounded border border-green-700">
             {successMessage}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
                 <input
                   type="text"
                   name="salon"
                   placeholder="Nombre del Salón *"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.salon}
                   onChange={handleChange}
                   required
@@ -314,7 +316,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="text"
                   name="nombre"
                   placeholder="Contacto *"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.nombre}
                   onChange={handleChange}
                   required
@@ -326,7 +328,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                   name="capacidad"
                   placeholder="Capacidad"
                   min="1"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.capacidad}
                   onChange={handleChange}
                 />
@@ -336,14 +338,14 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="text"
                   name="cuit"
                   placeholder="CUIT (11 dígitos) *"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.cuit}
                   onChange={handleChange}
                   maxLength="11"
                   required
                 />
                 {formData.cuit.length === 11 && (
-                  <span className="text-green-400 text-xs">
+                  <span className="text-green-400 text-xs md:text-sm">
                     {formatCUIT(formData.cuit)}
                   </span>
                 )}
@@ -353,31 +355,31 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="email"
                   name="email"
                   placeholder="Email *"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.email}
                   onChange={handleChange}
                   required
                 />
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   name="estatus"
                   checked={formData.estatus}
                   onChange={handleChange}
-                  className="h-3 w-3 text-[#BF8D6B] rounded"
+                  className="h-4 w-4 md:h-5 md:w-5 text-[#BF8D6B] rounded"
                 />
-                <span className="text-xs text-white">Activo</span>
+                <span className="text-xs md:text-sm text-white">Activo</span>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3 md:space-y-4">
               <div>
                 <input
                   type="tel"
                   name="whatsapp"
                   placeholder="WhatsApp *"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.whatsapp}
                   onChange={handleChange}
                   onBlur={handleBlur}
@@ -389,7 +391,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="text"
                   name="MercadopagoKeyP"
                   placeholder="Clave Pública MP"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.MercadopagoKeyP}
                   onChange={handleChange}
                 />
@@ -399,7 +401,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="text"
                   name="Mercadopago"
                   placeholder="Token MP"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.Mercadopago}
                   onChange={handleChange}
                 />
@@ -409,7 +411,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="text"
                   name="cbu"
                   placeholder="CBU"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.cbu}
                   onChange={handleChange}
                 />
@@ -419,7 +421,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                   type="text"
                   name="alias"
                   placeholder="Alias CBU"
-                  className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                  className="w-full p-2 md:p-3 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={formData.alias}
                   onChange={handleChange}
                 />
@@ -429,31 +431,33 @@ export default function SalonEditarModal({ salon, onClose }) {
 
           <button
             type="submit"
-            className="w-full mt-2 font-bold py-1 px-2 rounded bg-[#BF8D6B] text-white text-xs flex items-center justify-center gap-1"
+            className="w-full mt-4 md:mt-6 font-bold py-2 md:py-3 px-2 rounded bg-[#BF8D6B] text-white text-xs md:text-sm flex items-center justify-center gap-1"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
               "Actualizando..."
             ) : (
               <>
-                <Check className="h-3 w-3" />
+                <Check className="h-3 w-3 md:h-4 md:w-4" />
                 <span>Actualizar</span>
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-2 space-y-2">
+        <div className="mt-4 md:mt-6 space-y-3 md:space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-xs font-semibold text-white">
+            <h3 className="text-xs md:text-sm font-semibold text-white">
               Imágenes disponibles
             </h3>
             {loading ? (
-              <span className="text-[#BF8D6B] text-xs">Cargando...</span>
+              <span className="text-[#BF8D6B] text-xs md:text-sm">
+                Cargando...
+              </span>
             ) : (
               <button
                 onClick={refreshImages}
-                className="text-xs text-[#BF8D6B] hover:text-[#a67454]"
+                className="text-xs md:text-sm text-[#BF8D6B] hover:text-[#a67454]"
               >
                 Refrescar
               </button>
@@ -461,8 +465,8 @@ export default function SalonEditarModal({ salon, onClose }) {
           </div>
 
           {images.length > 0 ? (
-            <div className="overflow-y-auto max-h-40 pr-1">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 py-1">
+            <div className="overflow-y-auto max-h-40 md:max-h-48 pr-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 py-1">
                 {images.map((image, index) => (
                   <div
                     key={image.id || index}
@@ -471,7 +475,7 @@ export default function SalonEditarModal({ salon, onClose }) {
                     <img
                       src={image.url}
                       alt="Imagen subida"
-                      className={`w-full h-16 object-cover rounded border-2 cursor-pointer ${
+                      className={`w-full h-16 md:h-20 object-cover rounded border-2 cursor-pointer ${
                         selectedImage === image.url
                           ? "border-green-500"
                           : "border-[#BF8D6B]"
@@ -480,8 +484,8 @@ export default function SalonEditarModal({ salon, onClose }) {
                       title="Seleccionar"
                     />
                     {selectedImage === image.url && (
-                      <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-0.5">
-                        <Check className="h-2 w-2" />
+                      <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-0.5 md:p-1">
+                        <Check className="h-2 w-2 md:h-3 md:w-3" />
                       </div>
                     )}
                   </div>
@@ -489,7 +493,7 @@ export default function SalonEditarModal({ salon, onClose }) {
               </div>
             </div>
           ) : (
-            <div className="text-center py-1 text-gray-400 text-xs">
+            <div className="text-center py-2 md:py-3 text-gray-400 text-xs md:text-sm">
               {loading ? "Cargando..." : "No hay imágenes"}
             </div>
           )}

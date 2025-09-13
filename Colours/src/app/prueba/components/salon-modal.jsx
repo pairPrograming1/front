@@ -211,30 +211,35 @@ export default function SalonModal({ onClose, onAddSalon }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-3xl shadow-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-bold text-white">Agregar Salón</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="h-5 w-5" />
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg">
+        <div className="flex justify-between items-center mb-3 md:mb-3">
+          <h2 className="text-base md:text-lg font-bold text-white">
+            Agregar Salón
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white p-1 md:p-0"
+          >
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
+          <div className="p-2 md:p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3 md:mb-3">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-2">
             <input
               type="text"
               name="salon"
               placeholder="Nombre del Salón *"
               value={formData.salon}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
@@ -243,7 +248,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="Nombre del Contacto *"
               value={formData.nombre}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
@@ -253,7 +258,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               min="1"
               value={formData.capacidad}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
             <input
               type="text"
@@ -261,7 +266,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="CUIT (11 dígitos) *"
               value={formData.cuit}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               maxLength="11"
               required
             />
@@ -271,7 +276,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="Email *"
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
@@ -281,7 +286,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               value={formData.whatsapp}
               onChange={handleChange}
               onBlur={handleBlur}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
@@ -290,7 +295,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="Clave Pública de MercadoPago"
               value={formData.MercadopagoKeyP}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
             <input
               type="text"
@@ -298,7 +303,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="Token de MercadoPago"
               value={formData.Mercadopago}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
             <input
               type="text"
@@ -306,7 +311,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="CBU"
               value={formData.cbu}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
             <input
               type="text"
@@ -314,16 +319,16 @@ export default function SalonModal({ onClose, onAddSalon }) {
               placeholder="Alias CBU"
               value={formData.alias}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
             />
-            <div className="flex items-center col-span-1">
-              <label className="flex items-center space-x-1 text-white text-xs">
+            <div className="flex items-center col-span-1 md:col-span-1">
+              <label className="flex items-center space-x-1 text-white text-xs md:text-sm">
                 <span>Estatus:</span>
                 <select
                   name="estatus"
                   value={formData.estatus}
                   onChange={handleChange}
-                  className="ml-1 p-1 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                  className="ml-1 p-1 md:p-1 bg-transparent text-white rounded border border-[#BF8D6B] text-xs md:text-sm"
                 >
                   <option value="activo">Activo</option>
                   <option value="inactivo">Inactivo</option>
@@ -332,8 +337,8 @@ export default function SalonModal({ onClose, onAddSalon }) {
             </div>
           </div>
 
-          <div className="mt-3">
-            <h3 className="text-sm font-semibold text-white mb-2">
+          <div className="mt-2 md:mt-3">
+            <h3 className="text-xs md:text-sm font-semibold text-white mb-2">
               Imágenes disponibles
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto">
@@ -342,7 +347,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   <img
                     src={image.url}
                     alt="Imagen subida"
-                    className={`w-full h-20 object-cover rounded border cursor-pointer ${
+                    className={`w-full h-16 md:h-20 object-cover rounded border cursor-pointer ${
                       selectedImage === image.url
                         ? "border-green-500"
                         : "border-[#BF8D6B]"
@@ -352,7 +357,7 @@ export default function SalonModal({ onClose, onAddSalon }) {
                   />
                   {selectedImage === image.url && (
                     <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-1">
-                      <Check className="h-3 w-3" />
+                      <Check className="h-2 w-2 md:h-3 md:w-3" />
                     </div>
                   )}
                 </div>
@@ -360,27 +365,27 @@ export default function SalonModal({ onClose, onAddSalon }) {
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4">
+          <div className="flex flex-col-reverse md:flex-row gap-2 md:gap-2 mt-3 md:mt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm text-white bg-transparent border border-[#BF8D6B] rounded hover:bg-[#BF8D6B] hover:bg-opacity-20 transition-colors"
+            >
+              Cancelar
+            </button>
             <button
               type="submit"
-              className="w-full font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm flex items-center justify-center gap-1"
+              className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded bg-[#BF8D6B] text-white hover:bg-[#a67454] transition-colors flex items-center justify-center gap-1"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 "Guardando..."
               ) : (
                 <>
-                  <Check className="h-4 w-4" />
+                  <Check className="h-3 w-3 md:h-4 md:w-4" />
                   <span>Guardar Salón</span>
                 </>
               )}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full font-bold py-2 px-2 rounded bg-transparent text-white border border-[#BF8D6B] text-sm"
-            >
-              Cancelar
             </button>
           </div>
         </form>
