@@ -100,6 +100,19 @@ export default function ProfilePage() {
     fetchUserProfile();
   }, [authData]);
 
+  // Función para manejar la acción de cancelar
+  const handleCancel = () => {
+    setFormData(initialFormData);
+    setErrors({});
+    Swal.fire({
+      title: "Cambios descartados",
+      text: "Todos los cambios han sido revertidos",
+      icon: "info",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#BF8D6B",
+    });
+  };
+
   // Verificar si hay cambios en el formulario
   const hasFormChanges = () => {
     return JSON.stringify(formData) !== JSON.stringify(initialFormData);
@@ -500,6 +513,20 @@ export default function ProfilePage() {
 
           {/* Botones */}
           <div className="col-span-1 md:col-span-3 flex flex-col md:flex-row justify-start gap-3 mt-4">
+            {/* Botón Cancelar - Ahora con funcionalidad */}
+            <button
+              type="button"
+              onClick={handleCancel}
+              className={`flex-1 px-4 py-3 md:py-2 text-sm rounded border transition ${
+                hasFormChanges()
+                  ? "border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white"
+                  : "border-gray-500 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!hasFormChanges()}
+            >
+              Cancelar
+            </button>
+
             <button
               type="submit"
               className={`flex-1 px-4 py-3 md:py-2 text-sm rounded border transition ${
