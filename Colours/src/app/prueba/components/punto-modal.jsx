@@ -205,83 +205,86 @@ export default function PuntoModal({ onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-[#1a1a1a] rounded-lg p-4 w-full max-w-2xl shadow-lg">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-bold text-white">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+        <div className="flex justify-between items-center mb-3 md:mb-3">
+          <h2 className="text-base md:text-lg font-bold text-white">
             Agregar Punto de Venta
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="h-5 w-5" />
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white p-1 md:p-0"
+          >
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 md:space-y-2">
           {error && (
-            <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700">
+            <div className="p-2 md:p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-2">
             <input
               type="text"
               name="razon"
-              placeholder="Razón Social"
+              placeholder="Razón Social *"
               value={formData.razon}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
               type="text"
               name="nombre"
-              placeholder="Nombre"
+              placeholder="Nombre *"
               value={formData.nombre}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
               type="text"
               name="direccion"
-              placeholder="Dirección"
+              placeholder="Dirección *"
               value={formData.direccion}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
               type="text"
               name="cuit"
-              placeholder="CUIT (11 dígitos)"
+              placeholder="CUIT (11 dígitos) *"
               value={formData.cuit}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               maxLength="11"
               required
             />
             <input
               type="email"
               name="email"
-              placeholder="E-mail"
+              placeholder="E-mail *"
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
             <input
               type="tel"
               name="telefono"
-              placeholder="Teléfono"
+              placeholder="Teléfono *"
               value={formData.telefono}
               onChange={handleChange}
               onBlur={handleBlur}
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               required
             />
-            <div className="flex items-center col-span-1">
-              <label className="flex items-center space-x-1 text-white text-xs">
+            <div className="flex items-center col-span-1 md:col-span-2">
+              <label className="flex items-center space-x-1 text-white text-xs md:text-sm">
                 <input
                   type="checkbox"
                   name="es_online"
@@ -294,12 +297,12 @@ export default function PuntoModal({ onClose, onSubmit }) {
             </div>
           </div>
 
-          <div className="mb-3">
-            <label className="block text-xs text-gray-300 mb-1">
+          <div className="mb-2 md:mb-3">
+            <label className="block text-xs md:text-sm text-gray-300 mb-1">
               Asignar Vendedor
             </label>
             <select
-              className="w-full p-1 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs md:text-sm"
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
               disabled={loadingUsuarios}
@@ -318,20 +321,20 @@ export default function PuntoModal({ onClose, onSubmit }) {
           </div>
         </div>
 
-        <div className="flex gap-2 mt-4">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="w-full font-bold py-2 px-2 rounded bg-[#BF8D6B] text-white text-sm"
-          >
-            Crear
-          </button>
+        <div className="flex flex-col-reverse md:flex-row gap-2 md:gap-2 mt-3 md:mt-4">
           <button
             type="button"
             onClick={onClose}
-            className="w-full font-bold py-2 px-2 rounded bg-transparent text-white border border-[#BF8D6B] text-sm"
+            className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm text-white bg-transparent border border-[#BF8D6B] rounded hover:bg-[#BF8D6B] hover:bg-opacity-20 transition-colors"
           >
             Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded bg-[#BF8D6B] text-white hover:bg-[#a67454] transition-colors"
+          >
+            Crear
           </button>
         </div>
       </div>
