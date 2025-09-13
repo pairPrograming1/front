@@ -476,10 +476,10 @@ export default function PuntosDeVenta() {
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
+              placeholder="Buscar por nombre, razón social, dirección, email, CUIT o teléfono..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              className="w-full md:w-64 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -492,7 +492,7 @@ export default function PuntosDeVenta() {
           </div>
 
           {/* Botones de filtro y acción - ahora con más espacio */}
-          <div className="flex flex-wrap gap-2 md:gap-6">
+          <div className="flex flex-wrap gap-2 md:gap-2">
             {/* Botón para mostrar/ocultar filtros en móvil */}
             <div className="md:hidden w-full">
               <button
@@ -607,8 +607,8 @@ export default function PuntosDeVenta() {
               </button>
             </div>
 
-            {/* Botones de acción */}
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            {/* Botones de acción a la derecha */}
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <button
                 className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
@@ -659,7 +659,6 @@ export default function PuntosDeVenta() {
               }}
               onClick={() => bulkToggleStatus(true)}
             >
-              <Power className="h-3 w-3" />
               <span className="text-xs md:text-sm">
                 Activar {selectedPuntos.length}
               </span>
@@ -677,7 +676,6 @@ export default function PuntosDeVenta() {
               }}
               onClick={() => bulkToggleStatus(false)}
             >
-              <Archive className="h-3 w-3" />
               <span className="text-xs md:text-sm">
                 Desactivar {selectedPuntos.length}
               </span>
@@ -695,7 +693,6 @@ export default function PuntosDeVenta() {
               }}
               onClick={bulkDeletePuntos}
             >
-              <Trash2 className="h-3 w-3" />
               <span className="text-xs md:text-sm">
                 Eliminar {selectedPuntos.length}
               </span>
@@ -758,7 +755,7 @@ export default function PuntosDeVenta() {
                   key={punto.id}
                   className={`${
                     index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
-                  } hover:bg-gray-700 transition-colors`}
+                  } hover:bg-gray-700 transition-colors group`}
                 >
                   <td
                     className="px-3 py-3"
@@ -785,10 +782,24 @@ export default function PuntosDeVenta() {
                     {punto.cuit}
                   </td>
                   <td className="px-3 py-3 text-sm text-gray-200">
-                    {punto.email}
+                    <a
+                      href={`mailto:${punto.email}`}
+                      className="text-[#BF8D6B] hover:underline"
+                    >
+                      {punto.email}
+                    </a>
                   </td>
                   <td className="px-3 py-3 text-sm text-gray-200">
-                    {punto.telefono}
+                    {punto.telefono ? (
+                      <a
+                        href={`tel:${punto.telefono}`}
+                        className="text-[#BF8D6B] hover:underline"
+                      >
+                        {punto.telefono}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
                   </td>
                   <td className="px-3 py-3 text-sm text-gray-200">
                     {punto.es_online ? "Online" : "Físico"}
@@ -808,28 +819,9 @@ export default function PuntosDeVenta() {
                     </span>
                   </td>
                   <td className="px-3 py-3">
-                    <div className="flex gap-1">
-                      {/* <button
-                        className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                        style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#BF8D6B";
-                          e.currentTarget.style.color = "white";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "black";
-                          e.currentTarget.style.color = "#BF8D6B";
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShowDetail(punto.id);
-                        }}
-                        title="Detalle"
-                      >
-                        <Info className="h-4 w-4" />
-                      </button> */}
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                        className="px-2 py-1 rounded transition-colors border-2 bg-black hover:text-black text-xs"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -847,48 +839,11 @@ export default function PuntosDeVenta() {
                         }}
                         title="Editar"
                       >
-                        {" "}
-                        EDITAR
-                        {/* <Edit className="h-4 w-4" /> */}
+                        Editar
                       </button>
-                      {/* <button
-                        className={`p-1 rounded transition-colors border-2 ${
-                          punto.isActive
-                            ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                            : "bg-black hover:text-black"
-                        }`}
-                        style={
-                          !punto.isActive
-                            ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                            : {}
-                        }
-                        onMouseEnter={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
-                          }
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTogglePuntoStatus(punto.id, punto.isActive);
-                        }}
-                        title={punto.isActive ? "Desactivar" : "Activar"}
-                      >
-                        {punto.isActive ? (
-                          <Archive className="h-4 w-4" />
-                        ) : (
-                          <Power className="h-4 w-4" />
-                        )}
-                      </button> */}
                       <button
-                        className="p-1 rounded transition-colors border-2"
-                        style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                        className="px-2 py-1 rounded transition-colors border-2 text-xs"
+                        style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePunto(punto.id);
@@ -903,9 +858,7 @@ export default function PuntosDeVenta() {
                           e.currentTarget.style.color = "#BF8D6B";
                         }}
                       >
-                        {" "}
-                        BORRAR
-                        {/* <Trash2 className="h-4 w-4" /> */}
+                        Borrar
                       </button>
                     </div>
                   </td>
@@ -985,13 +938,25 @@ export default function PuntosDeVenta() {
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-400 text-sm">Email:</span>
-                      <span className="break-words text-gray-200">
+                      <a
+                        href={`mailto:${punto.email}`}
+                        className="break-words text-[#BF8D6B] hover:underline"
+                      >
                         {punto.email}
-                      </span>
+                      </a>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-400 text-sm">Teléfono:</span>
-                      <span className="text-gray-200">{punto.telefono}</span>
+                      {punto.telefono ? (
+                        <a
+                          href={`tel:${punto.telefono}`}
+                          className="text-[#BF8D6B] hover:underline"
+                        >
+                          {punto.telefono}
+                        </a>
+                      ) : (
+                        <span className="text-gray-200">-</span>
+                      )}
                     </div>
                     <div className="flex flex-col">
                       <span className="text-gray-400 text-sm">Tipo:</span>
@@ -1020,25 +985,7 @@ export default function PuntosDeVenta() {
                   <div className="flex justify-between pt-3 mt-2 border-t border-gray-700">
                     <div className="grid grid-cols-2 gap-2 w-full">
                       <button
-                        className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                        style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#BF8D6B";
-                          e.currentTarget.style.color = "black";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "black";
-                          e.currentTarget.style.color = "#BF8D6B";
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShowDetail(punto.id);
-                        }}
-                      >
-                        <Info className="h-4 w-4" />
-                      </button>
-                      <button
-                        className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                        className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black text-xs"
                         style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -1055,45 +1002,11 @@ export default function PuntosDeVenta() {
                           setShowEdicionCompleta(true); // Agrega esta línea
                         }}
                       >
-                        <Edit className="h-4 w-4" />
+                        Editar
                       </button>
                       <button
-                        className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
-                          punto.isActive
-                            ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                            : "bg-black hover:text-black"
-                        }`}
-                        style={
-                          !punto.isActive
-                            ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                            : {}
-                        }
-                        onMouseEnter={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "#BF8D6B";
-                            e.currentTarget.style.color = "black";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!punto.isActive) {
-                            e.currentTarget.style.backgroundColor = "black";
-                            e.currentTarget.style.color = "#BF8D6B";
-                          }
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTogglePuntoStatus(punto.id, punto.isActive);
-                        }}
-                      >
-                        {punto.isActive ? (
-                          <Archive className="h-4 w-4" />
-                        ) : (
-                          <Power className="h-4 w-4" />
-                        )}
-                      </button>
-                      <button
-                        className="p-2 rounded transition-colors flex items-center justify-center border-2"
-                        style={{ color: "#ffffffff", borderColor: "#BF8D6B" }}
+                        className="p-2 rounded transition-colors flex items-center justify-center border-2 text-xs"
+                        style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePunto(punto.id);
@@ -1103,11 +1016,11 @@ export default function PuntosDeVenta() {
                           e.currentTarget.style.color = "white";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.backgroundColor = "black";
                           e.currentTarget.style.color = "#BF8D6B";
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        Borrar
                       </button>
                     </div>
                   </div>

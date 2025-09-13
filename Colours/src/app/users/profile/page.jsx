@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const { authData, setAuthData } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [initialFormData, setInitialFormData] = useState({});
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -73,7 +74,7 @@ export default function ProfilePage() {
 
         const userData = response.data;
         if (userData) {
-          setFormData({
+          const newFormData = {
             nombre: userData.nombre || "",
             apellido: userData.apellido || "",
             address: userData.direccion || "",
@@ -81,7 +82,10 @@ export default function ProfilePage() {
             whatsapp: userData.whatsapp || "",
             dni: userData.dni || "",
             usuario: userData.usuario || "",
-          });
+          };
+
+          setFormData(newFormData);
+          setInitialFormData(newFormData); // Guardar datos iniciales para comparación
         }
       } catch (err) {
         console.error("Error al obtener datos del perfil:", err);
@@ -95,6 +99,24 @@ export default function ProfilePage() {
 
     fetchUserProfile();
   }, [authData]);
+
+  // Función para manejar la acción de cancelar
+  const handleCancel = () => {
+    setFormData(initialFormData);
+    setErrors({});
+    Swal.fire({
+      title: "Cambios descartados",
+      text: "Todos los cambios han sido revertidos",
+      icon: "info",
+      confirmButtonText: "Aceptar",
+      confirmButtonColor: "#BF8D6B",
+    });
+  };
+
+  // Verificar si hay cambios en el formulario
+  const hasFormChanges = () => {
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -137,9 +159,27 @@ export default function ProfilePage() {
     }
   };
 
+  // Limpiar campo específico
+  const clearField = (fieldName) => {
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: "",
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    if (!hasFormChanges()) {
+      Swal.fire({
+        title: "Sin cambios",
+        text: "No se detectaron cambios para guardar",
+        icon: "info",
+        confirmButtonText: "Aceptar",
+        confirmButtonColor: "#BF8D6B",
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -186,6 +226,9 @@ export default function ProfilePage() {
           user: { ...authData.user, ...dataToSend },
         });
       }
+
+      // Actualizar los datos iniciales después de guardar
+      setInitialFormData(formData);
 
       Swal.fire({
         title: "¡Perfil actualizado!",
@@ -299,11 +342,37 @@ export default function ProfilePage() {
       <div className="w-full max-w-4xl px-2 md:px-4">
         {/* Encabezado con botones de roles */}
         <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <h1 className="text-lg font-bold text-white">
-            {formData.nombre
-              ? `${formData.nombre} ${formData.apellido}`
-              : "Perfil"}
-          </h1>
+          <div className="flex items-center gap-3">
+            {/* Espacio reservado para la imagen de perfil */}
+            <div className="relative w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+              <span className="text-white text-lg font-semibold">
+                {formData.nombre
+                  ? formData.nombre.charAt(0).toUpperCase()
+                  : "U"}
+              </span>
+              {/* Badge para futura implementación de imagen */}
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#BF8D6B] rounded-full flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3 w-3 text-white"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <h1 className="text-lg font-bold text-white">
+              {formData.nombre
+                ? `${formData.nombre} ${formData.apellido}`
+                : "Perfil"}
+            </h1>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             <button
@@ -337,7 +406,7 @@ export default function ProfilePage() {
         >
           {/* Usuario */}
           <div className="col-span-1 md:col-span-3">
-            <div className="w-full">
+            <div className="w-full relative">
               <label
                 htmlFor="usuario"
                 className="block text-xs font-medium text-gray-300 mb-1"
@@ -357,6 +426,26 @@ export default function ProfilePage() {
                 style={{ backgroundColor: "transparent" }}
                 required
               />
+              {formData.usuario && (
+                <button
+                  type="button"
+                  onClick={() => clearField("usuario")}
+                  className="absolute right-3 top-9 text-gray-400 hover:text-white"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              )}
               {errors.usuario && (
                 <p className="mt-1 text-red-400 text-xs">{errors.usuario}</p>
               )}
@@ -373,7 +462,7 @@ export default function ProfilePage() {
             { id: "address", label: "Dirección (Opcional)" },
           ].map((field) => (
             <div key={field.id} className="col-span-1 md:col-span-1">
-              <div className="w-full">
+              <div className="w-full relative">
                 <label
                   htmlFor={field.id}
                   className="block text-xs font-medium text-gray-300 mb-1"
@@ -393,6 +482,26 @@ export default function ProfilePage() {
                   style={{ backgroundColor: "transparent" }}
                   required={field.required}
                 />
+                {formData[field.id] && (
+                  <button
+                    type="button"
+                    onClick={() => clearField(field.id)}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-white"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                )}
                 {errors[field.id] && (
                   <p className="mt-1 text-red-400 text-xs">
                     {errors[field.id]}
@@ -404,16 +513,28 @@ export default function ProfilePage() {
 
           {/* Botones */}
           <div className="col-span-1 md:col-span-3 flex flex-col md:flex-row justify-start gap-3 mt-4">
-            {/* <button
+            {/* Botón Cancelar - Ahora con funcionalidad */}
+            <button
               type="button"
-              className="flex-1 px-4 py-3 md:py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
+              onClick={handleCancel}
+              className={`flex-1 px-4 py-3 md:py-2 text-sm rounded border transition ${
+                hasFormChanges()
+                  ? "border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white"
+                  : "border-gray-500 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!hasFormChanges()}
             >
               Cancelar
-            </button> */}
+            </button>
+
             <button
               type="submit"
-              className="flex-1 px-4 py-3 md:py-2 text-sm rounded bg-transparent border border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white transition"
-              disabled={submitting}
+              className={`flex-1 px-4 py-3 md:py-2 text-sm rounded border transition ${
+                hasFormChanges()
+                  ? "border-[#BF8D6B] text-[#BF8D6B] hover:bg-[#BF8D6B] hover:text-white"
+                  : "border-gray-500 text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={submitting || !hasFormChanges()}
             >
               {submitting ? "Guardando..." : "Guardar Cambios"}
             </button>

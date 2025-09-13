@@ -473,10 +473,10 @@ export default function Salones() {
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar por nombre, contacto, email, WhatsApp o CUIT..."
+              placeholder="Buscar por nombre, contacto, email, WhatsApp o CUIT..."
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              className="w-full md:w-64 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -489,7 +489,7 @@ export default function Salones() {
           </div>
 
           {/* Botones de filtro y acción - ahora con más espacio */}
-          <div className="flex flex-wrap gap-2 md:gap-6">
+          <div className="flex flex-wrap gap-2 md:gap-2">
             {/* Botón para mostrar/ocultar filtros en móvil */}
             <div className="md:hidden w-full">
               <button
@@ -549,7 +549,6 @@ export default function Salones() {
                   setShowFilters(false);
                 }}
               >
-                {/* <Eye className="h-3 w-3" /> */}
                 <span className="text-xs md:text-sm">Activos</span>
               </button>
               <button
@@ -580,13 +579,12 @@ export default function Salones() {
                   setShowFilters(false);
                 }}
               >
-                {/* <EyeOff className="h-3 w-3" /> */}
                 <span className="text-xs md:text-sm">Inactivos</span>
               </button>
               <button
                 className={`px-3 py-2 text-sm rounded-r flex items-center justify-center gap-1 transition-colors border-2 ${
                   filterMode === "all"
-                    ? "text-[#BF8D6B]"
+                    ? "text-[#BF8D6B"
                     : "bg-black hover:text-white"
                 }`}
                 style={
@@ -611,13 +609,12 @@ export default function Salones() {
                   setShowFilters(false);
                 }}
               >
-                {/* <ListFilter className="h-3 w-3" /> */}
                 <span className="text-xs md:text-sm">Todos</span>
               </button>
             </div>
 
             {/* Botones de acción principales */}
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <button
                 className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                 style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
@@ -631,7 +628,6 @@ export default function Salones() {
                 }}
                 onClick={() => setShowModal(true)}
               >
-                {/* <Plus className="h-3 w-3" /> */}
                 <span className="text-xs md:text-sm">Agregar</span>
               </button>
               <button
@@ -647,7 +643,6 @@ export default function Salones() {
                 }}
                 onClick={() => setShowUploadModal(true)}
               >
-                {/* <Plus className="h-3 w-3" /> */}
                 <span className="text-xs md:text-sm">Cargar imágenes</span>
               </button>
             </div>
@@ -670,7 +665,6 @@ export default function Salones() {
               }}
               onClick={() => bulkToggleStatus(true)}
             >
-              <Power className="h-3 w-3" />
               <span className="text-xs md:text-sm">
                 Activar {selectedSalones.length}
               </span>
@@ -688,7 +682,6 @@ export default function Salones() {
               }}
               onClick={() => bulkToggleStatus(false)}
             >
-              <Archive className="h-3 w-3" />
               <span className="text-xs md:text-sm">
                 Desactivar {selectedSalones.length}
               </span>
@@ -747,7 +740,7 @@ export default function Salones() {
                   Email
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  WhatsApp
+                  Telefono
                 </th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Capacidad
@@ -771,7 +764,7 @@ export default function Salones() {
                       key={salonId}
                       className={`${
                         index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
-                      } hover:bg-gray-700 transition-colors ${
+                      } hover:bg-gray-700 transition-colors group ${
                         !isActive ? "opacity-70" : ""
                       }`}
                     >
@@ -797,10 +790,26 @@ export default function Salones() {
                         {salon.contacto || salon.nombre}
                       </td>
                       <td className="px-3 py-3 text-sm text-gray-200">
-                        {salon.email}
+                        <a
+                          href={`mailto:${salon.email}`}
+                          className="text-[#BF8D6B] hover:underline"
+                        >
+                          {salon.email}
+                        </a>
                       </td>
                       <td className="px-3 py-3 text-sm text-gray-200">
-                        {salon.whatsapp}
+                        {salon.whatsapp ? (
+                          <a
+                            href={`https://wa.me/${salon.whatsapp}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#BF8D6B] hover:underline"
+                          >
+                            {salon.whatsapp}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="px-3 py-3 text-sm text-gray-200">
                         {salon.capacidad || "N/A"}
@@ -816,29 +825,9 @@ export default function Salones() {
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        <div className="flex gap-1">
-                          {/* <button
-                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "white";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShowDetail(salonId);
-                            }}
-                            title="Detalle"
-                          >
-                            <Info className="h-4 w-4" />
-                          </button> */}
-
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
-                            className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                            className="px-2 py-1 rounded transition-colors border-2 bg-black hover:text-black text-xs"
                             style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -854,54 +843,11 @@ export default function Salones() {
                             }}
                             title="Editar"
                           >
-                            {" "}
-                            EDITAR
-                            {/* <Edit className="h-4 w-4" /> */}
+                            Editar
                           </button>
-                          {/* 
                           <button
-                            className={`p-1 rounded transition-colors border-2 ${
-                              isActive
-                                ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                                : "bg-black hover:text-black"
-                            }`}
-                            style={
-                              !isActive
-                                ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                                : {}
-                            }
-                            onMouseEnter={(e) => {
-                              if (!isActive) {
-                                e.currentTarget.style.backgroundColor =
-                                  "#BF8D6B";
-                                e.currentTarget.style.color = "black";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isActive) {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleSalonStatus(salonId, isActive);
-                            }}
-                            title={isActive ? "Desactivar" : "Activar"}
-                          >
-                            {isActive ? (
-                              <Archive className="h-4 w-4" />
-                            ) : (
-                              <Power className="h-4 w-4" />
-                            )}
-                          </button> */}
-
-                          <button
-                            className="p-1 rounded transition-colors border-2"
-                            style={{
-                              color: "#ffffffff",
-                              borderColor: "#BF8D6B",
-                            }}
+                            className="px-2 py-1 rounded transition-colors border-2 text-xs"
+                            style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteSalon(salonId);
@@ -917,9 +863,7 @@ export default function Salones() {
                               e.currentTarget.style.color = "#BF8D6B";
                             }}
                           >
-                            {" "}
-                            BORRAR
-                            {/* <Trash2 className="h-4 w-4" /> */}
+                            Borrar
                           </button>
                         </div>
                       </td>
@@ -1016,17 +960,31 @@ export default function Salones() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-gray-400 text-sm">Email:</span>
-                          <span className="break-words text-gray-200">
+                          <a
+                            href={`mailto:${salon.email}`}
+                            className="break-words text-[#BF8D6B] hover:underline"
+                          >
                             {salon.email || "No especificado"}
-                          </span>
+                          </a>
                         </div>
                         <div className="flex flex-col">
                           <span className="text-gray-400 text-sm">
                             WhatsApp:
                           </span>
-                          <span className="text-gray-200">
-                            {salon.whatsapp || "No especificado"}
-                          </span>
+                          {salon.whatsapp ? (
+                            <a
+                              href={`https://wa.me/${salon.whatsapp}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#BF8D6B] hover:underline"
+                            >
+                              {salon.whatsapp}
+                            </a>
+                          ) : (
+                            <span className="text-gray-200">
+                              No especificado
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-col">
                           <span className="text-gray-400 text-sm">
@@ -1039,27 +997,9 @@ export default function Salones() {
                       </div>
 
                       <div className="flex justify-between pt-3 mt-2 border-t border-gray-700">
-                        <div className="grid grid-cols-4 gap-2 w-full">
+                        <div className="grid grid-cols-2 gap-2 w-full">
                           <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "black";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShowDetail(salonId);
-                            }}
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black text-xs"
                             style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -1074,49 +1014,11 @@ export default function Salones() {
                               setSalonAEditar(salon);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            Editar
                           </button>
                           <button
-                            className={`p-2 rounded transition-colors flex items-center justify-center border-2 ${
-                              isActive
-                                ? "text-yellow-400 hover:text-yellow-300 hover:bg-gray-700 border-yellow-400"
-                                : "bg-black hover:text-black"
-                            }`}
-                            style={
-                              !isActive
-                                ? { borderColor: "#BF8D6B", color: "#BF8D6B" }
-                                : {}
-                            }
-                            onMouseEnter={(e) => {
-                              if (!isActive) {
-                                e.currentTarget.style.backgroundColor =
-                                  "#BF8D6B";
-                                e.currentTarget.style.color = "black";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isActive) {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleSalonStatus(salonId, isActive);
-                            }}
-                          >
-                            {isActive ? (
-                              <Archive className="h-4 w-4" />
-                            ) : (
-                              <Power className="h-4 w-4" />
-                            )}
-                          </button>
-                          <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2"
-                            style={{
-                              color: "#ffffffff",
-                              borderColor: "#BF8D6B",
-                            }}
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 text-xs"
+                            style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteSalon(salonId);
@@ -1126,12 +1028,11 @@ export default function Salones() {
                               e.currentTarget.style.color = "white";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
+                              e.currentTarget.style.backgroundColor = "black";
                               e.currentTarget.style.color = "#BF8D6B";
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            Borrar
                           </button>
                         </div>
                       </div>

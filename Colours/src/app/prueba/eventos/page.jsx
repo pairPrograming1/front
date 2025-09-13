@@ -299,7 +299,7 @@ export default function Eventos() {
       const result = await response.json();
 
       Swal.fire({
-        title: "¡Eliminado!",
+        title: "¡Eeliminado!",
         text: result.message || "El evento ha sido eliminado permanentemente",
         icon: "success",
       });
@@ -439,7 +439,7 @@ export default function Eventos() {
         await Promise.all(deletePromises);
 
         Swal.fire({
-          title: "¡Eliminados!",
+          title: "¡Eeliminados!",
           text: "Los eventos seleccionados han sido eliminados permanentemente",
           icon: "success",
           confirmButtonText: "OK",
@@ -595,10 +595,10 @@ export default function Eventos() {
           <div className="relative flex-grow">
             <input
               type="text"
-              placeholder="    Buscar eventos..."
+              placeholder="Buscar eventos..."
               value={searchTerm}
               onChange={handleSearch}
-              className="w-full md:w-90 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
+              className="w-full md:w-64 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
               style={{
                 borderColor: "#BF8D6B",
                 color: "#ffffffff",
@@ -611,7 +611,7 @@ export default function Eventos() {
           </div>
 
           {/* Botones de filtro y acción */}
-          <div className="flex flex-wrap gap-2 md:gap-8">
+          <div className="flex flex-wrap gap-2 md:gap-2">
             {/* Botón para mostrar/ocultar filtros en móvil */}
             <div className="md:hidden w-full">
               <button
@@ -671,7 +671,6 @@ export default function Eventos() {
                   setShowFilters(false);
                 }}
               >
-                <Eye className="h-3 w-3 md:mr-1" />
                 <span className="text-xs md:text-sm">Activos</span>
               </button>
               <button
@@ -702,7 +701,6 @@ export default function Eventos() {
                   setShowFilters(false);
                 }}
               >
-                <EyeOff className="h-3 w-3 md:mr-1" />
                 <span className="text-xs md:text-sm">Inactivos</span>
               </button>
               <button
@@ -733,12 +731,11 @@ export default function Eventos() {
                   setShowFilters(false);
                 }}
               >
-                <ListFilter className="h-3 w-3 md:mr-1" />
                 <span className="text-xs md:text-sm">Todos</span>
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <div className="flex flex-col md:flex-row gap-2 w-full">
                 <button
                   className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
@@ -754,7 +751,6 @@ export default function Eventos() {
                   onClick={bulkLogicalDelete}
                   disabled={selectedEventos.length === 0}
                 >
-                  <Archive className="h-3 w-3 md:mr-1" />
                   <span className="text-xs md:text-sm">Desactivar</span>
                 </button>
 
@@ -772,7 +768,6 @@ export default function Eventos() {
                   onClick={bulkPhysicalDelete}
                   disabled={selectedEventos.length === 0}
                 >
-                  <Trash2 className="h-3 w-3 md:mr-1" />
                   <span className="text-xs md:text-sm">Eliminar</span>
                 </button>
               </div>
@@ -790,7 +785,6 @@ export default function Eventos() {
                 }}
                 onClick={() => setShowModal(true)}
               >
-                <Plus className="h-3 w-3 md:mr-1" />
                 <span className="text-xs md:text-sm">Agregar</span>
               </button>
 
@@ -807,7 +801,6 @@ export default function Eventos() {
                 }}
                 onClick={() => setShowUploadModal(true)}
               >
-                <FileText className="h-3 w-3 md:mr-1" />
                 <span className="text-xs md:text-sm">Imágenes</span>
               </button>
             </div>
@@ -874,7 +867,7 @@ export default function Eventos() {
                         index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
                       } ${
                         !evento.activo ? "opacity-70" : ""
-                      } hover:bg-gray-700 transition-colors`}
+                      } hover:bg-gray-700 transition-colors group`}
                     >
                       <td className="px-3 py-3">
                         <input
@@ -919,9 +912,9 @@ export default function Eventos() {
                       </td>
                       {currentItems.length > 0 && (
                         <td className="px-3 py-3">
-                          <div className="flex gap-1 flex-wrap">
+                          <div className="flex gap-1 flex-wrap opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                              className="px-2 py-1 rounded transition-colors border-2 bg-black hover:text-black text-xs"
                               style={{
                                 borderColor: "#BF8D6B",
                                 color: "#BF8D6B",
@@ -938,10 +931,10 @@ export default function Eventos() {
                               onClick={() => handleAddEntradas(evento)}
                               title="Agregar Entradas"
                             >
-                              <Plus className="h-4 w-4" />
+                              Entradas
                             </button>
                             <button
-                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
+                              className="px-2 py-1 rounded transition-colors border-2 bg-black hover:text-black text-xs"
                               style={{
                                 borderColor: "#BF8D6B",
                                 color: "#BF8D6B",
@@ -958,78 +951,10 @@ export default function Eventos() {
                               onClick={() => handleEditEvento(evento)}
                               title="Editar"
                             >
-                              EDITAR
-                              {/* <Edit className="h-4 w-4" /> */}
+                              Editar
                             </button>
-                            {/* <button
-                              className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                              style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#BF8D6B";
-                                e.currentTarget.style.color = "white";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }}
-                              onClick={() => handleShowDetail(evento.id)}
-                              title="Detalle"
-                            >
-                              <Info className="h-4 w-4" />
-                            </button> */}
-
-                            {/* {evento.activo ? (
-                              <button
-                                className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                                style={{
-                                  borderColor: "#BF8D6B",
-                                  color: "#BF8D6B",
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    "#BF8D6B";
-                                  e.currentTarget.style.color = "white";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    "black";
-                                  e.currentTarget.style.color = "#BF8D6B";
-                                }}
-                                onClick={() => handleLogicalDelete(evento.id)}
-                                title="Desactivar"
-                              >
-                                <Archive className="h-4 w-4" />
-                              </button>
-                            ) : (
-                              <button
-                                className="p-1 rounded transition-colors border-2 bg-black hover:text-black"
-                                style={{
-                                  borderColor: "#BF8D6B",
-                                  color: "#BF8D6B",
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    "#BF8D6B";
-                                  e.currentTarget.style.color = "white";
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor =
-                                    "black";
-                                  e.currentTarget.style.color = "#BF8D6B";
-                                }}
-                                onClick={() =>
-                                  handleEventoToggleActive(
-                                    evento.id,
-                                    evento.activo
-                                  )
-                                }
-                                title="Activar"
-                              >
-                                <Power className="h-4 w-4" />
-                              </button>
-                            )} */}
                             <button
-                              className="p-1 rounded transition-colors border-2"
+                              className="px-2 py-1 rounded transition-colors border-2 text-xs"
                               style={{
                                 color: "#BF8D6B",
                                 borderColor: "#BF8D6B",
@@ -1047,8 +972,7 @@ export default function Eventos() {
                                 e.currentTarget.style.color = "#BF8D6B";
                               }}
                             >
-                              BORRAR
-                              {/* <Trash2 className="h-4 w-4" /> */}
+                              Borrar
                             </button>
                           </div>
                         </td>
@@ -1167,7 +1091,7 @@ export default function Eventos() {
                       <div className="flex justify-between pt-2 mt-2 border-t border-gray-700">
                         <div className="grid grid-cols-3 gap-2 w-full">
                           <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black text-xs"
                             style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -1180,26 +1104,10 @@ export default function Eventos() {
                             onClick={() => handleEditEvento(evento)}
                             title="Editar"
                           >
-                            <Edit className="h-4 w-4" />
+                            Editar
                           </button>
                           <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                            style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#BF8D6B";
-                              e.currentTarget.style.color = "black";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "black";
-                              e.currentTarget.style.color = "#BF8D6B";
-                            }}
-                            onClick={() => handleShowDetail(evento.id)}
-                            title="Detalles"
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black text-xs"
                             style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.backgroundColor = "#BF8D6B";
@@ -1212,58 +1120,10 @@ export default function Eventos() {
                             onClick={() => handleAddEntradas(evento)}
                             title="Agregar Entradas"
                           >
-                            <Plus className="h-4 w-4" />
+                            Entradas
                           </button>
-                          {evento.activo ? (
-                            <button
-                              className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                              style={{
-                                borderColor: "#BF8D6B",
-                                color: "#BF8D6B",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  "#BF8D6B";
-                                e.currentTarget.style.color = "black";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }}
-                              onClick={() => handleLogicalDelete(evento.id)}
-                              title="Desactivar"
-                            >
-                              <Archive className="h-4 w-4" />
-                            </button>
-                          ) : (
-                            <button
-                              className="p-2 rounded transition-colors flex items-center justify-center border-2 bg-black hover:text-black"
-                              style={{
-                                borderColor: "#BF8D6B",
-                                color: "#BF8D6B",
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                  "#BF8D6B";
-                                e.currentTarget.style.color = "black";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "black";
-                                e.currentTarget.style.color = "#BF8D6B";
-                              }}
-                              onClick={() =>
-                                handleEventoToggleActive(
-                                  evento.id,
-                                  evento.activo
-                                )
-                              }
-                              title="Activar"
-                            >
-                              <Power className="h-4 w-4" />
-                            </button>
-                          )}
                           <button
-                            className="p-2 rounded transition-colors flex items-center justify-center border-2"
+                            className="p-2 rounded transition-colors flex items-center justify-center border-2 text-xs"
                             style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
                             onClick={() => handlePhysicalDelete(evento.id)}
                             title="Eliminar permanentemente"
@@ -1272,12 +1132,11 @@ export default function Eventos() {
                               e.currentTarget.style.color = "white";
                             }}
                             onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
+                              e.currentTarget.style.backgroundColor = "black";
                               e.currentTarget.style.color = "#BF8D6B";
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            Borrar
                           </button>
                         </div>
                       </div>
