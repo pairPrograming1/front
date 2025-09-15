@@ -158,31 +158,33 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
   if (!punto) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-white">Editar Punto</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 bg-black bg-opacity-70">
+      <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-3 md:p-6 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg shadow-yellow-800/20">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
+          <h2 className="text-base md:text-xl font-semibold text-white">
+            Editar Punto
+          </h2>
           <button
             onClick={onClose}
-            className="text-yellow-500 hover:text-yellow-300 transition-colors"
+            className="text-yellow-500 hover:text-yellow-300 transition-colors p-1 md:p-0"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
+          <div className="mb-3 md:mb-4 p-2 md:p-3 bg-red-900/50 text-red-300 text-xs md:text-sm rounded-lg border border-red-700">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
           {/* Grid container for two columns on larger screens */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {/* Column 1 */}
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
-                <label className="block text-sm text-yellow-400 mb-1">
+                <label className="block text-xs md:text-sm text-yellow-400 mb-1">
                   Razón Social
                 </label>
                 <input
@@ -191,13 +193,13 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                   value={formData.razon}
                   onChange={handleChange}
                   placeholder="Razón Social *"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  className="w-full p-2 md:p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors text-xs md:text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-yellow-400 mb-1">
+                <label className="block text-xs md:text-sm text-yellow-400 mb-1">
                   Nombre
                 </label>
                 <input
@@ -206,13 +208,13 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                   value={formData.nombre}
                   onChange={handleChange}
                   placeholder="Nombre *"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  className="w-full p-2 md:p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors text-xs md:text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm text-yellow-400 mb-1">
+                <label className="block text-xs md:text-sm text-yellow-400 mb-1">
                   Dirección
                 </label>
                 <input
@@ -221,16 +223,16 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                   value={formData.direccion}
                   onChange={handleChange}
                   placeholder="Dirección *"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  className="w-full p-2 md:p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors text-xs md:text-sm"
                   required
                 />
               </div>
             </div>
 
             {/* Column 2 */}
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <div>
-                <label className="block text-sm text-yellow-400 mb-1">
+                <label className="block text-xs md:text-sm text-yellow-400 mb-1">
                   Teléfono
                 </label>
                 <input
@@ -240,13 +242,13 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Teléfono (solo números, + opcional) *"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  className="w-full p-2 md:p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors text-xs md:text-sm"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm text-yellow-400 mb-1">
+              <div className="relative">
+                <label className="block text-xs md:text-sm text-yellow-400 mb-1">
                   CUIT
                 </label>
                 <input
@@ -255,19 +257,19 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                   value={formData.cuit}
                   onChange={handleChange}
                   placeholder="CUIT (11 dígitos) *"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  className="w-full p-2 md:p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors text-xs md:text-sm"
                   maxLength="11"
                   required
                 />
                 {formData.cuit.length === 11 && (
-                  <span className="absolute right-3 top-3 text-green-400 text-sm">
+                  <span className="absolute right-2 md:right-3 top-7 md:top-8 text-green-400 text-xs">
                     {formatCUIT(formData.cuit)}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm text-yellow-400 mb-1">
+                <label className="block text-xs md:text-sm text-yellow-400 mb-1">
                   E-mail
                 </label>
                 <input
@@ -276,7 +278,7 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="E-mail *"
-                  className="w-full p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors"
+                  className="w-full p-2 md:p-3 bg-gray-700 text-white rounded-lg border border-yellow-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-500 outline-none transition-colors text-xs md:text-sm"
                   required
                 />
               </div>
@@ -284,7 +286,7 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
           </div>
 
           {/* Checkbox outside of the grid - full width */}
-          <div className="flex items-center mb-4">
+          <div className="flex items-center mb-3 md:mb-4">
             <input
               type="checkbox"
               name="es_online"
@@ -293,23 +295,26 @@ export default function EditarModal({ punto, onClose, onUpdate }) {
               className="mr-2 h-4 w-4 text-yellow-600 bg-gray-700 border-yellow-600 rounded focus:ring-yellow-500"
               id="es_online"
             />
-            <label htmlFor="es_online" className="text-white">
+            <label
+              htmlFor="es_online"
+              className="text-white text-xs md:text-sm"
+            >
               Punto Online
             </label>
           </div>
 
           {/* Buttons - full width */}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse md:flex-row justify-end gap-2 md:gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
+              className="w-full md:w-auto px-3 py-1.5 md:px-4 md:py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300 text-xs md:text-sm"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded-lg border border-yellow-600 transition-colors duration-300"
+              className="w-full md:w-auto px-3 py-1.5 md:px-4 md:py-2 bg-yellow-700 hover:bg-yellow-600 text-white rounded-lg border border-yellow-600 transition-colors duration-300 text-xs md:text-sm"
             >
               Guardar Cambios
             </button>
