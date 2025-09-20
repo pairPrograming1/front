@@ -63,7 +63,6 @@ export default function EventoEditarModal({
 
   // Contrato states
   const [numeroContrato, setNumeroContrato] = useState("");
-  const [fechaContrato, setFechaContrato] = useState("");
   const [montoContrato, setMontoContrato] = useState("");
   const [cantidadGraduados, setCantidadGraduados] = useState("");
   const [minimoCenas, setMinimoCenas] = useState("");
@@ -462,7 +461,6 @@ export default function EventoEditarModal({
     try {
       const formDataContrato = new FormData();
       formDataContrato.append("numeroContrato", numeroContrato);
-      formDataContrato.append("fechaContrato", fechaContrato);
       formDataContrato.append("montoContrato", montoContrato);
       formDataContrato.append("cantidadGraduados", cantidadGraduados);
       formDataContrato.append("minimoCenas", minimoCenas);
@@ -495,7 +493,7 @@ export default function EventoEditarModal({
     setLoadingContrato(true);
     setErrorContrato(null);
 
-    if (!numeroContrato || !fechaContrato || !montoContrato) {
+    if (!numeroContrato || !montoContrato) {
       setErrorContrato("Completa los campos obligatorios del contrato.");
       setLoadingContrato(false);
       return;
@@ -504,7 +502,6 @@ export default function EventoEditarModal({
     try {
       const contratoJson = {
         numeroContrato,
-        fechaContrato,
         montoContrato: parseFloat(montoContrato),
         cantidadGraduados: parseInt(cantidadGraduados) || 0,
         minimoCenas: parseInt(minimoCenas) || 0,
@@ -563,7 +560,6 @@ export default function EventoEditarModal({
         });
         setContratoData(null);
         setNumeroContrato("");
-        setFechaContrato("");
         setMontoContrato("");
         setCantidadGraduados("");
         setMinimoCenas("");
@@ -587,7 +583,6 @@ export default function EventoEditarModal({
         });
         setContratoData(null);
         setNumeroContrato("");
-        setFechaContrato("");
         setMontoContrato("");
         setCantidadGraduados("");
         setMinimoCenas("");
@@ -602,7 +597,6 @@ export default function EventoEditarModal({
       }
       setContratoData(contrato);
       setNumeroContrato(contrato?.numeroContrato || "");
-      setFechaContrato(contrato?.fechaContrato || "");
       setMontoContrato(contrato?.montoContrato || "");
       setCantidadGraduados(contrato?.cantidadGraduados || "");
       setMinimoCenas(contrato?.minimoCenas || "");
@@ -669,7 +663,6 @@ export default function EventoEditarModal({
     try {
       const contratoJson = {
         numeroContrato,
-        fechaContrato,
         montoContrato: parseFloat(montoContrato),
         cantidadGraduados: parseInt(cantidadGraduados) || 0,
         minimoCenas: parseInt(minimoCenas) || 0,
@@ -698,7 +691,6 @@ export default function EventoEditarModal({
         });
         setContratoData(null);
         setNumeroContrato("");
-        setFechaContrato("");
         setMontoContrato("");
         setCantidadGraduados("");
         setMinimoCenas("");
@@ -793,7 +785,6 @@ export default function EventoEditarModal({
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
-            {/* <Image className="h-3 w-3 mr-1" /> */}
             Imágenes
           </button>
           <button
@@ -804,7 +795,6 @@ export default function EventoEditarModal({
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
-            {/* <Users className="h-3 w-3 mr-1" /> */}
             Entradas
           </button>
           <button
@@ -815,7 +805,6 @@ export default function EventoEditarModal({
                 : "text-gray-400 hover:text-white border border-gray-700"
             }`}
           >
-            {/* <FileText className="h-3 w-3 mr-1" /> */}
             Contrato
           </button>
         </div>
@@ -836,7 +825,6 @@ export default function EventoEditarModal({
                   onChange={handleChange}
                   required
                 />
-                {/* <Calendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
               </div>
             </div>
 
@@ -873,7 +861,6 @@ export default function EventoEditarModal({
                           </option>
                         ))}
                       </select>
-                      {/* <Home className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
                       <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
                         <ChevronDown className="h-3 w-3 md:h-4 md:w-4 text-[#BF8D6B]" />
                       </div>
@@ -886,11 +873,6 @@ export default function EventoEditarModal({
                   )}
                 </>
               )}
-              {/* {formData.salonId && (
-                <div className="text-xs mt-1 text-gray-400 truncate">
-                  ID: {formData.salonId}
-                </div>
-              )} */}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-3">
@@ -908,7 +890,6 @@ export default function EventoEditarModal({
                     min={getTodayString()}
                     required
                   />
-                  {/* <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
                 </div>
               </div>
               <div>
@@ -926,7 +907,6 @@ export default function EventoEditarModal({
                     min="1"
                     required
                   />
-                  {/* <Clock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
                 </div>
               </div>
             </div>
@@ -947,7 +927,6 @@ export default function EventoEditarModal({
                     min="1"
                     required
                   />
-                  {/* <Users className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
                 </div>
               </div>
               <div className="flex items-center h-full pt-6">
@@ -1294,18 +1273,6 @@ export default function EventoEditarModal({
                   className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
                   value={numeroContrato}
                   onChange={(e) => setNumeroContrato(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs md:text-sm text-white mb-1">
-                  Fecha de Contrato
-                </label>
-                <input
-                  type="date"
-                  className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
-                  value={fechaContrato}
-                  onChange={(e) => setFechaContrato(e.target.value)}
                   required
                 />
               </div>
