@@ -98,6 +98,46 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
     }
   };
 
+  const handleEliminarSubtipo = async (subtipoId, subtipoNombre) => {
+    const result = await Swal.fire({
+      title: "¿Eliminar subtipo?",
+      text: `¿Estás seguro de que deseas eliminar el subtipo "${subtipoNombre}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+
+    setLoadingEntradas(true);
+    setErrorEntradas(null);
+    try {
+      const res = await fetch(`${API_URL}/api/entrada/subtipo/${subtipoId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "No se pudo eliminar el subtipo");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Subtipo eliminado",
+        text: "El subtipo ha sido eliminado correctamente.",
+      });
+
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al eliminar subtipo");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
   const handleEditarEntrada = (entrada) => {
     setEntradaSeleccionada(entrada);
     setShowEntradaModal(true);
@@ -271,6 +311,18 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                                   title="Editar subtipo"
                                 >
                                   <Edit className="h-3 w-3" />
+                                </button>
+                                <button
+                                  className="text-red-400 hover:text-red-300"
+                                  onClick={() =>
+                                    handleEliminarSubtipo(
+                                      subtipo.id,
+                                      subtipo.nombre
+                                    )
+                                  }
+                                  title="Eliminar subtipo"
+                                >
+                                  <Trash2 className="h-3 w-3" />
                                 </button>
                               </div>
                             </div>
