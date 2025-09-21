@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertCircle, DollarSign, Tag, Check } from "lucide-react";
+import {
+  X,
+  AlertCircle,
+  DollarSign,
+  Tag,
+  Check,
+  Plus,
+  Minus,
+} from "lucide-react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 
@@ -10,19 +18,101 @@ const API_URL = apiUrls;
 export default function EntradasModal({ evento, onClose }) {
   const [formData, setFormData] = useState({
     tipo_entrada: "",
-    precio: "",
+    descripcion: "",
+    cantidad_total: evento.capacidad || 0,
+    fecha_inicio_venta: "",
+    fecha_fin_venta: "",
     estatus: "disponible",
+    subtipos: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showSubtipoForm, setShowSubtipoForm] = useState(false);
+  const [currentSubtipo, setCurrentSubtipo] = useState({
+    nombre: "",
+    descripcion: "",
+    precio: "",
+    cantidad_disponible: "",
+    edad_minima: "",
+    edad_maxima: "",
+    requiere_documentacion: false,
+  });
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
 
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     });
+  };
+
+  const handleSubtipoChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setCurrentSubtipo({
+      ...currentSubtipo,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const addSubtipo = () => {
+    if (
+      !currentSubtipo.nombre ||
+      !currentSubtipo.precio ||
+      !currentSubtipo.cantidad_disponible
+    ) {
+      setError("Nombre, precio y cantidad son obligatorios para el subtipo");
+      return;
+    }
+
+    const nuevoSubtipo = {
+      ...currentSubtipo,
+      precio: parseFloat(currentSubtipo.precio),
+      cantidad_disponible: parseInt(currentSubtipo.cantidad_disponible),
+      edad_minima: currentSubtipo.edad_minima
+        ? parseInt(currentSubtipo.edad_minima)
+        : null,
+      edad_maxima: currentSubtipo.edad_maxima
+        ? parseInt(currentSubtipo.edad_maxima)
+        : null,
+    };
+
+    setFormData({
+      ...formData,
+      subtipos: [...formData.subtipos, nuevoSubtipo],
+    });
+
+    // Resetear formulario de subtipo
+    setCurrentSubtipo({
+      nombre: "",
+      descripcion: "",
+      precio: "",
+      cantidad_disponible: "",
+      edad_minima: "",
+      edad_maxima: "",
+      requiere_documentacion: false,
+    });
+
+    setShowSubtipoForm(false);
+    setError(null);
+  };
+
+  const removeSubtipo = (index) => {
+    const nuevosSubtipos = [...formData.subtipos];
+    nuevosSubtipos.splice(index, 1);
+    setFormData({
+      ...formData,
+      subtipos: nuevosSubtipos,
+    });
+  };
+
+  const calculateAvailableForGeneral = () => {
+    const totalSubtipos = formData.subtipos.reduce(
+      (total, subtipo) => total + parseInt(subtipo.cantidad_disponible),
+      0
+    );
+    return formData.cantidad_total - totalSubtipos;
   };
 
   const handleSubmit = async (e) => {
@@ -34,12 +124,21 @@ export default function EntradasModal({ evento, onClose }) {
       return;
     }
 
-    if (
-      !formData.precio ||
-      isNaN(formData.precio) ||
-      Number.parseFloat(formData.precio) <= 0
-    ) {
-      setError("El precio debe ser un número mayor que cero");
+    if (!formData.cantidad_total || formData.cantidad_total <= 0) {
+      setError("La cantidad total debe ser mayor que cero");
+      return;
+    }
+
+    // Validar que la suma de subtipos no exceda la cantidad total
+    const totalSubtipos = formData.subtipos.reduce(
+      (total, subtipo) => total + parseInt(subtipo.cantidad_disponible),
+      0
+    );
+
+    if (totalSubtipos > formData.cantidad_total) {
+      setError(
+        `La suma de los subtipos (${totalSubtipos}) excede la cantidad total (${formData.cantidad_total})`
+      );
       return;
     }
 
@@ -49,10 +148,13 @@ export default function EntradasModal({ evento, onClose }) {
 
       const entradaData = {
         tipo_entrada: formData.tipo_entrada,
-        eventoId: evento.id,
-        precio: Number.parseFloat(formData.precio),
-        cantidad: evento.capacidad, // Usar automáticamente la capacidad del evento
+        descripcion: formData.descripcion,
+        cantidad_total: parseInt(formData.cantidad_total),
+        fecha_inicio_venta: formData.fecha_inicio_venta || null,
+        fecha_fin_venta: formData.fecha_fin_venta || null,
         estatus: formData.estatus,
+        eventoId: evento.id,
+        subtipos: formData.subtipos,
       };
 
       const response = await fetch(`${API_URL}/api/entrada/`, {
@@ -72,7 +174,7 @@ export default function EntradasModal({ evento, onClose }) {
 
       Swal.fire({
         title: "¡Entradas Creadas!",
-        text: `Se han creado ${evento.capacidad} entradas de tipo "${formData.tipo_entrada}" correctamente`,
+        text: result.message,
         icon: "success",
         confirmButtonText: "Aceptar",
         confirmButtonColor: "#BF8D6B",
@@ -101,10 +203,10 @@ export default function EntradasModal({ evento, onClose }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
-      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg">
         <div className="flex justify-between items-center mb-3 md:mb-3">
           <h2 className="text-base md:text-lg font-bold text-white">
-            Agregar Entradas
+            Crear Tipo de Entrada
           </h2>
           <button
             onClick={onClose}
@@ -141,98 +243,309 @@ export default function EntradasModal({ evento, onClose }) {
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-3"
-        >
-          <div className="md:col-span-2">
-            <label className="block text-xs md:text-sm text-white mb-1">
-              Tipo de Entrada
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="tipo_entrada"
-                value={formData.tipo_entrada}
-                onChange={handleChange}
-                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
-                placeholder="Ej: General, VIP, Estudiante"
-                required
-              />
-              <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="md:col-span-2">
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Tipo de Entrada *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="tipo_entrada"
+                  value={formData.tipo_entrada}
+                  onChange={handleChange}
+                  className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
+                  placeholder="Ej: Vip, Estudiante, General"
+                  required
+                />
+                {/* <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" /> */}
+              </div>
             </div>
-          </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-xs md:text-sm text-white mb-1">
-              Precio
-            </label>
-            <div className="relative">
+            <div className="md:col-span-2">
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Descripción
+              </label>
+              <textarea
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
+                placeholder="Descripción del tipo de entrada"
+                rows="2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Cantidad Total *
+              </label>
               <input
                 type="number"
-                name="precio"
-                value={formData.precio}
+                name="cantidad_total"
+                value={formData.cantidad_total}
                 onChange={handleChange}
-                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
+                min="1"
+                max={evento.capacidad}
                 required
               />
-              <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
             </div>
-          </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-xs md:text-sm text-white mb-1">
-              Estatus
-            </label>
-            <div className="relative">
+            <div>
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Estatus
+              </label>
               <select
                 name="estatus"
                 value={formData.estatus}
                 onChange={handleChange}
-                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8 appearance-none"
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
               >
                 <option value="disponible">Disponible</option>
-                <option value="agotado">Agotado</option>
-                <option value="reservado">Reservado</option>
+                <option value="suspendido">Suspendido</option>
+                <option value="inactivo">Inactivo</option>
               </select>
-              <Tag className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3 md:h-4 md:w-4" />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-3 w-3 md:h-4 md:w-4 text-[#BF8D6B]"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
+            </div>
+
+            <div>
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Fecha Inicio Venta
+              </label>
+              <input
+                type="datetime-local"
+                name="fecha_inicio_venta"
+                value={formData.fecha_inicio_venta}
+                onChange={handleChange}
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Fecha Fin Venta
+              </label>
+              <input
+                type="datetime-local"
+                name="fecha_fin_venta"
+                value={formData.fecha_fin_venta}
+                onChange={handleChange}
+                className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Sección de Subtipos */}
+          <div className="border-t border-[#BF8D6B] pt-4">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-sm md:text-base font-bold text-white">
+                Subtipos de Entrada
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowSubtipoForm(!showSubtipoForm)}
+                className="flex items-center text-[#BF8D6B] text-xs md:text-sm"
+              >
+                {showSubtipoForm ? (
+                  <>
+                    <Minus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                    Ocultar formulario
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                    Agregar Subtipo
+                  </>
+                )}
+              </button>
+            </div>
+
+            {showSubtipoForm && (
+              <div className="bg-[#2a2a2a] p-3 rounded mb-3">
+                <h4 className="text-[#BF8D6B] text-sm font-medium mb-2">
+                  Nuevo Subtipo
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs text-white mb-1">
+                      Nombre *
+                    </label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={currentSubtipo.nombre}
+                      onChange={handleSubtipoChange}
+                      className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                      placeholder="Ej: Cena Mayor, Cena Menor"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white mb-1">
+                      Precio *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="precio"
+                        value={currentSubtipo.precio}
+                        onChange={handleSubtipoChange}
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                      />
+                      <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white mb-1">
+                      Cantidad *
+                    </label>
+                    <input
+                      type="number"
+                      name="cantidad_disponible"
+                      value={currentSubtipo.cantidad_disponible}
+                      onChange={handleSubtipoChange}
+                      className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                      placeholder="0"
+                      min="1"
+                      max={calculateAvailableForGeneral()}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white mb-1">
+                      Edad Mínima
+                    </label>
+                    <input
+                      type="number"
+                      name="edad_minima"
+                      value={currentSubtipo.edad_minima}
+                      onChange={handleSubtipoChange}
+                      className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                      placeholder="Ej: 18"
+                      min="0"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-white mb-1">
+                      Edad Máxima
+                    </label>
+                    <input
+                      type="number"
+                      name="edad_maxima"
+                      value={currentSubtipo.edad_maxima}
+                      onChange={handleSubtipoChange}
+                      className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                      placeholder="Ej: 65"
+                      min="0"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs text-white mb-1">
+                      Descripción
+                    </label>
+                    <textarea
+                      name="descripcion"
+                      value={currentSubtipo.descripcion}
+                      onChange={handleSubtipoChange}
+                      className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                      placeholder="Descripción del subtipo"
+                      rows="2"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 flex items-center">
+                    <input
+                      type="checkbox"
+                      id="requiere_documentacion"
+                      name="requiere_documentacion"
+                      checked={currentSubtipo.requiere_documentacion}
+                      onChange={handleSubtipoChange}
+                      className="mr-2"
+                    />
+                    <label
+                      htmlFor="requiere_documentacion"
+                      className="text-xs text-white"
+                    >
+                      Requiere documentación
+                    </label>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <button
+                      type="button"
+                      onClick={addSubtipo}
+                      className="w-full py-1 px-2 rounded bg-[#BF8D6B] text-white text-xs flex items-center justify-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      Agregar Subtipo
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
 
-          <div className="md:col-span-2">
-            <div className="p-2 bg-[#BF8D6B]/20 border border-[#BF8D6B] rounded text-[#BF8D6B] text-xs md:text-sm mb-3">
+            {/* Lista de subtipos agregados */}
+            {formData.subtipos.length > 0 ? (
+              <div className="space-y-2">
+                {formData.subtipos.map((subtipo, index) => (
+                  <div
+                    key={index}
+                    className="bg-[#2a2a2a] p-2 rounded flex justify-between items-center"
+                  >
+                    <div>
+                      <div className="text-white text-sm font-medium">
+                        {subtipo.nombre}
+                      </div>
+                      <div className="text-[#BF8D6B] text-xs">
+                        ${subtipo.precio} - {subtipo.cantidad_disponible}{" "}
+                        unidades
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeSubtipo(index)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-400 text-xs italic p-2 text-center">
+                No hay subtipos agregados. La entrada tendrá disponibilidad
+                general.
+              </div>
+            )}
+
+            {/* Resumen de disponibilidad */}
+            <div className="mt-3 p-2 bg-[#BF8D6B]/20 border border-[#BF8D6B] rounded text-[#BF8D6B] text-xs">
               <p>
-                Se crearán <strong>{evento.capacidad}</strong> entradas de tipo{" "}
-                <strong>{formData.tipo_entrada || "[Tipo de entrada]"}</strong>{" "}
-                para este evento.
+                <strong>Resumen de disponibilidad:</strong>
               </p>
-              <p className="mt-1">
-                La cantidad se establece automáticamente según la capacidad del
-                evento.
+              <p>Cantidad total: {formData.cantidad_total}</p>
+              <p>
+                Asignado a subtipos:{" "}
+                {formData.subtipos.reduce(
+                  (total, subtipo) =>
+                    total + parseInt(subtipo.cantidad_disponible),
+                  0
+                )}
+              </p>
+              <p>
+                Disponible para venta general: {calculateAvailableForGeneral()}
               </p>
             </div>
           </div>
 
-          <div className="md:col-span-2">
+          <div className="pt-4 border-t border-[#BF8D6B]">
             <button
               type="submit"
               className="w-full font-bold py-2 md:py-2 px-2 rounded bg-[#BF8D6B] text-white text-xs md:text-sm flex items-center justify-center gap-2"
@@ -243,7 +556,7 @@ export default function EntradasModal({ evento, onClose }) {
               ) : (
                 <>
                   <Check className="h-3 w-3 md:h-4 md:w-4" />
-                  <span>Crear Entradas</span>
+                  <span>Crear Tipo de Entrada</span>
                 </>
               )}
             </button>

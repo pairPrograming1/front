@@ -15,6 +15,12 @@ import {
   Trash2,
   FileText,
   ChevronDown,
+  Edit,
+  Tag,
+  DollarSign,
+  UserCheck,
+  AlertCircle,
+  Minus,
 } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
@@ -45,21 +51,26 @@ export default function EventoEditarModal({
   const [selectedImage, setSelectedImage] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
+
+  // Estados para entradas (nuevo sistema con tipos y subtipos)
   const [entradas, setEntradas] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState(null);
-  const [nuevaEntrada, setNuevaEntrada] = useState({
-    tipo: "",
+  const [showEntradaModal, setShowEntradaModal] = useState(false);
+  const [entradaSeleccionada, setEntradaSeleccionada] = useState(null);
+  const [showSubtipoForm, setShowSubtipoForm] = useState(false);
+  const [subtipoEntradaId, setSubtipoEntradaId] = useState(null);
+  const [currentSubtipo, setCurrentSubtipo] = useState({
+    id: null,
+    nombre: "",
+    descripcion: "",
     precio: "",
-    cantidad: "",
+    cantidad_disponible: "",
+    edad_minima: "",
+    edad_maxima: "",
+    requiere_documentacion: false,
   });
-  const [editandoEntradaId, setEditandoEntradaId] = useState(null);
-  const [entradaEdit, setEntradaEdit] = useState({
-    tipo: "",
-    precio: "",
-    cantidad: "",
-    estatus: "",
-  });
+  const [isEditingSubtipo, setIsEditingSubtipo] = useState(false);
 
   // Contrato states
   const [numeroContrato, setNumeroContrato] = useState("");
@@ -298,14 +309,24 @@ export default function EventoEditarModal({
     }
   }, [activeTab, evento?.id]);
 
+  // Función para obtener entradas con subtipos
   const fetchEntradas = async () => {
     setLoadingEntradas(true);
     setErrorEntradas(null);
     try {
       const res = await fetch(`${API_URL}/api/entrada/${evento.id}`);
       if (!res.ok) throw new Error("No se pudieron obtener las entradas");
+
       const data = await res.json();
-      setEntradas(Array.isArray(data) ? data : data.data || []);
+
+      // Ajustar según la estructura de respuesta de tu API
+      if (data.success && data.data) {
+        setEntradas(data.data);
+      } else if (Array.isArray(data)) {
+        setEntradas(data);
+      } else {
+        setEntradas([]);
+      }
     } catch (err) {
       setErrorEntradas(err.message || "Error al obtener entradas");
     } finally {
@@ -313,109 +334,18 @@ export default function EventoEditarModal({
     }
   };
 
-  const handleNuevaEntradaChange = (e) => {
-    const { name, value } = e.target;
-    setNuevaEntrada((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleAgregarEntrada = async (e) => {
-    e.preventDefault();
-    setLoadingEntradas(true);
-    setErrorEntradas(null);
-    try {
-      const body = {
-        ...nuevaEntrada,
-        eventoId: evento.id,
-        precio: Number(nuevaEntrada.precio),
-        cantidad: Number(nuevaEntrada.cantidad),
-      };
-      const res = await fetch(`${API_URL}/api/entrada/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("No se pudo agregar la entrada");
-      setNuevaEntrada({ tipo: "", precio: "", cantidad: "" });
-      fetchEntradas();
-    } catch (err) {
-      setErrorEntradas(err.message || "Error al agregar entrada");
-    } finally {
-      setLoadingEntradas(false);
-    }
-  };
-
-  const handleEditarEntrada = async (entrada) => {
-    const result = await Swal.fire({
-      title: "¿Editar entrada?",
-      text: "¿Seguro que deseas editar esta entrada?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Sí, editar",
-      cancelButtonText: "Cancelar",
-      reverseButtons: true,
-    });
-    if (result.isConfirmed) {
-      setEditandoEntradaId(entrada.id || entrada._id);
-      setEntradaEdit({
-        tipo: entrada.tipo_entrada || entrada.tipo || "",
-        precio: entrada.precio || "",
-        cantidad: entrada.cantidad || "",
-        estatus: entrada.estatus || "",
-      });
-    }
-  };
-
-  const handleEntradaEditChange = (e) => {
-    const { name, value } = e.target;
-    setEntradaEdit((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleActualizarEntrada = async () => {
-    if (!editandoEntradaId) return;
-
-    setLoadingEntradas(true);
-    setErrorEntradas(null);
-    try {
-      const body = {
-        tipo_entrada: entradaEdit.tipo,
-        precio: Number(entradaEdit.precio),
-        cantidad: Number(entradaEdit.cantidad),
-        estatus: entradaEdit.estatus,
-      };
-
-      const res = await fetch(`${API_URL}/api/entrada/${editandoEntradaId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error("No se pudo actualizar la entrada");
-
-      setEditandoEntradaId(null);
-      fetchEntradas();
-    } catch (err) {
-      setErrorEntradas(err.message || "Error al actualizar entrada");
-    } finally {
-      setLoadingEntradas(false);
-    }
-  };
-
+  // Función para eliminar tipo de entrada
   const handleEliminarEntrada = async (entradaId) => {
     const result = await Swal.fire({
-      title: "¿Eliminar entrada?",
-      text: "Esta acción no se puede deshacer. ¿Deseas continuar?",
+      title: "¿Eliminar tipo de entrada?",
+      text: "Esta acción eliminará todos los subtipos asociados. ¿Deseas continuar?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
       reverseButtons: true,
     });
+
     if (!result.isConfirmed) return;
 
     setLoadingEntradas(true);
@@ -424,7 +354,15 @@ export default function EventoEditarModal({
       const res = await fetch(`${API_URL}/api/entrada/${entradaId}`, {
         method: "DELETE",
       });
+
       if (!res.ok) throw new Error("No se pudo eliminar la entrada");
+
+      Swal.fire({
+        icon: "success",
+        title: "Tipo de entrada eliminado",
+        text: "El tipo de entrada y sus subtipos han sido eliminados correctamente.",
+      });
+
       fetchEntradas();
     } catch (err) {
       setErrorEntradas(err.message || "Error al eliminar entrada");
@@ -433,6 +371,316 @@ export default function EventoEditarModal({
     }
   };
 
+  // Función para editar entrada
+  const handleEditarEntrada = (entrada) => {
+    setEntradaSeleccionada(entrada);
+    setShowEntradaModal(true);
+  };
+
+  // Función para agregar subtipo
+  const handleAgregarSubtipo = (entradaId) => {
+    setSubtipoEntradaId(entradaId);
+    setShowSubtipoForm(true);
+    setIsEditingSubtipo(false);
+    setCurrentSubtipo({
+      id: null,
+      nombre: "",
+      descripcion: "",
+      precio: "",
+      cantidad_disponible: "",
+      edad_minima: "",
+      edad_maxima: "",
+      requiere_documentacion: false,
+    });
+  };
+
+  // Función para editar subtipo
+  const handleEditarSubtipo = (entradaId, subtipo) => {
+    setSubtipoEntradaId(entradaId);
+    setShowSubtipoForm(true);
+    setIsEditingSubtipo(true);
+    setCurrentSubtipo({
+      id: subtipo.id,
+      nombre: subtipo.nombre || "",
+      descripcion: subtipo.descripcion || "",
+      precio: subtipo.precio !== undefined ? subtipo.precio.toString() : "",
+      cantidad_disponible:
+        subtipo.cantidad_disponible !== undefined
+          ? subtipo.cantidad_disponible.toString()
+          : "",
+      edad_minima:
+        subtipo.edad_minima !== undefined ? subtipo.edad_minima.toString() : "",
+      edad_maxima:
+        subtipo.edad_maxima !== undefined ? subtipo.edad_maxima.toString() : "",
+      requiere_documentacion: subtipo.requiere_documentacion || false,
+    });
+  };
+
+  // Función para manejar cambios en el formulario de subtipo
+  const handleSubtipoChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setCurrentSubtipo({
+      ...currentSubtipo,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  // Función para guardar subtipo
+  const handleGuardarSubtipo = async () => {
+    // Validaciones
+    if (
+      !currentSubtipo.nombre ||
+      !currentSubtipo.precio ||
+      !currentSubtipo.cantidad_disponible
+    ) {
+      setErrorEntradas(
+        "Nombre, precio y cantidad son obligatorios para el subtipo"
+      );
+      return;
+    }
+
+    try {
+      setLoadingEntradas(true);
+      setErrorEntradas(null);
+
+      const subtipoData = {
+        nombre: currentSubtipo.nombre,
+        descripcion: currentSubtipo.descripcion,
+        precio: parseFloat(currentSubtipo.precio),
+        cantidad_disponible: parseInt(currentSubtipo.cantidad_disponible),
+        edad_minima: currentSubtipo.edad_minima
+          ? parseInt(currentSubtipo.edad_minima)
+          : null,
+        edad_maxima: currentSubtipo.edad_maxima
+          ? parseInt(currentSubtipo.edad_maxima)
+          : null,
+        requiere_documentacion: currentSubtipo.requiere_documentacion,
+      };
+
+      const url = isEditingSubtipo
+        ? `${API_URL}/api/entrada/${subtipoEntradaId}/subtipo/${currentSubtipo.id}`
+        : `${API_URL}/api/entrada/${subtipoEntradaId}/subtipo`;
+
+      const method = isEditingSubtipo ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(subtipoData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al guardar el subtipo");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: isEditingSubtipo ? "Subtipo actualizado" : "Subtipo creado",
+        text: isEditingSubtipo
+          ? "El subtipo ha sido actualizado correctamente."
+          : "El subtipo ha sido creado correctamente.",
+      });
+
+      setShowSubtipoForm(false);
+      fetchEntradas();
+    } catch (err) {
+      setErrorEntradas(err.message || "Error al guardar subtipo");
+    } finally {
+      setLoadingEntradas(false);
+    }
+  };
+
+  // Modal para crear/editar tipo de entrada
+  const EntradaModal = ({ onClose, entrada }) => {
+    const [formData, setFormData] = useState({
+      tipo_entrada: entrada?.tipo_entrada || "",
+      descripcion: entrada?.descripcion || "",
+      cantidad_total: entrada?.cantidad_total || evento.capacidad || 0,
+      fecha_inicio_venta: entrada?.fecha_inicio_venta || "",
+      fecha_fin_venta: entrada?.fecha_fin_venta || "",
+      estatus: entrada?.estatus || "disponible",
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError(null);
+
+      try {
+        const url = entrada
+          ? `${API_URL}/api/${entrada.id}`
+          : `${API_URL}/api/`;
+
+        const method = entrada ? "PUT" : "POST";
+
+        const bodyData = entrada
+          ? formData
+          : { ...formData, eventoId: evento.id };
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bodyData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Error al guardar la entrada");
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: entrada ? "Entrada actualizada" : "Entrada creada",
+          text: entrada
+            ? "El tipo de entrada ha sido actualizado correctamente."
+            : "El tipo de entrada ha sido creado correctamente.",
+        });
+
+        onClose();
+        fetchEntradas();
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
+        <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-base md:text-lg font-bold text-white">
+              {entrada ? "Editar Tipo de Entrada" : "Crear Tipo de Entrada"}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="h-4 w-4 md:h-5 md:w-5" />
+            </button>
+          </div>
+
+          {error && (
+            <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="block text-xs text-white mb-1">
+                Tipo de Entrada *
+              </label>
+              <input
+                type="text"
+                name="tipo_entrada"
+                value={formData.tipo_entrada}
+                onChange={handleChange}
+                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                placeholder="Ej: Cena, Conferencia, Taller"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-white mb-1">
+                Descripción
+              </label>
+              <textarea
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleChange}
+                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                placeholder="Descripción del tipo de entrada"
+                rows="2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-white mb-1">
+                Cantidad Total *
+              </label>
+              <input
+                type="number"
+                name="cantidad_total"
+                value={formData.cantidad_total}
+                onChange={handleChange}
+                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                min="1"
+                max={evento.capacidad}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-white mb-1">
+                  Fecha Inicio Venta
+                </label>
+                <input
+                  type="datetime-local"
+                  name="fecha_inicio_venta"
+                  value={formData.fecha_inicio_venta}
+                  onChange={handleChange}
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-white mb-1">
+                  Fecha Fin Venta
+                </label>
+                <input
+                  type="datetime-local"
+                  name="fecha_fin_venta"
+                  value={formData.fecha_fin_venta}
+                  onChange={handleChange}
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-white mb-1">Estatus</label>
+              <select
+                name="estatus"
+                value={formData.estatus}
+                onChange={handleChange}
+                className="w-full p-2 bg-black text-white rounded border border-[#BF8D6B] text-xs"
+              >
+                <option value="disponible">Disponible</option>
+                <option value="agotado">Agotado</option>
+                <option value="suspendido">Suspendido</option>
+                <option value="inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2 bg-[#BF8D6B] text-white rounded text-xs flex items-center justify-center gap-1"
+              disabled={loading}
+            >
+              {loading ? "Guardando..." : entrada ? "Actualizar" : "Crear"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // Funciones para manejar el contrato
   const handleFirmanteChange = (idx, field, value) => {
     setFirmantes((prev) =>
       prev.map((f, i) => (i === idx ? { ...f, [field]: value } : f))
@@ -453,7 +701,7 @@ export default function EventoEditarModal({
   const handleContratoSubmit = async (e) => {
     e.preventDefault();
     if (!pdf) {
-      setErrorContrato("Debes seleccionar un PDF");
+      setErrorContrato("Debes seleccionar a PDF");
       return;
     }
     setLoadingContrato(true);
@@ -910,54 +1158,51 @@ export default function EventoEditarModal({
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-3">
-              <div>
-                <label className="block text-xs md:text-sm text-white mb-1">
-                  Capacidad
-                </label>
+            <div>
+              <label className="block text-xs md:text-sm text-white mb-1">
+                Capacidad
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  name="capacidad"
+                  placeholder="Capacidad"
+                  className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
+                  value={formData.capacidad}
+                  onChange={handleChange}
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex items-center h-full pt-6">
+              <label className="flex items-center cursor-pointer text-xs md:text-sm text-white">
                 <div className="relative">
                   <input
-                    type="number"
-                    name="capacidad"
-                    placeholder="Capacidad"
-                    className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm pl-8"
-                    value={formData.capacidad}
+                    type="checkbox"
+                    name="activo"
+                    id="activo"
+                    className="sr-only"
+                    checked={formData.activo}
                     onChange={handleChange}
-                    min="1"
-                    required
                   />
+                  <div
+                    className={`block w-8 h-4 md:w-10 md:h-5 rounded-full transition-colors ${
+                      formData.activo ? "bg-[#BF8D6B]" : "bg-gray-600"
+                    }`}
+                  ></div>
+                  <div
+                    className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 md:w-4 md:h-4 rounded-full transition-transform ${
+                      formData.activo
+                        ? "transform translate-x-4 md:translate-x-5"
+                        : ""
+                    }`}
+                  ></div>
                 </div>
-              </div>
-              <div className="flex items-center h-full pt-6">
-                <label className="flex items-center cursor-pointer text-xs md:text-sm text-white">
-                  <div className="relative">
-                    <input
-                      type="checkbox"
-                      name="activo"
-                      id="activo"
-                      className="sr-only"
-                      checked={formData.activo}
-                      onChange={handleChange}
-                    />
-                    <div
-                      className={`block w-8 h-4 md:w-10 md:h-5 rounded-full transition-colors ${
-                        formData.activo ? "bg-[#BF8D6B]" : "bg-gray-600"
-                      }`}
-                    ></div>
-                    <div
-                      className={`absolute left-0.5 top-0.5 bg-white w-3 h-3 md:w-4 md:h-4 rounded-full transition-transform ${
-                        formData.activo
-                          ? "transform translate-x-4 md:translate-x-5"
-                          : ""
-                      }`}
-                    ></div>
-                  </div>
-                  <div className="ml-2">
-                    {formData.activo ? "Activo" : "Inactivo"}
-                  </div>
-                </label>
-              </div>
+                <div className="ml-2">
+                  {formData.activo ? "Activo" : "Inactivo"}
+                </div>
+              </label>
             </div>
 
             {formData.image && (
@@ -1087,7 +1332,7 @@ export default function EventoEditarModal({
                     Swal.fire({
                       icon: "warning",
                       title: "Ninguna imagen seleccionada",
-                      text: "Por favor seleccione una imagen o vuelva al formulario.",
+                      text: "Por favor seleccione una imagen or vuelva al formulario.",
                     });
                   }
                 }}
@@ -1101,13 +1346,26 @@ export default function EventoEditarModal({
         ) : activeTab === "entradas" ? (
           <div className="space-y-3">
             <h3 className="text-sm md:text-base font-semibold text-white mb-2">
-              Entradas del Evento
+              Tipos de Entrada del Evento
             </h3>
+
+            {/* Botón para agregar tipo de entrada */}
+            <div className="mb-3">
+              <button
+                onClick={() => setShowEntradaModal(true)}
+                className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                <span>Agregar Tipo de Entrada</span>
+              </button>
+            </div>
+
             {errorEntradas && (
               <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-2">
                 {errorEntradas}
               </div>
             )}
+
             {loadingEntradas ? (
               <div className="py-4 md:py-6 text-center text-[#BF8D6B]">
                 <Loader className="animate-spin h-5 w-5 md:h-6 md:w-6 mx-auto mb-2" />
@@ -1116,119 +1374,315 @@ export default function EventoEditarModal({
             ) : (
               <>
                 {entradas.length > 0 ? (
-                  <div className="w-full">
-                    <table className="w-full text-xs text-left text-gray-300 mb-3">
-                      <thead>
-                        <tr className="bg-gray-700 text-[#BF8D6B]">
-                          <th className="px-2 py-2">Tipo</th>
-                          <th className="px-2 py-2">Precio</th>
-                          <th className="px-2 py-2">Estatus</th>
-                          <th className="px-2 py-2">Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {entradas.map((entrada) =>
-                          editandoEntradaId === (entrada.id || entrada._id) ? (
-                            <tr
-                              key={entrada.id || entrada._id}
-                              className="border-b border-gray-700 bg-gray-900"
+                  <div className="space-y-4">
+                    {entradas.map((entrada) => (
+                      <div
+                        key={entrada.id}
+                        className="border border-[#BF8D6B] rounded p-3 bg-gray-900"
+                      >
+                        {/* Encabezado del tipo de entrada */}
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="text-[#BF8D6B] font-medium text-sm">
+                              {entrada.tipo_entrada}
+                            </h4>
+                            <p className="text-gray-400 text-xs">
+                              {entrada.descripcion || "Sin descripción"}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              className="text-blue-400 hover:text-blue-300 text-xs"
+                              onClick={() => handleEditarEntrada(entrada)}
+                              title="Editar entrada"
                             >
-                              <td className="px-2 py-2">
-                                <input
-                                  type="text"
-                                  name="tipo"
-                                  className="w-full bg-transparent border border-[#BF8D6B] rounded p-1 text-white text-xs"
-                                  value={entradaEdit.tipo}
-                                  onChange={handleEntradaEditChange}
-                                  required
-                                />
-                              </td>
-                              <td className="px-2 py-2">
-                                <input
-                                  type="number"
-                                  name="precio"
-                                  className="w-full bg-transparent border border-[#BF8D6B] rounded p-1 text-white text-xs"
-                                  value={entradaEdit.precio}
-                                  onChange={handleEntradaEditChange}
-                                  min="0"
-                                  required
-                                />
-                              </td>
-                              <td className="px-2 py-2">
-                                <input
-                                  type="text"
-                                  name="estatus"
-                                  className="w-full bg-transparent border border-[#BF8D6B] rounded p-1 text-white text-xs"
-                                  value={entradaEdit.estatus}
-                                  onChange={handleEntradaEditChange}
-                                />
-                              </td>
-                              <td className="px-2 py-2 flex gap-1">
-                                <button
-                                  className="bg-green-700 hover:bg-green-600 text-white rounded px-2 py-1 text-xs"
-                                  onClick={handleActualizarEntrada}
-                                  disabled={loadingEntradas}
-                                  title="Guardar"
-                                >
-                                  Guardar
-                                </button>
-                                <button
-                                  className="bg-gray-600 hover:bg-gray-500 text-white rounded px-2 py-1 text-xs"
-                                  onClick={() => setEditandoEntradaId(null)}
-                                  type="button"
-                                  title="Cancelar"
-                                >
-                                  Cancelar
-                                </button>
-                              </td>
-                            </tr>
-                          ) : (
-                            <tr
-                              key={entrada.id || entrada._id}
-                              className="border-b border-gray-700"
+                              <Edit className="h-3 w-3" />
+                            </button>
+                            <button
+                              className="text-red-400 hover:text-red-300 text-xs"
+                              onClick={() => handleEliminarEntrada(entrada.id)}
+                              title="Eliminar entrada"
                             >
-                              <td className="px-2 py-2">
-                                {entrada.tipo_entrada || entrada.tipo}
-                              </td>
-                              <td className="px-2 py-2">${entrada.precio}</td>
-                              <td className="px-2 py-2">
-                                {entrada.estatus || "-"}
-                              </td>
-                              <td className="px-2 py-2 flex gap-1">
-                                <button
-                                  className="text-blue-500 hover:text-blue-300 text-xs"
-                                  title="Editar entrada"
-                                  onClick={() => handleEditarEntrada(entrada)}
-                                  type="button"
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Información del tipo de entrada */}
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                          <div>
+                            <span className="text-gray-400">Total: </span>
+                            <span className="text-white">
+                              {entrada.cantidad_total}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Disponible: </span>
+                            <span className="text-white">
+                              {entrada.cantidad_real}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Estatus: </span>
+                            <span
+                              className={`${
+                                entrada.estatus === "disponible"
+                                  ? "text-green-400"
+                                  : entrada.estatus === "agotado"
+                                  ? "text-red-400"
+                                  : entrada.estatus === "suspendido"
+                                  ? "text-yellow-400"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {entrada.estatus}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Subtipos: </span>
+                            <span className="text-white">
+                              {entrada.subtipos?.length || 0}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Subtipos de esta entrada */}
+                        {entrada.subtipos && entrada.subtipos.length > 0 && (
+                          <div className="mt-3">
+                            <h5 className="text-gray-400 text-xs font-medium mb-2">
+                              Subtipos:
+                            </h5>
+                            <div className="space-y-2">
+                              {entrada.subtipos.map((subtipo) => (
+                                <div
+                                  key={subtipo.id}
+                                  className="bg-gray-800 p-2 rounded text-xs"
                                 >
-                                  Editar
-                                </button>
-                                <button
-                                  className="text-red-500 hover:text-red-300 text-xs"
-                                  title="Eliminar entrada"
-                                  onClick={() =>
-                                    handleEliminarEntrada(
-                                      entrada.id || entrada._id
-                                    )
-                                  }
-                                  type="button"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
-                              </td>
-                            </tr>
-                          )
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <div className="text-white font-medium">
+                                        {subtipo.nombre}
+                                      </div>
+                                      {subtipo.descripcion && (
+                                        <div className="text-gray-400 text-xs mt-1">
+                                          {subtipo.descripcion}
+                                        </div>
+                                      )}
+                                    </div>
+                                    {/* <div className="flex gap-1">
+                                      <button
+                                        className="text-blue-400 hover:text-blue-300"
+                                        onClick={() =>
+                                          handleEditarSubtipo(
+                                            entrada.id,
+                                            subtipo
+                                          )
+                                        }
+                                        title="Editar subtipo"
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </button>
+                                    </div> */}
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1 mt-2">
+                                    <div className="flex items-center gap-1">
+                                      <DollarSign className="h-3 w-3 text-[#BF8D6B]" />
+                                      <span>${subtipo.precio}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">
+                                        Disponible:{" "}
+                                      </span>
+                                      <span className="text-white">
+                                        {subtipo.cantidad_disponible}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-400">
+                                        Vendidas:{" "}
+                                      </span>
+                                      <span className="text-white">
+                                        {subtipo.cantidad_vendida || 0}
+                                      </span>
+                                    </div>
+                                    {subtipo.edad_minima && (
+                                      <div className="flex items-center gap-1">
+                                        <UserCheck className="h-3 w-3 text-[#BF8D6B]" />
+                                        <span>
+                                          Edad: {subtipo.edad_minima}
+                                          {subtipo.edad_maxima
+                                            ? `-${subtipo.edad_maxima}`
+                                            : "+"}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {subtipo.requiere_documentacion && (
+                                      <div className="flex items-center gap-1 col-span-2 text-yellow-400">
+                                        <AlertCircle className="h-3 w-3" />
+                                        <span>Requiere documentación</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         )}
-                      </tbody>
-                    </table>
+
+                        {/* Botones para gestionar subtipos */}
+                        {/* <div className="mt-3 flex gap-2">
+                          <button
+                            onClick={() => handleAgregarSubtipo(entrada.id)}
+                            className="px-2 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
+                          >
+                            <Plus className="h-3 w-3" />
+                            <span>Agregar Subtipo</span>
+                          </button>
+                        </div> */}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="py-4 text-center text-gray-400 border border-dashed border-gray-600 rounded text-xs md:text-sm">
-                    No hay entradas para este evento.
+                    No hay tipos de entrada para este evento.
                   </div>
                 )}
               </>
             )}
+
+            {/* Formulario de subtipo */}
+            {showSubtipoForm && (
+              <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 bg-black bg-opacity-70">
+                <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+                  <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-base md:text-lg font-bold text-white">
+                      {isEditingSubtipo ? "Editar Subtipo" : "Crear Subtipo"}
+                    </h2>
+                    <button
+                      onClick={() => setShowSubtipoForm(false)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <X className="h-4 w-4 md:h-5 md:w-5" />
+                    </button>
+                  </div>
+
+                  {errorEntradas && (
+                    <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-3">
+                      {errorEntradas}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-white mb-1">
+                        Nombre *
+                      </label>
+                      <input
+                        type="text"
+                        name="nombre"
+                        value={currentSubtipo.nombre}
+                        onChange={handleSubtipoChange}
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                        placeholder="Ej: Cena Mayor, Cena Menor"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white mb-1">
+                        Descripción
+                      </label>
+                      <textarea
+                        name="descripcion"
+                        value={currentSubtipo.descripcion}
+                        onChange={handleSubtipoChange}
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                        placeholder="Descripción del subtipo"
+                        rows="2"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white mb-1">
+                        Precio *
+                      </label>
+                      <input
+                        type="number"
+                        name="precio"
+                        value={currentSubtipo.precio}
+                        onChange={handleSubtipoChange}
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white mb-1">
+                        Cantidad Disponible *
+                      </label>
+                      <input
+                        type="number"
+                        name="cantidad_disponible"
+                        value={currentSubtipo.cantidad_disponible}
+                        onChange={handleSubtipoChange}
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                        placeholder="0"
+                        min="1"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs text-white mb-1">
+                        Edad Máxima
+                      </label>
+                      <input
+                        type="number"
+                        name="edad_maxima"
+                        value={currentSubtipo.edad_maxima}
+                        onChange={handleSubtipoChange}
+                        className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                        placeholder="Ej: 65"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="requiere_documentacion"
+                      name="requiere_documentacion"
+                      checked={currentSubtipo.requiere_documentacion}
+                      onChange={handleSubtipoChange}
+                      className="mr-2"
+                    />
+                    <label
+                      htmlFor="requiere_documentacion"
+                      className="text-xs text-white"
+                    >
+                      Requiere documentación
+                    </label>
+                  </div>
+
+                  <button
+                    onClick={handleGuardarSubtipo}
+                    className="w-full py-2 bg-[#BF8D6B] text-white rounded text-xs flex items-center justify-center gap-1"
+                    disabled={loadingEntradas}
+                  >
+                    {loadingEntradas
+                      ? "Guardando..."
+                      : isEditingSubtipo
+                      ? "Actualizar Subtipo"
+                      : "Crear Subtipo"}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end mt-3">
               <button
                 type="button"
@@ -1487,6 +1941,17 @@ export default function EventoEditarModal({
           )
         )}
       </div>
+
+      {/* Modales para gestión de entradas */}
+      {showEntradaModal && (
+        <EntradaModal
+          onClose={() => {
+            setShowEntradaModal(false);
+            setEntradaSeleccionada(null);
+          }}
+          entrada={entradaSeleccionada}
+        />
+      )}
     </div>
   );
 }
