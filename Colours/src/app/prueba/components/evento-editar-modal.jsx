@@ -456,11 +456,12 @@ export default function EventoEditarModal({
           ? parseInt(currentSubtipo.edad_maxima)
           : null,
         requiere_documentacion: currentSubtipo.requiere_documentacion,
+        EntradaId: subtipoEntradaId,
       };
 
       const url = isEditingSubtipo
-        ? `${API_URL}/api/entrada/${subtipoEntradaId}/subtipo/${currentSubtipo.id}`
-        : `${API_URL}/api/entrada/${subtipoEntradaId}/subtipo`;
+        ? `${API_URL}/api/entrada/subtipo/${currentSubtipo.id}`
+        : `${API_URL}/api/entrada/subtipo/`;
 
       const method = isEditingSubtipo ? "PUT" : "POST";
 
@@ -519,13 +520,13 @@ export default function EventoEditarModal({
 
       try {
         const url = entrada
-          ? `${API_URL}/api/${entrada.id}`
-          : `${API_URL}/api/`;
+          ? `${API_URL}/api/entrada/`
+          : `${API_URL}/api/entrada/`;
 
         const method = entrada ? "PUT" : "POST";
 
         const bodyData = entrada
-          ? formData
+          ? { ...formData, id: entrada.id }
           : { ...formData, eventoId: evento.id };
 
         const response = await fetch(url, {
@@ -1350,7 +1351,7 @@ export default function EventoEditarModal({
             </h3>
 
             {/* Botón para agregar tipo de entrada */}
-            {/* <div className="mb-3">
+            <div className="mb-3">
               <button
                 onClick={() => setShowEntradaModal(true)}
                 className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
@@ -1358,7 +1359,7 @@ export default function EventoEditarModal({
                 <Plus className="h-3 w-3" />
                 <span>Agregar Tipo de Entrada</span>
               </button>
-            </div> */}
+            </div>
 
             {errorEntradas && (
               <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-2">
@@ -1469,7 +1470,7 @@ export default function EventoEditarModal({
                                         </div>
                                       )}
                                     </div>
-                                    {/* <div className="flex gap-1">
+                                    <div className="flex gap-1">
                                       <button
                                         className="text-blue-400 hover:text-blue-300"
                                         onClick={() =>
@@ -1482,7 +1483,7 @@ export default function EventoEditarModal({
                                       >
                                         <Edit className="h-3 w-3" />
                                       </button>
-                                    </div> */}
+                                    </div>
                                   </div>
                                   <div className="grid grid-cols-2 gap-1 mt-2">
                                     <div className="flex items-center gap-1">
@@ -1530,7 +1531,7 @@ export default function EventoEditarModal({
                         )}
 
                         {/* Botones para gestionar subtipos */}
-                        {/* <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex gap-2">
                           <button
                             onClick={() => handleAgregarSubtipo(entrada.id)}
                             className="px-2 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
@@ -1538,7 +1539,7 @@ export default function EventoEditarModal({
                             <Plus className="h-3 w-3" />
                             <span>Agregar Subtipo</span>
                           </button>
-                        </div> */}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1552,7 +1553,7 @@ export default function EventoEditarModal({
 
             {/* Formulario de subtipo */}
             {showSubtipoForm && (
-              <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 bg-black bg-opacity-70">
+              <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4">
                 <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
                   <div className="flex justify-between items-center mb-3">
                     <h2 className="text-base md:text-lg font-bold text-white">
