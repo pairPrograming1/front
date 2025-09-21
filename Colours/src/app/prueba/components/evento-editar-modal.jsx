@@ -6,10 +6,10 @@ import apiUrls from "@/app/components/utils/apiConfig";
 import Swal from "sweetalert2";
 
 // Importar componentes modulares
-import InformacionEvento from "../components/componentes-editar-eventos/InformacionEvento";
-import SelectorImagen from "../components/componentes-editar-eventos/SelectorImagen";
-import GestionEntradas from "../components/componentes-editar-eventos/GestionEntradas";
-import GestionContrato from "../components/componentes-editar-eventos/GestionContrato";
+import InformacionEvento from "./componentes-evento-editar-modal/InformacionEvento";
+import SelectorImagen from "./componentes-evento-editar-modal/SelectorImagen";
+import GestionEntradas from "./componentes-evento-editar-modal/GestionEntradas";
+import GestionContrato from "./componentes-evento-editar-modal/GestionContrato";
 
 const API_URL = apiUrls;
 
