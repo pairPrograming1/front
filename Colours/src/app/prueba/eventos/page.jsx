@@ -299,7 +299,7 @@ export default function Eventos() {
       const result = await response.json();
 
       Swal.fire({
-        title: "¡Eeliminado!",
+        title: "¡Eliminado!",
         text: result.message || "El evento ha sido eliminado permanentemente",
         icon: "success",
       });
