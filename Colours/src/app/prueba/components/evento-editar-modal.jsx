@@ -1350,7 +1350,7 @@ export default function EventoEditarModal({
             </h3>
 
             {/* Botón para agregar tipo de entrada */}
-            <div className="mb-3">
+            {/* <div className="mb-3">
               <button
                 onClick={() => setShowEntradaModal(true)}
                 className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
@@ -1358,7 +1358,7 @@ export default function EventoEditarModal({
                 <Plus className="h-3 w-3" />
                 <span>Agregar Tipo de Entrada</span>
               </button>
-            </div>
+            </div> */}
 
             {errorEntradas && (
               <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-2">
