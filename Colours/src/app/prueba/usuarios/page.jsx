@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 import Header from "../components/header";
 import UsuarioModal from "../components/componentes-usuario-modal/usuario-modal";
 import UsuarioEditarModal from "../components/componentes-usuario-editar-modal/usuario-editar-modal";
+import GraduadoCrearModal from "../components/componentes-usuarios/graduado-crear-modal"; // Nuevo import
 import SearchBar from "../components/componentes-usuarios/SearchBar";
 import FilterButtons from "../components/componentes-usuarios/FilterButtons";
 import ActionButtons from "../components/componentes-usuarios/ActionButtons";
@@ -36,6 +37,7 @@ export default function Usuarios() {
   // Estados
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showGraduadoModal, setShowGraduadoModal] = useState(false); // Nuevo estado
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [filterMode, setFilterMode] = useState("active");
   const [busqueda, setBusqueda] = useState("");
@@ -60,6 +62,7 @@ export default function Usuarios() {
     handleAsignarVendedor,
     changeUserStatus,
     agregarUsuario,
+    agregarGraduado, // Nueva función
     modificarUsuario,
     borrarUsuario,
   } = useUserActions(
@@ -69,6 +72,7 @@ export default function Usuarios() {
     fetchUsuarios,
     setSelectedUsers,
     setShowModal,
+    setShowGraduadoModal, // Pasar nuevo prop
     setUsuarioEditar
   );
 
@@ -140,6 +144,7 @@ export default function Usuarios() {
               handleAsignarVendedor={handleAsignarVendedor}
               handleAsignarAdministrador={handleAsignarAdministrador}
               setShowModal={setShowModal}
+              setShowGraduadoModal={setShowGraduadoModal} // Pasar nuevo prop
             />
           </div>
         </div>
@@ -188,6 +193,13 @@ export default function Usuarios() {
           <UsuarioModal
             onClose={() => setShowModal(false)}
             onSave={agregarUsuario}
+          />
+        )}
+
+        {showGraduadoModal && (
+          <GraduadoCrearModal
+            onClose={() => setShowGraduadoModal(false)}
+            onSave={agregarGraduado}
           />
         )}
 

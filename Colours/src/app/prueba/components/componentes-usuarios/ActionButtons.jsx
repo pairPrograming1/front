@@ -1,58 +1,53 @@
-const ActionButtons = ({
+import { Plus, UserPlus } from "lucide-react";
+
+export default function ActionButtons({
   selectedUsers,
   handleAsignarVendedor,
   handleAsignarAdministrador,
   setShowModal,
-}) => {
+  setShowGraduadoModal,
+}) {
   return (
-    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
-      <div className="flex flex-col md:flex-row gap-2 w-full">
-        <ActionButton
-          onClick={handleAsignarVendedor}
-          disabled={selectedUsers.length === 0}
-          label="Vendedor"
-        />
+    <>
+      <button
+        onClick={() => setShowModal(true)}
+        className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-[#BF8D6B] text-white rounded text-xs md:text-sm hover:bg-[#a67454] transition-colors"
+      >
+        <Plus className="h-4 w-4" />
+        Agregar
+      </button>
 
-        <ActionButton
-          onClick={handleAsignarAdministrador}
-          disabled={selectedUsers.length === 0}
-          label="Administrador"
-        />
-      </div>
+      <button
+        onClick={() => setShowGraduadoModal(true)}
+        className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-[#BF8D6B] text-white rounded text-xs md:text-sm hover:bg-[#a67454] transition-colors"
+      >
+        <UserPlus className="h-4 w-4" />
+        Agregar Graduado
+      </button>
 
-      <ActionButton onClick={() => setShowModal(true)} label="Agregar" />
-    </div>
+      <button
+        onClick={handleAsignarVendedor}
+        disabled={selectedUsers.length === 0}
+        className={`flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 rounded text-xs md:text-sm transition-colors ${
+          selectedUsers.length === 0
+            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+            : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
+        }`}
+      >
+        Asignar Vendedor
+      </button>
+
+      <button
+        onClick={handleAsignarAdministrador}
+        disabled={selectedUsers.length === 0}
+        className={`flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 rounded text-xs md:text-sm transition-colors ${
+          selectedUsers.length === 0
+            ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+            : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
+        }`}
+      >
+        Asignar Administrador
+      </button>
+    </>
   );
-};
-
-const ActionButton = ({ onClick, disabled = false, label }) => {
-  return (
-    <button
-      className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
-      style={{
-        borderColor: "#BF8D6B",
-        color: "#ffffffff",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.backgroundColor = "#BF8D6B";
-          e.currentTarget.style.color = "white";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!disabled) {
-          e.currentTarget.style.backgroundColor = "black";
-          e.currentTarget.style.color = "#ffffffff";
-        }
-      }}
-      onClick={!disabled ? onClick : undefined}
-      disabled={disabled}
-    >
-      <span className="text-xs md:text-sm">{label}</span>
-    </button>
-  );
-};
-
-export default ActionButtons;
+}
