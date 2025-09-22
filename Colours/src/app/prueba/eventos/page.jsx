@@ -94,7 +94,9 @@ export default function Eventos() {
   };
 
   const handleEditEvento = (evento) => {
+    console.log("handleEditEvento called with evento:", evento); // Debugging
     if (!evento?.id) {
+      console.warn("Invalid evento id:", evento?.id); // Debugging
       Swal.fire({
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",
@@ -107,7 +109,9 @@ export default function Eventos() {
   };
 
   const handleAddEntradas = (evento) => {
+    console.log("handleAddEntradas called with evento:", evento); // Debugging
     if (!evento?.id) {
+      console.warn("Invalid evento id:", evento?.id); // Debugging
       Swal.fire({
         title: "Error",
         text: "El evento seleccionado no tiene un ID válido.",
@@ -147,6 +151,11 @@ export default function Eventos() {
       setLoadingDetail(false);
       setLoadingEntradas(false);
     }
+  };
+
+  const handleEventoUpdated = () => {
+    console.log("handleEventoUpdated called in Eventos.jsx"); // Debugging
+    fetchEventos(filterMode, setEventos, setLoading, setError); // Re-fetch events to update UI
   };
 
   const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage);
@@ -215,7 +224,7 @@ export default function Eventos() {
                   e.currentTarget.style.backgroundColor = "black";
                   e.currentTarget.style.color = "#ffffffff";
                 }}
-                onClick={bulkPhysicalDelete}
+                onClick={() => bulkPhysicalDelete(selectedEventos)}
                 disabled={selectedEventos.length === 0}
               >
                 <span className="text-xs md:text-sm">Eliminar</span>
@@ -303,7 +312,10 @@ export default function Eventos() {
         {showModal && (
           <EventoModal
             onClose={() => setShowModal(false)}
-            onEventoAdded={handleEventoAdded}
+            onEventoAdded={() => {
+              fetchEventos(filterMode, setEventos, setLoading, setError); // Re-fetch after adding
+              setShowModal(false);
+            }}
           />
         )}
         {showEditModal && eventoEditar && (
@@ -314,6 +326,7 @@ export default function Eventos() {
               setEventoEditar(null);
             }}
             onEventoUpdated={handleEventoUpdated}
+            API_URL={API_URL}
           />
         )}
         {showEntradasModal && eventoEntradas && (

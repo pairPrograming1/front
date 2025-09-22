@@ -35,6 +35,8 @@ export const fetchEventos = async (
         capacidad: evento.capacidad,
         activo: evento.activo,
         salon: evento.salonNombre || "Sin salón asignado",
+        salonId: evento.salonId || "",
+        image: evento.image || "",
       }));
 
       setEventos(mappedEventos);
@@ -96,6 +98,12 @@ export const handleEventoAdded = async (eventoData) => {
 };
 
 export const handleEventoUpdated = async (id, eventoData) => {
+  console.log(
+    "handleEventoUpdated called with id:",
+    id,
+    "and data:",
+    eventoData
+  ); // Debugging
   try {
     if (!id) {
       throw new Error("El ID del evento no es válido.");
@@ -110,7 +118,8 @@ export const handleEventoUpdated = async (id, eventoData) => {
     });
 
     if (!response.ok) {
-      throw new Error("Error al actualizar el evento");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error al actualizar el evento");
     }
 
     const result = await response.json();
@@ -123,6 +132,7 @@ export const handleEventoUpdated = async (id, eventoData) => {
 
     return true;
   } catch (err) {
+    console.error("Error in handleEventoUpdated:", err); // Debugging
     Swal.fire({
       title: "Error",
       text: err.message || "No se pudo actualizar el evento.",
