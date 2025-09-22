@@ -738,7 +738,7 @@ export default function Eventos() {
 
             <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto ml-auto">
               <div className="flex flex-col md:flex-row gap-2 w-full">
-                <button
+                {/* <button
                   className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
                   style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
                   onMouseEnter={(e) => {
@@ -753,7 +753,7 @@ export default function Eventos() {
                   disabled={selectedEventos.length === 0}
                 >
                   <span className="text-xs md:text-sm">Desactivar</span>
-                </button>
+                </button> */}
 
                 <button
                   className="px-3 py-2 text-sm rounded flex items-center justify-center gap-1 transition-colors border-2 bg-black hover:text-black w-full md:w-auto"
