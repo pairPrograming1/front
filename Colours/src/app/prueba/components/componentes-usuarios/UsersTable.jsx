@@ -9,12 +9,10 @@ export default function UsersTable({
   borrarUsuario,
   isCurrentUser,
 }) {
-  // Mapping for role display names
   const roleDisplayMap = {
     admin: "Administrador",
     vendor: "Vendedor",
     graduado: "Graduado",
-    // Add more roles as needed
   };
 
   const getRoleDisplay = (role) => {

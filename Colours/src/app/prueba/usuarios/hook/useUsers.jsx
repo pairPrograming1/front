@@ -14,11 +14,16 @@ export const useUsers = (API_URL, filterMode, isClient) => {
           : filterMode === "inactive"
           ? false
           : undefined;
-      const response = await fetch(`${API_URL}/api/users/grid`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/api/users/grid${
+          status !== undefined ? `?status=${status}` : ""
+        }`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Error al obtener los usuarios");

@@ -22,7 +22,6 @@ export default function ActionButtons({
           e.currentTarget.style.color = "#ffffffff";
         }}
       >
-        {/* <Plus className="h-3 w-3" style={{ color: "#BF8D6B" }} /> */}
         <span>Agregar</span>
       </button>
 
@@ -39,7 +38,6 @@ export default function ActionButtons({
           e.currentTarget.style.color = "#ffffffff";
         }}
       >
-        {/* <UserPlus className="h-3 w-3" style={{ color: "#BF8D6B" }} /> */}
         <span>Agregar Graduado</span>
       </button>
 
