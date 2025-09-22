@@ -1,4 +1,3 @@
-// SalonesFilters.js - Componente para filtros y búsqueda
 import { Search, ListFilter, ChevronDown, ChevronUp } from "lucide-react";
 
 const SalonesFilters = ({

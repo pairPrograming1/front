@@ -36,7 +36,7 @@ export default function SalonImageSelector({
       }
 
       const data = await res.json();
-      console.log("Imágenes cargadas:", data);
+
       setImages(data);
     } catch (err) {
       console.error("Error al cargar imágenes:", err);

@@ -1,13 +1,12 @@
-// useSalonesFilters.js - Hook para gestión de filtros
 import { useState, useCallback } from "react";
 
-export const useSalonesFilters = (allSalones, removeAccents) => {
+export const useSalonesFilters = (removeAccents) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMode, setFilterMode] = useState("active");
   const [showFilters, setShowFilters] = useState(false);
 
   const applyFilters = useCallback(
-    (salones, search = searchTerm, mode = filterMode) => {
+    (salones, search, mode) => {
       let filtered = [...salones];
 
       if (search) {
@@ -49,7 +48,7 @@ export const useSalonesFilters = (allSalones, removeAccents) => {
 
       return filtered;
     },
-    [searchTerm, filterMode, removeAccents]
+    [removeAccents]
   );
 
   const handleSearch = (e) => {
@@ -65,6 +64,8 @@ export const useSalonesFilters = (allSalones, removeAccents) => {
     searchTerm,
     filterMode,
     showFilters,
+    setSearchTerm,
+    setFilterMode,
     setShowFilters,
     applyFilters,
     handleSearch,

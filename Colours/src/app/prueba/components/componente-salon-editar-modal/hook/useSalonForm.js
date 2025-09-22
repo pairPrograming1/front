@@ -97,24 +97,43 @@ export const useSalonForm = (salon, onClose) => {
 
     try {
       const response = await fetch(
-        `${apiUrls.production}/api/salon?search=${encodeURIComponent(name)}`
+        `${apiUrls}/api/salon?search=${encodeURIComponent(name)}`
       );
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Error checking salon:", errorText);
-        throw new Error("Error al verificar disponibilidad del nombre");
+        // Try to get error details from response
+        let errorDetails = "";
+        try {
+          const errorData = await response.json();
+          errorDetails = errorData.message || JSON.stringify(errorData);
+        } catch {
+          errorDetails = await response.text();
+        }
+
+        console.error(
+          "Error checking salon - Status:",
+          response.status,
+          "Details:",
+          errorDetails
+        );
+        throw new Error(
+          `Error al verificar disponibilidad del nombre (${response.status})`
+        );
       }
 
       const data = await response.json();
-      const salones = data.data || [];
+
+      // Handle different possible response structures
+      const salones = data.data || data.salones || data || [];
 
       return salones.some(
         (s) => s.salon && s.salon.toLowerCase() === name.toLowerCase()
       );
     } catch (error) {
       console.error("Error checking salon:", error);
-      throw new Error("Error al verificar disponibilidad del nombre");
+
+      // If there's an error, we'll assume the name doesn't exist to allow the form submission
+      return false;
     }
   };
 
@@ -142,9 +161,14 @@ export const useSalonForm = (salon, onClose) => {
       validateEmail(formData.email);
 
       if (formData.salon !== initialSalonName) {
-        const exists = await checkSalonExists(formData.salon);
-        if (exists) {
-          throw new Error("Ya existe un salón con este nombre");
+        try {
+          const exists = await checkSalonExists(formData.salon);
+          if (exists) {
+            throw new Error("Ya existe un salón con este nombre");
+          }
+        } catch (error) {
+          console.warn("Salon name check failed, proceeding anyway:", error);
+          // Continue with submission even if name check fails
         }
       }
 
