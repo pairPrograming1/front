@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function EntradaModal({
@@ -33,10 +33,7 @@ export default function EntradaModal({
     setError(null);
 
     try {
-      const url = entrada
-        ? `${API_URL}/api/entrada/`
-        : `${API_URL}/api/entrada/`;
-
+      const url = `${API_URL}/api/entrada/`;
       const method = entrada ? "PUT" : "POST";
 
       const bodyData = entrada
@@ -75,12 +72,15 @@ export default function EntradaModal({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4 ">
-      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-2xl max-h-[95vh] overflow-y-auto shadow-lg border border-[#BF8D6B]">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-base md:text-lg font-bold text-white">
             {entrada ? "Editar Tipo de Entrada" : "Crear Tipo de Entrada"}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             <X className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
@@ -101,8 +101,8 @@ export default function EntradaModal({
               name="tipo_entrada"
               value={formData.tipo_entrada}
               onChange={handleChange}
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
-              placeholder="Ej: Cena, Conferencia, Taller"
+              className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
+              placeholder="Ej: Vip, Estudiante, General"
               required
             />
           </div>
@@ -113,7 +113,7 @@ export default function EntradaModal({
               name="descripcion"
               value={formData.descripcion}
               onChange={handleChange}
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+              className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
               placeholder="Descripción del tipo de entrada"
               rows="2"
             />
@@ -128,14 +128,14 @@ export default function EntradaModal({
               name="cantidad_total"
               value={formData.cantidad_total}
               onChange={handleChange}
-              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+              className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
               min="1"
               max={evento.capacidad}
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <label className="block text-xs text-white mb-1">
                 Fecha Inicio Venta
@@ -145,7 +145,7 @@ export default function EntradaModal({
                 name="fecha_inicio_venta"
                 value={formData.fecha_inicio_venta}
                 onChange={handleChange}
-                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
               />
             </div>
             <div>
@@ -157,7 +157,7 @@ export default function EntradaModal({
                 name="fecha_fin_venta"
                 value={formData.fecha_fin_venta}
                 onChange={handleChange}
-                className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
               />
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function EntradaModal({
               name="estatus"
               value={formData.estatus}
               onChange={handleChange}
-              className="w-full p-2 bg-black text-white rounded border border-[#BF8D6B] text-xs"
+              className="w-full p-2 bg-gray-800 text-white rounded border border-gray-600 text-xs focus:border-[#BF8D6B] focus:outline-none"
             >
               <option value="disponible">Disponible</option>
               <option value="agotado">Agotado</option>
@@ -177,13 +177,22 @@ export default function EntradaModal({
             </select>
           </div>
 
-          <button
-            type="submit"
-            className="w-full py-2 bg-[#BF8D6B] text-white rounded text-xs flex items-center justify-center gap-1"
-            disabled={loading}
-          >
-            {loading ? "Guardando..." : entrada ? "Actualizar" : "Crear"}
-          </button>
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 bg-gray-600 text-white rounded text-xs hover:bg-gray-500 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2 bg-[#BF8D6B] text-white rounded text-xs hover:bg-[#a67454] transition-colors flex items-center justify-center gap-1"
+              disabled={loading}
+            >
+              {loading ? "Guardando..." : entrada ? "Actualizar" : "Crear"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
