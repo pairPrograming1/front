@@ -1,4 +1,3 @@
-// SalonesPagination.js - Componente para paginación
 import { ChevronRight } from "lucide-react";
 
 const SalonesPagination = ({ currentPage, totalPages, onPageChange }) => {

@@ -1,4 +1,3 @@
-// SalonesMobileList.js - Componente para lista móvil
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 const SalonesMobileList = ({

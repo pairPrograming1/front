@@ -1,4 +1,3 @@
-// SalonesTable.js - Componente para la tabla de salones (escritorio)
 const SalonesTable = ({
   currentItems,
   selectedSalones,

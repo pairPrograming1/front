@@ -1,4 +1,3 @@
-// useSalonesSelection.js - Hook para gestión de selección
 import { useState } from "react";
 
 export const useSalonesSelection = () => {
