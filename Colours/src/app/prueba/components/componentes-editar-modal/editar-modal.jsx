@@ -6,15 +6,12 @@ import { X } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 
 // Componentes modulares
-import FormField from "../components/componentes-editar-modal/FormField";
-import FormCheckbox from "../components/componentes-editar-modal/FormCheckbox";
-import FormActions from "../components/componentes-editar-modal/FormActions";
-import ErrorDisplay from "../components/componentes-editar-modal/ErrorDisplay";
-import ModalContainer from "../components/componentes-editar-modal/ModalContainer";
-import {
-  validateForm,
-  formatCUIT,
-} from "../components/componentes-editar-modal/formUtils";
+import FormField from "./FormField";
+import FormCheckbox from "./FormCheckbox";
+import FormActions from "./FormActions";
+import ErrorDisplay from "./ErrorDisplay";
+import ModalContainer from "./ModalContainer";
+import { validateForm, formatCUIT } from "./formUtils";
 
 const API_URL = apiUrls;
 

@@ -22,12 +22,12 @@ import {
   FileText,
 } from "lucide-react";
 import Header from "../components/header";
-import EventoModal from "../components/evento-modal";
-import EventoEditarModal from "../components/evento-editar-modal";
+import EventoModal from "../components/componentes-evento-modal/evento-modal";
+import EventoEditarModal from "../components/componentes-evento-editar-modal/evento-editar-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
-import EntradasModal from "../components/entradas-modal";
-import UploadImageModal from "../components/upload-image-modal";
+import EntradasModal from "../components/componentes-entrada-modal/entradas-modal";
+import UploadImageModal from "../components/cloudinary/upload-image-modal";
 
 const API_URL = apiUrls;
 

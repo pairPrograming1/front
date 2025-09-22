@@ -17,10 +17,10 @@ import {
   Info,
   X,
 } from "lucide-react";
-import SalonModal from "../components/salon-modal";
-import SalonEditarModal from "../components/salon-editar-modal";
+import SalonModal from "../components/componentes-salon-modal/salon-modal";
+import SalonEditarModal from "../components/componente-salon-editar-modal/salon-editar-modal";
 import Header from "../components/header";
-import UploadImageModal from "../components/upload-image-modal";
+import UploadImageModal from "../components/cloudinary/upload-image-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 

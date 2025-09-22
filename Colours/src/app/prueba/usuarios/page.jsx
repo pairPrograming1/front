@@ -18,8 +18,8 @@ import {
   ChevronUp,
   ListFilter,
 } from "lucide-react";
-import UsuarioModal from "../components/usuario-modal";
-import UsuarioEditarModal from "../components/usuario-editar-modal";
+import UsuarioModal from "../components/componentes-usuario-modal/usuario-modal";
+import UsuarioEditarModal from "../components/componentes-usuario-editar-modal/usuario-editar-modal";
 import Header from "../components/header";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
