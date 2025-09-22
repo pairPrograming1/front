@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 import Header from "../components/header";
 import UsuarioModal from "../components/componentes-usuario-modal/usuario-modal";
 import UsuarioEditarModal from "../components/componentes-usuario-editar-modal/usuario-editar-modal";
-import GraduadoCrearModal from "../components/componentes-usuarios/graduado-crear-modal"; // Nuevo import
+import GraduadoCrearModal from "../components/componentes-usuarios/graduado-crear-modal";
 import SearchBar from "../components/componentes-usuarios/SearchBar";
 import FilterButtons from "../components/componentes-usuarios/FilterButtons";
 import ActionButtons from "../components/componentes-usuarios/ActionButtons";
@@ -37,7 +37,7 @@ export default function Usuarios() {
   // Estados
   const [isClient, setIsClient] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showGraduadoModal, setShowGraduadoModal] = useState(false); // Nuevo estado
+  const [showGraduadoModal, setShowGraduadoModal] = useState(false);
   const [usuarioEditar, setUsuarioEditar] = useState(null);
   const [filterMode, setFilterMode] = useState("active");
   const [busqueda, setBusqueda] = useState("");
@@ -62,7 +62,7 @@ export default function Usuarios() {
     handleAsignarVendedor,
     changeUserStatus,
     agregarUsuario,
-    agregarGraduado, // Nueva función
+    agregarGraduado,
     modificarUsuario,
     borrarUsuario,
   } = useUserActions(
@@ -72,7 +72,7 @@ export default function Usuarios() {
     fetchUsuarios,
     setSelectedUsers,
     setShowModal,
-    setShowGraduadoModal, // Pasar nuevo prop
+    setShowGraduadoModal,
     setUsuarioEditar
   );
 
@@ -99,7 +99,7 @@ export default function Usuarios() {
   // Filtrado de usuarios
   const usuariosFiltrados = usuarios.filter((usuario) => {
     const searchText = removeAccents(busqueda.toLowerCase());
-    return (
+    const matchesSearch =
       (usuario.usuario &&
         removeAccents(usuario.usuario.toLowerCase()).includes(searchText)) ||
       (usuario.email &&
@@ -112,8 +112,15 @@ export default function Usuarios() {
         usuario.apellido &&
         removeAccents(
           `${usuario.nombre} ${usuario.apellido}`.toLowerCase()
-        ).includes(searchText))
-    );
+        ).includes(searchText));
+
+    // Filtrar por estado según filterMode
+    const matchesStatus =
+      filterMode === "all" ||
+      (filterMode === "active" && usuario.isActive) ||
+      (filterMode === "inactive" && !usuario.isActive);
+
+    return matchesSearch && matchesStatus;
   });
 
   const itemsPerPage = 10;
@@ -144,7 +151,7 @@ export default function Usuarios() {
               handleAsignarVendedor={handleAsignarVendedor}
               handleAsignarAdministrador={handleAsignarAdministrador}
               setShowModal={setShowModal}
-              setShowGraduadoModal={setShowGraduadoModal} // Pasar nuevo prop
+              setShowGraduadoModal={setShowGraduadoModal}
             />
           </div>
         </div>

@@ -7,7 +7,7 @@ export const useUserActions = (
   fetchUsuarios,
   setSelectedUsers,
   setShowModal,
-  setShowGraduadoModal, // Nuevo prop para manejar el modal de graduado
+  setShowGraduadoModal,
   setUsuarioEditar
 ) => {
   const isCurrentUser = (userId) => {
@@ -200,7 +200,7 @@ export const useUserActions = (
         },
         body: JSON.stringify({
           ...nuevoUsuario,
-          rol: nuevoUsuario.rol || "comun", // Asegurar rol predeterminado
+          rol: nuevoUsuario.rol || "comun",
         }),
       });
 
@@ -235,7 +235,7 @@ export const useUserActions = (
         },
         body: JSON.stringify({
           ...nuevoGraduado,
-          rol: "graduado", // Forzar rol graduado
+          rol: "graduado",
         }),
       });
 
@@ -350,7 +350,7 @@ export const useUserActions = (
     handleAsignarVendedor,
     changeUserStatus,
     agregarUsuario,
-    agregarGraduado, // Nueva función exportada
+    agregarGraduado,
     modificarUsuario,
     borrarUsuario,
   };
