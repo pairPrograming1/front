@@ -8,46 +8,98 @@ export default function ActionButtons({
   setShowGraduadoModal,
 }) {
   return (
-    <>
+    <div className="flex flex-col md:flex-row gap-1 w-full md:w-auto">
       <button
         onClick={() => setShowModal(true)}
-        className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-[#BF8D6B] text-white rounded text-xs md:text-sm hover:bg-[#a67454] transition-colors"
+        className="px-2 py-1 text-xs rounded flex items-center justify-center gap-1 transition-colors border bg-black hover:text-black w-full md:w-auto"
+        style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#BF8D6B";
+          e.currentTarget.style.color = "white";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "black";
+          e.currentTarget.style.color = "#ffffffff";
+        }}
       >
-        <Plus className="h-4 w-4" />
-        Agregar
+        {/* <Plus className="h-3 w-3" style={{ color: "#BF8D6B" }} /> */}
+        <span>Agregar</span>
       </button>
 
       <button
         onClick={() => setShowGraduadoModal(true)}
-        className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-[#BF8D6B] text-white rounded text-xs md:text-sm hover:bg-[#a67454] transition-colors"
+        className="px-2 py-1 text-xs rounded flex items-center justify-center gap-1 transition-colors border bg-black hover:text-black w-full md:w-auto"
+        style={{ borderColor: "#BF8D6B", color: "#ffffffff" }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#BF8D6B";
+          e.currentTarget.style.color = "white";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "black";
+          e.currentTarget.style.color = "#ffffffff";
+        }}
       >
-        <UserPlus className="h-4 w-4" />
-        Agregar Graduado
+        {/* <UserPlus className="h-3 w-3" style={{ color: "#BF8D6B" }} /> */}
+        <span>Agregar Graduado</span>
       </button>
 
       <button
         onClick={handleAsignarVendedor}
         disabled={selectedUsers.length === 0}
-        className={`flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 rounded text-xs md:text-sm transition-colors ${
+        className={`px-2 py-1 text-xs rounded flex items-center justify-center gap-1 transition-colors border w-full md:w-auto ${
           selectedUsers.length === 0
             ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-            : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
+            : "bg-black hover:text-black"
         }`}
+        style={
+          selectedUsers.length === 0
+            ? { borderColor: "#BF8D6B" }
+            : { borderColor: "#BF8D6B", color: "#ffffffff" }
+        }
+        onMouseEnter={(e) => {
+          if (selectedUsers.length > 0) {
+            e.currentTarget.style.backgroundColor = "#BF8D6B";
+            e.currentTarget.style.color = "white";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (selectedUsers.length > 0) {
+            e.currentTarget.style.backgroundColor = "black";
+            e.currentTarget.style.color = "#ffffffff";
+          }
+        }}
       >
-        Asignar Vendedor
+        <span>Asignar Vendedor</span>
       </button>
 
       <button
         onClick={handleAsignarAdministrador}
         disabled={selectedUsers.length === 0}
-        className={`flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 rounded text-xs md:text-sm transition-colors ${
+        className={`px-2 py-1 text-xs rounded flex items-center justify-center gap-1 transition-colors border w-full md:w-auto ${
           selectedUsers.length === 0
             ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-            : "bg-[#BF8D6B] text-white hover:bg-[#a67454]"
+            : "bg-black hover:text-black"
         }`}
+        style={
+          selectedUsers.length === 0
+            ? { borderColor: "#BF8D6B" }
+            : { borderColor: "#BF8D6B", color: "#ffffffff" }
+        }
+        onMouseEnter={(e) => {
+          if (selectedUsers.length > 0) {
+            e.currentTarget.style.backgroundColor = "#BF8D6B";
+            e.currentTarget.style.color = "white";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (selectedUsers.length > 0) {
+            e.currentTarget.style.backgroundColor = "black";
+            e.currentTarget.style.color = "#ffffffff";
+          }
+        }}
       >
-        Asignar Administrador
+        <span>Asignar Administrador</span>
       </button>
-    </>
+    </div>
   );
 }

@@ -51,20 +51,21 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4">
-      <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-6 w-full max-w-xs md:max-w-md max-h-[95vh] overflow-y-auto shadow-lg">
-        <div className="flex justify-between items-center mb-3 md:mb-6">
-          <h2 className="text-base md:text-xl font-bold text-white">
+      <div className="bg-[#1a1a1a] rounded-lg p-5 w-full max-w-xs md:max-w-md max-h-[95vh] overflow-y-auto shadow-lg">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
             Crear Graduado
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-1 md:p-0"
+            className="text-gray-400 hover:text-white transition-colors"
+            aria-label="Cerrar"
           >
-            <X className="h-4 w-4 md:h-5 md:w-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form className="space-y-2 md:space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-3" onSubmit={handleSubmit}>
           <div>
             <input
               type="text"
@@ -72,7 +73,7 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
               value={formData.nombre}
               onChange={handleChange}
               placeholder="Nombre *"
-              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
               required
             />
           </div>
@@ -84,22 +85,22 @@ export default function GraduadoCrearModal({ onClose, onSave }) {
               value={formData.apellido}
               onChange={handleChange}
               placeholder="Apellido *"
-              className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-1 md:focus:ring-2 focus:ring-[#BF8D6B] text-xs md:text-sm"
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] text-sm"
               required
             />
           </div>
 
-          <div className="flex flex-col-reverse md:flex-row md:justify-end gap-2 md:gap-3 mt-3 md:mt-4">
+          <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"
               onClick={onClose}
-              className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm text-white bg-gray-600 rounded hover:bg-gray-700 transition-colors"
+              className="px-4 py-1.5 text-sm text-white rounded border border-[#BF8D6B] bg-transparent hover:bg-[#BF8D6B] hover:text-white transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="w-full md:w-auto px-3 py-1.5 md:py-2 text-xs md:text-sm font-bold rounded bg-[#BF8D6B] text-white hover:bg-[#a67454] transition-colors"
+              className="px-4 py-1.5 text-sm font-bold rounded border border-[#BF8D6B] bg-[#BF8D6B] text-white hover:bg-[#a67454] transition-colors"
             >
               Crear
             </button>

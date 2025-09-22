@@ -9,73 +9,170 @@ export default function UsersTable({
   borrarUsuario,
   isCurrentUser,
 }) {
+  // Mapping for role display names
+  const roleDisplayMap = {
+    admin: "Administrador",
+    vendor: "Vendedor",
+    graduado: "Graduado",
+    // Add more roles as needed
+  };
+
+  const getRoleDisplay = (role) => {
+    if (!role) return "-";
+    return (
+      roleDisplayMap[role.toLowerCase()] ||
+      role.charAt(0).toUpperCase() + role.slice(1)
+    );
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full table-auto text-white text-xs md:text-sm">
-        <thead>
-          <tr className="bg-[#2a2a2a]">
-            <th className="p-2">
+    <div className="hidden md:block">
+      <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
+        <thead className="bg-gray-900">
+          <tr>
+            <th className="w-6 px-2 py-2 text-left">
               <input
                 type="checkbox"
-                onChange={() => toggleSelectAll(currentItems)}
                 checked={
                   currentItems.length > 0 &&
                   currentItems.every((user) => selectedUsers.includes(user.id))
                 }
-                className="rounded border-[#BF8D6B] text-[#BF8D6B] focus:ring-[#BF8D6B]"
+                onChange={() => toggleSelectAll(currentItems)}
+                className="w-3 h-3 bg-gray-700 border-gray-600 rounded"
+                style={{ accentColor: "#BF8D6B" }}
               />
             </th>
-            <th className="p-2 text-left">Usuario</th>
-            <th className="p-2 text-left">Nombre</th>
-            <th className="p-2 text-left">Email</th>
-            <th className="p-2 text-left">Rol</th>
-            <th className="p-2 text-left">Estado</th>
-            <th className="p-2 text-left">Acciones</th>
+            <th className="px-2 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              Usuario
+            </th>
+            <th className="px-2 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              Nombre
+            </th>
+            <th className="px-2 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              Email
+            </th>
+            <th className="px-2 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              Rol
+            </th>
+            <th className="px-2 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+              Estado
+            </th>
+            <th className="px-2 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-32">
+              Acciones
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {currentItems.map((user) => {
-            console.log("Usuario en UsersTable:", user);
-            return (
-              <tr key={user.id} className="border-b border-gray-700">
-                <td className="p-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.id)}
-                    onChange={() => toggleUserSelection(user.id)}
-                    disabled={isCurrentUser(user.id)}
-                    className="rounded border-[#BF8D6B] text-[#BF8D6B] focus:ring-[#BF8D6B]"
-                  />
-                </td>
-                <td className="p-2">{user.usuario || "-"}</td>
-                <td className="p-2">
-                  {user.nombre} {user.apellido}
-                </td>
-                <td className="p-2">{user.email || "-"}</td>
-                <td className="p-2">
-                  {user.rol
-                    ? user.rol.charAt(0).toUpperCase() + user.rol.slice(1)
-                    : "-"}
-                </td>
-                <td className="p-2">{user.isActive ? "Activo" : "Inactivo"}</td>
-                <td className="p-2 flex gap-2">
-                  <button
-                    onClick={() => setUsuarioEditar(user)}
-                    className="text-[#BF8D6B] hover:text-[#a67454] transition-colors"
+        <tbody className="divide-y divide-gray-700">
+          {currentItems.length > 0 ? (
+            currentItems.map((user, index) => {
+              const isActive = user.isActive ?? true;
+              const userId = user.id || user._id;
+
+              return (
+                <tr
+                  key={userId}
+                  className={`${
+                    index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
+                  } hover:bg-gray-700 transition-colors group ${
+                    !isActive ? "opacity-70" : ""
+                  }`}
+                >
+                  <td
+                    className="px-2 py-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => borrarUsuario(user.id)}
-                    className="text-red-500 hover:text-red-700 transition-colors"
-                    disabled={isCurrentUser(user.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(userId)}
+                      onChange={() => toggleUserSelection(userId)}
+                      disabled={isCurrentUser(userId)}
+                      className="w-3 h-3 bg-gray-700 border-gray-600 rounded"
+                      style={{ accentColor: "#BF8D6B" }}
+                    />
+                  </td>
+                  <td className="px-2 py-2 text-xs text-gray-200">
+                    {user.usuario || "-"}
+                  </td>
+                  <td className="px-2 py-2 text-xs text-gray-200">
+                    {user.nombre} {user.apellido}
+                  </td>
+                  <td className="px-2 py-2 text-xs text-gray-200">
+                    <a
+                      href={`mailto:${user.email}`}
+                      className="text-[#BF8D6B] hover:underline"
+                    >
+                      {user.email || "-"}
+                    </a>
+                  </td>
+                  <td className="px-2 py-2 text-xs text-gray-200">
+                    {getRoleDisplay(user.rol)}
+                  </td>
+                  <td className="px-2 py-2">
+                    <span
+                      className={`inline-flex px-1.5 py-0.5 text-xs font-semibold rounded-full ${
+                        isActive ? "text-white" : "bg-red-900 text-red-200"
+                      }`}
+                      style={isActive ? { backgroundColor: "#BF8D6B" } : {}}
+                    >
+                      {isActive ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td className="px-2 py-2">
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        className="px-1.5 py-0.5 rounded transition-colors border bg-black hover:text-black text-xs"
+                        style={{ borderColor: "#BF8D6B", color: "#BF8D6B" }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#BF8D6B";
+                          e.currentTarget.style.color = "white";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "black";
+                          e.currentTarget.style.color = "#BF8D6B";
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUsuarioEditar(user);
+                        }}
+                        title="Editar"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="px-1.5 py-0.5 rounded transition-colors border text-xs"
+                        style={{ color: "#BF8D6B", borderColor: "#BF8D6B" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          borrarUsuario(userId);
+                        }}
+                        disabled={isCurrentUser(userId)}
+                        title="Eliminar permanentemente"
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#BF8D6B";
+                          e.currentTarget.style.color = "white";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.color = "#BF8D6B";
+                        }}
+                      >
+                        Borrar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan="7" className="text-center py-4">
+                <p className="text-gray-400 text-xs">
+                  No se encontraron usuarios que coincidan con los criterios de
+                  búsqueda
+                </p>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

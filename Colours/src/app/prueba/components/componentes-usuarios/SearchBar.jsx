@@ -5,7 +5,7 @@ const SearchBar = ({ busqueda, setBusqueda }) => {
     <div className="relative flex-grow">
       <input
         type="text"
-        placeholder="Buscar Usuario"
+        placeholder="Buscar por nombre, apellido, usuario o email..."
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value)}
         className="w-full md:w-64 py-2 px-8 text-sm bg-black border-2 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent rounded-full"
