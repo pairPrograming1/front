@@ -20,6 +20,7 @@ import {
   Info,
   X,
   FileText,
+  Check,
 } from "lucide-react";
 import Header from "../components/header";
 import EventoModal from "../components/componentes-evento-modal/evento-modal";

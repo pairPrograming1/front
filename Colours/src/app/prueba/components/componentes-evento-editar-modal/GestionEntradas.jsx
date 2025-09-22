@@ -8,6 +8,7 @@ import {
   DollarSign,
   UserCheck,
   AlertCircle,
+  Check,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import EntradaModal from "./EntradaModal";

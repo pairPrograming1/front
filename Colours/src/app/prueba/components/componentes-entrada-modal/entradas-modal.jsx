@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 import EventoDetalles from "./EventoDetalles";
