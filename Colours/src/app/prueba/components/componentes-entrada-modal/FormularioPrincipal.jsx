@@ -71,7 +71,7 @@ export default function FormularioPrincipal({
         </select>
       </div>
 
-      <div>
+      {/* <div>
         <label className="block text-xs md:text-sm text-white mb-1">
           Fecha Inicio Venta
         </label>
@@ -95,7 +95,7 @@ export default function FormularioPrincipal({
           onChange={handleChange}
           className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
         />
-      </div>
+      </div> */}
     </div>
   );
 }
