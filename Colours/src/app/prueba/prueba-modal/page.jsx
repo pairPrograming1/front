@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import ImageUploaderModal from "../components/image-uploader-modal";
-import ImageGallery from "../components/ImageGallery"; // Importamos el nuevo componente
+import ImageGallery from "../components/cloudinary/ImageGallery"; // Importamos el nuevo componente
 
 export default function Page() {
   const [showUploadModal, setShowUploadModal] = useState(false);

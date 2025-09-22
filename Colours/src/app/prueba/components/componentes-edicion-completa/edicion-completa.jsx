@@ -6,9 +6,9 @@ import { X, Edit2, Save, XCircle, Plus, Trash2 } from "lucide-react";
 import apiUrls from "@/app/components/utils/apiConfig";
 
 // Importar los componentes modularizados
-import InformacionTab from "../components/componentes-edicion-completa/InformacionTab";
-import PaymentMethodsTab from "../components/componentes-edicion-completa/PaymentMethodsTab";
-import TaxRateModal from "../components/componentes-edicion-completa/TaxRateModal";
+import InformacionTab from "./InformacionTab";
+import PaymentMethodsTab from "./PaymentMethodsTab";
+import TaxRateModal from "./TaxRateModal";
 
 const API_URL = apiUrls;
 
