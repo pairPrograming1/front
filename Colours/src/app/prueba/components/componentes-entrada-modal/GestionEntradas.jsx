@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 import EntradaModal from "./EntradaModal";
-import SubtipoForm from "./SubtipoForm";
+import SubtipoForm from "../componentes-evento-editar-modal/SubtipoForm";
 
 export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
   const [entradas, setEntradas] = useState([]);

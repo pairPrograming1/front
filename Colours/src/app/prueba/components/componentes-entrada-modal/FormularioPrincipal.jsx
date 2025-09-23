@@ -50,7 +50,7 @@ export default function FormularioPrincipal({
           onChange={handleChange}
           className="w-full p-2 md:p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs md:text-sm"
           min="1"
-          max={evento.capacidad}
+          max={evento.remainingCapacity || evento.capacidad}
           required
         />
       </div>
