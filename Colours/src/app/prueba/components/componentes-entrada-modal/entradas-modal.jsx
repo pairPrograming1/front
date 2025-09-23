@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Check, AlertCircle } from "lucide-react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 import EventoDetalles from "./EventoDetalles";
@@ -22,6 +22,28 @@ export default function EntradasModal({ evento, onClose }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [remainingCapacity, setRemainingCapacity] = useState(
+    evento.capacidad || 0
+  );
+
+  useEffect(() => {
+    const fetchRemaining = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/entrada/${evento.id}`);
+        if (!response.ok) throw new Error("Error fetching entries");
+        const { data } = await response.json();
+        const totalUsed = data.reduce((sum, e) => sum + e.cantidad_total, 0);
+        setRemainingCapacity((evento.capacidad || 0) - totalUsed);
+        setFormData((prev) => ({
+          ...prev,
+          cantidad_total: (evento.capacidad || 0) - totalUsed,
+        }));
+      } catch (err) {
+        setError("Error calculating remaining capacity: " + err.message);
+      }
+    };
+    fetchRemaining();
+  }, [evento.id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -43,6 +65,13 @@ export default function EntradasModal({ evento, onClose }) {
 
     if (!formData.cantidad_total || formData.cantidad_total <= 0) {
       setError("La cantidad total debe ser mayor que cero");
+      return;
+    }
+
+    if (formData.cantidad_total > remainingCapacity) {
+      setError(
+        `La cantidad total no puede exceder el disponible: ${remainingCapacity}`
+      );
       return;
     }
 
@@ -147,7 +176,7 @@ export default function EntradasModal({ evento, onClose }) {
           <FormularioPrincipal
             formData={formData}
             handleChange={handleChange}
-            evento={evento}
+            evento={{ ...evento, remainingCapacity }} // Pass updated evento with remaining
           />
 
           <SubtiposManager
