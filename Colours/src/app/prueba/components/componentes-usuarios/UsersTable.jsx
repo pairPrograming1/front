@@ -1,8 +1,10 @@
+// UsersTable component
 import { Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Pagination from "./Pagination"; // Asegúrate de que la ruta sea correcta
 
 export default function UsersTable({
-  currentItems,
+  users = [],
   selectedUsers,
   toggleUserSelection,
   toggleSelectAll,
@@ -11,6 +13,13 @@ export default function UsersTable({
   isCurrentUser,
 }) {
   const [activeTab, setActiveTab] = useState("administradores");
+  const [currentPage, setCurrentPage] = useState({
+    administradores: 1,
+    vendedores: 1,
+    graduados: 1,
+  });
+
+  const itemsPerPage = 10;
 
   const roleDisplayMap = {
     admin: "Administrador",
@@ -27,17 +36,40 @@ export default function UsersTable({
   };
 
   // Split users by role
-  const administradores = currentItems.filter(
-    (user) => user.rol.toLowerCase() === "admin"
+  const administradores = users.filter(
+    (user) => user?.rol?.toLowerCase() === "admin"
   );
-  const vendedores = currentItems.filter(
-    (user) => user.rol.toLowerCase() === "vendor"
+  const vendedores = users.filter(
+    (user) => user?.rol?.toLowerCase() === "vendor"
   );
-  const graduados = currentItems.filter(
-    (user) => user.rol.toLowerCase() === "graduado"
+  const graduados = users.filter(
+    (user) => user?.rol?.toLowerCase() === "graduado"
   );
 
-  const renderTable = (users) => (
+  // Get the list for the active tab
+  let roleList = [];
+  if (activeTab === "administradores") roleList = administradores;
+  else if (activeTab === "vendedores") roleList = vendedores;
+  else if (activeTab === "graduados") roleList = graduados;
+
+  const totalPages = Math.ceil(roleList.length / itemsPerPage);
+  const currentItems = roleList.slice(
+    (currentPage[activeTab] - 1) * itemsPerPage,
+    currentPage[activeTab] * itemsPerPage
+  );
+
+  // Efecto para resetear la página actual si es inválida después de cambios en la lista
+  useEffect(() => {
+    const newTotalPages = Math.ceil(roleList.length / itemsPerPage);
+    if (currentPage[activeTab] > newTotalPages) {
+      setCurrentPage((prev) => ({
+        ...prev,
+        [activeTab]: Math.max(1, newTotalPages),
+      }));
+    }
+  }, [roleList.length, activeTab, itemsPerPage]);
+
+  const renderTable = (items) => (
     <table className="min-w-full bg-gray-800 rounded-lg overflow-hidden">
       <thead className="bg-gray-900">
         <tr>
@@ -45,10 +77,10 @@ export default function UsersTable({
             <input
               type="checkbox"
               checked={
-                users.length > 0 &&
-                users.every((user) => selectedUsers.includes(user.id))
+                items.length > 0 &&
+                items.every((user) => selectedUsers.includes(user.id))
               }
-              onChange={() => toggleSelectAll(users)}
+              onChange={() => toggleSelectAll(items)}
               className="w-3 h-3 bg-gray-700 border-gray-600 rounded"
               style={{ accentColor: "#BF8D6B" }}
             />
@@ -74,8 +106,8 @@ export default function UsersTable({
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-700">
-        {users.length > 0 ? (
-          users.map((user, index) => {
+        {items.length > 0 ? (
+          items.map((user, index) => {
             const isActive = user.isActive ?? true;
             const userId = user.id || user._id;
 
@@ -219,9 +251,14 @@ export default function UsersTable({
           Graduados ({graduados.length})
         </button>
       </div>
-      {activeTab === "administradores" && renderTable(administradores)}
-      {activeTab === "vendedores" && renderTable(vendedores)}
-      {activeTab === "graduados" && renderTable(graduados)}
+      {renderTable(currentItems)}
+      <Pagination
+        totalPages={totalPages}
+        currentPage={currentPage[activeTab]}
+        setCurrentPage={(page) =>
+          setCurrentPage((prev) => ({ ...prev, [activeTab]: page }))
+        }
+      />
     </div>
   );
 }
