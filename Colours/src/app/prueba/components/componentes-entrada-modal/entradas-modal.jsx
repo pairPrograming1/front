@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Check, AlertCircle } from "lucide-react";
+import { X, Check, AlertCircle, DollarSign } from "lucide-react";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
 import EventoDetalles from "./EventoDetalles";
@@ -14,6 +14,7 @@ export default function EntradasModal({ evento, onClose }) {
   const [formData, setFormData] = useState({
     tipo_entrada: "",
     descripcion: "",
+    precio: "",
     cantidad_total: evento.capacidad || 0,
     fecha_inicio_venta: "",
     fecha_fin_venta: "",
@@ -75,6 +76,11 @@ export default function EntradasModal({ evento, onClose }) {
       return;
     }
 
+    if (!formData.precio || parseFloat(formData.precio) <= 0) {
+      setError("El precio es obligatorio y debe ser mayor que cero");
+      return;
+    }
+
     // Validar que la suma de subtipos no exceda la cantidad total
     const totalSubtipos = formData.subtipos.reduce(
       (total, subtipo) => total + parseInt(subtipo.cantidad_disponible),
@@ -95,6 +101,7 @@ export default function EntradasModal({ evento, onClose }) {
       const entradaData = {
         tipo_entrada: formData.tipo_entrada,
         descripcion: formData.descripcion,
+        precio: parseFloat(formData.precio),
         cantidad_total: parseInt(formData.cantidad_total),
         fecha_inicio_venta: formData.fecha_inicio_venta || null,
         fecha_fin_venta: formData.fecha_fin_venta || null,
@@ -176,7 +183,7 @@ export default function EntradasModal({ evento, onClose }) {
           <FormularioPrincipal
             formData={formData}
             handleChange={handleChange}
-            evento={{ ...evento, remainingCapacity }} // Pass updated evento with remaining
+            evento={{ ...evento, remainingCapacity }}
           />
 
           <SubtiposManager

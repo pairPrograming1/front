@@ -258,6 +258,14 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                       </span>
                     </div>
                     <div>
+                      <span className="text-gray-400">Precio: </span>
+                      <span className="text-white">
+                        {entrada.resumen.precio
+                          ? `$${entrada.resumen.precio}`
+                          : "N/A (Subtipos)"}
+                      </span>
+                    </div>
+                    <div>
                       <span className="text-gray-400">Estatus: </span>
                       <span
                         className={`${
