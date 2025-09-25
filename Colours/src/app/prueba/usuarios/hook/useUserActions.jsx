@@ -244,6 +244,7 @@ export const useUserActions = (
     }
     // Si hay evento, crea usuario y luego asigna evento
     await crearUsuarioGraduado(nuevoGraduado, true);
+    await fetchUsuarios();
   };
 
   const crearUsuarioGraduado = async (nuevoGraduado, asignarEvento = false) => {
@@ -309,6 +310,24 @@ export const useUserActions = (
   };
 
   const modificarUsuario = async (id, datosActualizados) => {
+    console.log(datosActualizados, "datosActualizados");
+    if(datosActualizados.eventId){
+       const postData = {
+          userId: id,
+          eventoId: datosActualizados.eventId,
+        };
+        console.log("postData", postData);
+        const eventoRes = await fetch(`${API_URL}/api/evento/euser`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(postData),
+        });
+        console.log("eventoRes", eventoRes);
+        if (!eventoRes.ok) {
+          const eventoErr = await eventoRes.json().catch(() => ({}));
+          throw new Error(eventoErr.message || "Error al asignar evento");
+        }
+    }
     try {
       Swal.fire({
         title: "Guardando cambios...",
