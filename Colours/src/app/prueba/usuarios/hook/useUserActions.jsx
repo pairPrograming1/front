@@ -244,7 +244,7 @@ export const useUserActions = (
     }
     // Si hay evento, crea usuario y luego asigna evento
     await crearUsuarioGraduado(nuevoGraduado, true);
-    await fetchUsuarios();
+    
   };
 
   const crearUsuarioGraduado = async (nuevoGraduado, asignarEvento = false) => {

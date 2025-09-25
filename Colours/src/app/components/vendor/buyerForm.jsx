@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import GraduadoCrearModal from "@/app/prueba/components/componentes-usuarios/graduado-crear-modal";
+import apiUrls from "../utils/apiConfig";
+import { useUserActions } from "@/app/prueba/usuarios/hook/useUserActions";
+
+const API_URL = apiUrls;
 
 export default function BuyerInfoForm({ eventIdFromParams }) {
   const router = useRouter();
@@ -11,58 +16,62 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
   const [filteredGraduados, setFilteredGraduados] = useState([]);
   const [searchGraduado, setSearchGraduado] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-
   const [selectedGraduado, setSelectedGraduado] = useState(null);
-
   const [eventId, setEventId] = useState(eventIdFromParams || null);
   const [userRole, setUserRole] = useState(null);
 
+  // Modal
+  const [showGraduadoModal, setShowGraduadoModal] = useState(false);
+  const [shouldRefreshGraduados, setShouldRefreshGraduados] = useState(false);
+
+  const { agregarGraduado } = useUserActions(API_URL);
+
+  const fetchGraduados = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/evento/euser/${id}`);
+      const data = await res.json();
+      if (data.success) {
+        setGraduados(data.data);
+        setFilteredGraduados(data.data);
+      }
+    } catch (err) {
+      console.error("Error al obtener graduados del evento:", err);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
-
     const storedRole = localStorage.getItem("b");
-    if (storedRole) {
-      setUserRole(storedRole);
-    } else {
-      console.warn("Rol del usuario no encontrado en localStorage 'b'.");
-    }
+    if (storedRole) setUserRole(storedRole);
 
     if (!eventIdFromParams) {
       console.error("Error: Event ID no recibido como prop.");
-    } else {
-      if (eventIdFromParams !== eventId) {
-        setEventId(eventIdFromParams);
-      }
-      // 🚀 Obtener graduados del evento
-      fetch(`http://localhost:4000/api/evento/euser/${eventIdFromParams}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setGraduados(data.data);
-            setFilteredGraduados(data.data);
-          }
-        })
-        .catch((err) =>
-          console.error("Error al obtener graduados del evento:", err)
-        );
+      return;
     }
+    setEventId(eventIdFromParams);
+    fetchGraduados(eventIdFromParams);
   }, []);
+
+  //  Refresca graduados cuando se cierra el modal y la flag está activa
+  useEffect(() => {
+    if (!showGraduadoModal && shouldRefreshGraduados) {
+      fetchGraduados(eventId);
+      setShouldRefreshGraduados(false);
+    }
+  }, [showGraduadoModal]);
 
   const handleSearchGraduado = (e) => {
     const value = e.target.value;
     setSearchGraduado(value);
 
-    if (!value) {
-      setFilteredGraduados(graduados);
-    } else {
+    if (!value) setFilteredGraduados(graduados);
+    else
       setFilteredGraduados(
         graduados.filter((g) =>
-          `${g.nombre} ${g.apellido}`
-            .toLowerCase()
-            .includes(value.toLowerCase())
+          `${g.nombre} ${g.apellido}`.toLowerCase().includes(value.toLowerCase())
         )
       );
-    }
+
     setShowDropdown(true);
   };
 
@@ -79,8 +88,10 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
       "buyerData",
       JSON.stringify({
         id: selectedGraduado.id,
-        nombre: selectedGraduado.nombre,
-        apellido: selectedGraduado.apellido,
+        name: `${selectedGraduado.nombre} ${selectedGraduado.apellido}`,
+        dni: selectedGraduado.dni || "",
+        email: selectedGraduado.email || "",
+        whatsapp: selectedGraduado.whatsapp || "",
       })
     );
 
@@ -106,11 +117,17 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
   return (
     <main className="w-full flex items-center justify-center p-4">
       <div className="w-full max-w-md p-4 rounded-lg">
-        <h2 className="text-lg font-bold text-white mb-4">
-          Seleccionar Graduado
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-white">Seleccionar Graduado</h2>
 
-        {/* 🔽 Autocomplete */}
+          <button
+            onClick={() => setShowGraduadoModal(true)}
+            className="px-2 py-1 text-xs rounded border bg-black hover:bg-[#BF8D6B] hover:text-white transition-colors"
+          >
+            Agregar
+          </button>
+        </div>
+
         <div className="relative mb-4">
           <input
             type="text"
@@ -135,17 +152,14 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
           )}
         </div>
 
-        {/* 📌 Resumen */}
         {selectedGraduado && (
           <div className="border border-[#BF8D6B] rounded p-3 w-full mb-3 text-white text-xs">
             <p className="font-medium mb-2">Resumen del Graduado</p>
             <p>
-              <span className="text-[#BF8D6B]">Nombre:</span>{" "}
-              {selectedGraduado.nombre}
+              <span className="text-[#BF8D6B]">Nombre:</span> {selectedGraduado.nombre}
             </p>
             <p>
-              <span className="text-[#BF8D6B]">Apellido:</span>{" "}
-              {selectedGraduado.apellido}
+              <span className="text-[#BF8D6B]">Apellido:</span> {selectedGraduado.apellido}
             </p>
           </div>
         )}
@@ -164,6 +178,18 @@ export default function BuyerInfoForm({ eventIdFromParams }) {
           </button>
         </div>
       </div>
+
+      {/* Modal */}
+      {showGraduadoModal && (
+        <GraduadoCrearModal
+          eventId={eventId}
+          onClose={() => {
+            setShowGraduadoModal(false);
+            setShouldRefreshGraduados(true); // Flag para refrescar la lista
+          }}
+          onSave={agregarGraduado} 
+        />
+      )}
     </main>
   );
 }
