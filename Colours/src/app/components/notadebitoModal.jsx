@@ -230,7 +230,7 @@ export default function NotaDebitoModal({ orden, onClose, onSuccess }) {
         cuotas: cuotasSeleccionadas,
         cambios: [
           {
-            entradaId: selectedEntrada, // This should be the main entrada ID
+            entradaId: selectedEntrada, 
             quitar: itemsAQuitar,
             agregar: itemsAAgregar,
           },
