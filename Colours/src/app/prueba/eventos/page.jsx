@@ -150,38 +150,33 @@ export default function Eventos() {
       fetchEventos(filterMode, setEventos, setLoading, setError)
     }
   }
+const handleCompareContract = async (eventoId) => {
+  setLoadingCompare(true)
+  try {
+    const response = await fetch(`${API_URL}/api/contrato/compare`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventoId }),
+    })
 
-  const handleCompareContract = async (eventoId) => {
-    setLoadingCompare(true)
-    try {
-      const response = await fetch(`${API_URL}/api/contrato/compare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          eventoId: eventoId,
-        }),
-      })
+    const result = await response.json() // 👈 leer siempre
 
-      if (!response.ok) {
-        throw new Error("Error al obtener la comparación del contrato")
-      }
-
-      const result = await response.json()
-      setCompareData(result.data)
-      setShowCompareModal(true)
-    } catch (error) {
-      console.error("Error comparing contract:", error)
-      Swal.fire({
-        title: "Error",
-        text: "No se pudo obtener la comparación del contrato",
-        icon: "error",
-      })
-    } finally {
-      setLoadingCompare(false)
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Error al obtener la comparación del contrato")
     }
+
+    setCompareData(result.data)
+    setShowCompareModal(true)
+  } catch (error) {
+    Swal.fire({
+      title: "Error",
+      text: error.message,
+      icon: "error",
+    })
+  } finally {
+    setLoadingCompare(false)
   }
+}
 
   const totalPages = Math.ceil(eventosFiltrados.length / itemsPerPage)
   const currentItems = eventosFiltrados.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
