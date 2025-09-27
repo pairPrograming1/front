@@ -2,41 +2,39 @@
 
 import { useState, useEffect } from "react";
 import {
-  X,
   Plus,
-  Check,
-  AlertCircle,
   Edit,
   Trash2,
   DollarSign,
   UserCheck,
+  AlertCircle,
+  Check,
 } from "lucide-react";
 import Swal from "sweetalert2";
-import EventoDetalles from "./EventoDetalles";
-import FormularioPrincipal from "./FormularioPrincipal";
-import SubtiposManager from "./SubtiposManager";
+import EntradasModal from "./entradas-modal";
+import EntradaModal from "./EntradaModal";
+import SubtipoForm from "../componentes-evento-editar-modal/SubtipoForm";
 
 export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
-  const [showModal, setShowModal] = useState(false);
-  const [entradaSeleccionada, setEntradaSeleccionada] = useState(null);
-  const [formData, setFormData] = useState({
-    tipo_entrada: "",
-    descripcion: "",
-    precio: "",
-    cantidad_total: evento.capacidad || 0,
-    fecha_inicio_venta: "",
-    fecha_fin_venta: "",
-    estatus: "disponible",
-    subtipos: [],
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [remainingCapacity, setRemainingCapacity] = useState(
-    evento.capacidad || 0
-  );
   const [entradas, setEntradas] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState(null);
+  const [showAddEntradaModal, setShowAddEntradaModal] = useState(false);
+  const [showEditEntradaModal, setShowEditEntradaModal] = useState(false);
+  const [entradaSeleccionada, setEntradaSeleccionada] = useState(null);
+  const [showSubtipoForm, setShowSubtipoForm] = useState(false);
+  const [subtipoEntradaId, setSubtipoEntradaId] = useState(null);
+  const [currentSubtipo, setCurrentSubtipo] = useState({
+    id: null,
+    nombre: "",
+    descripcion: "",
+    precio: "",
+    cantidad_disponible: "",
+    edad_minima: "",
+    edad_maxima: "",
+    requiere_documentacion: false,
+  });
+  const [isEditingSubtipo, setIsEditingSubtipo] = useState(false);
 
   useEffect(() => {
     if (evento?.id) {
@@ -44,71 +42,15 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
     }
   }, [evento?.id]);
 
-  useEffect(() => {
-    if (!entradaSeleccionada) {
-      // Create mode
-      const fetchRemaining = async () => {
-        try {
-          const response = await fetch(`${API_URL}/api/entrada/${evento.id}`);
-          if (!response.ok) throw new Error("Error fetching entries");
-          const { data } = await response.json();
-          const totalUsed = data.reduce((sum, e) => sum + e.cantidad_total, 0);
-          setRemainingCapacity((evento.capacidad || 0) - totalUsed);
-          setFormData((prev) => ({
-            ...prev,
-            cantidad_total: (evento.capacidad || 0) - totalUsed,
-            tipo_entrada: "",
-            descripcion: "",
-            precio: "",
-            fecha_inicio_venta: "",
-            fecha_fin_venta: "",
-            estatus: "disponible",
-            subtipos: [],
-          }));
-        } catch (err) {
-          setError("Error calculating remaining capacity: " + err.message);
-        }
-      };
-      fetchRemaining();
-    } else {
-      // Edit mode
-      setFormData({
-        tipo_entrada: entradaSeleccionada.tipo_entrada || "",
-        descripcion: entradaSeleccionada.descripcion || "",
-        precio: parseFloat(entradaSeleccionada.precio) || "",
-        cantidad_total:
-          entradaSeleccionada.cantidad_total || evento.capacidad || 0,
-        fecha_inicio_venta: entradaSeleccionada.fecha_inicio_venta || "",
-        fecha_fin_venta: entradaSeleccionada.fecha_fin_venta || "",
-        estatus: entradaSeleccionada.estatus || "disponible",
-        subtipos: entradaSeleccionada.subtipos || [],
-      });
-      const fetchRemaining = async () => {
-        try {
-          const response = await fetch(`${API_URL}/api/entrada/${evento.id}`);
-          if (!response.ok) throw new Error("Error fetching entries");
-          const { data } = await response.json();
-          const totalOthers = data.reduce(
-            (sum, e) =>
-              e.id !== entradaSeleccionada.id ? sum + e.cantidad_total : sum,
-            0
-          );
-          setRemainingCapacity((evento.capacidad || 0) - totalOthers);
-        } catch (err) {
-          setError("Error calculating remaining capacity: " + err.message);
-        }
-      };
-      fetchRemaining();
-    }
-  }, [entradaSeleccionada, evento.id, evento.capacidad, API_URL]);
-
   const fetchEntradas = async () => {
     setLoadingEntradas(true);
     setErrorEntradas(null);
     try {
       const res = await fetch(`${API_URL}/api/entrada/${evento.id}`);
       if (!res.ok) throw new Error("No se pudieron obtener las entradas");
+
       const data = await res.json();
+
       if (data.success && data.data) {
         setEntradas(data.data);
       } else if (Array.isArray(data)) {
@@ -199,159 +141,46 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
     }
   };
 
-  const handleAgregarSubtipo = (entradaId) => {
-    // Open modal with existing entry data for adding a subtipo
-    const entrada = entradas.find((e) => e.id === entradaId);
+  const handleEditarEntrada = (entrada) => {
     setEntradaSeleccionada(entrada);
-    setShowModal(true);
+    setShowEditEntradaModal(true);
+  };
+
+  const handleAgregarSubtipo = (entradaId) => {
+    setSubtipoEntradaId(entradaId);
+    setShowSubtipoForm(true);
+    setIsEditingSubtipo(false);
+    setCurrentSubtipo({
+      id: null,
+      nombre: "",
+      descripcion: "",
+      precio: "",
+      cantidad_disponible: "",
+      edad_minima: "",
+      edad_maxima: "",
+      requiere_documentacion: false,
+    });
   };
 
   const handleEditarSubtipo = (entradaId, subtipo) => {
-    // Open modal with existing entry data for editing a subtipo
-    const entrada = entradas.find((e) => e.id === entradaId);
-    setEntradaSeleccionada(entrada);
-    setFormData((prev) => ({
-      ...prev,
-      subtipos: prev.subtipos.map((s) =>
-        s.id === subtipo.id ? { ...subtipo } : s
-      ),
-    }));
-    setShowModal(true);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === "checkbox" ? checked : value,
+    setSubtipoEntradaId(entradaId);
+    setShowSubtipoForm(true);
+    setIsEditingSubtipo(true);
+    setCurrentSubtipo({
+      id: subtipo.id,
+      nombre: subtipo.nombre || "",
+      descripcion: subtipo.descripcion || "",
+      precio: subtipo.precio !== undefined ? subtipo.precio.toString() : "",
+      cantidad_disponible:
+        subtipo.cantidad_disponible !== undefined
+          ? subtipo.cantidad_disponible.toString()
+          : "",
+      edad_minima:
+        subtipo.edad_minima !== undefined ? subtipo.edad_minima.toString() : "",
+      edad_maxima:
+        subtipo.edad_maxima !== undefined ? subtipo.edad_maxima.toString() : "",
+      requiere_documentacion: subtipo.requiere_documentacion || false,
     });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validaciones
-    if (!formData.tipo_entrada.trim()) {
-      setError("El tipo de entrada es obligatorio");
-      return;
-    }
-
-    if (!formData.cantidad_total || formData.cantidad_total <= 0) {
-      setError("La cantidad total debe ser mayor que cero");
-      return;
-    }
-
-    if (formData.cantidad_total > remainingCapacity) {
-      setError(
-        `La cantidad total no puede exceder el disponible: ${remainingCapacity}`
-      );
-      return;
-    }
-
-    // Validar que la suma de subtipos no exceda la cantidad total
-    const totalSubtipos = formData.subtipos.reduce(
-      (total, subtipo) => total + parseInt(subtipo.cantidad_disponible || 0),
-      0
-    );
-
-    if (totalSubtipos > formData.cantidad_total) {
-      setError(
-        `La suma de los subtipos (${totalSubtipos}) excede la cantidad total (${formData.cantidad_total})`
-      );
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const entradaData = {
-        tipo_entrada: formData.tipo_entrada,
-        descripcion: formData.descripcion,
-        precio: parseFloat(formData.precio) || null,
-        cantidad_total: parseInt(formData.cantidad_total),
-        fecha_inicio_venta: formData.fecha_inicio_venta || null,
-        fecha_fin_venta: formData.fecha_fin_venta || null,
-        estatus: formData.estatus,
-        eventoId: evento.id,
-        subtipos: formData.subtipos,
-      };
-
-      if (entradaSeleccionada) {
-        entradaData.id = entradaSeleccionada.id;
-      }
-
-      const response = await fetch(`${API_URL}/api/entrada/`, {
-        method: entradaSeleccionada ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(entradaData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al guardar la entrada");
-      }
-
-      const result = await response.json();
-
-      Swal.fire({
-        title: entradaSeleccionada
-          ? "¡Entrada Actualizada!"
-          : "¡Entradas Creadas!",
-        text:
-          result.message ||
-          (entradaSeleccionada
-            ? "El tipo de entrada ha sido actualizado correctamente."
-            : "El tipo de entrada ha sido creado correctamente."),
-        icon: "success",
-        confirmButtonText: "Aceptar",
-        confirmButtonColor: "#BF8D6B",
-        timer: 3000,
-        timerProgressBar: true,
-      });
-
-      setShowModal(false);
-      setEntradaSeleccionada(null);
-      fetchEntradas();
-    } catch (err) {
-      console.error("Error al guardar entrada:", err);
-      setError(err.message || "No se pudo guardar la entrada");
-
-      Swal.fire({
-        title: "Error",
-        text:
-          err.message ||
-          "No se pudieron guardar las entradas. Intente nuevamente.",
-        icon: "error",
-        confirmButtonText: "Entendido",
-        confirmButtonColor: "#b91c1c",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setEntradaSeleccionada(null);
-    setFormData({
-      tipo_entrada: "",
-      descripcion: "",
-      precio: "",
-      cantidad_total: evento.capacidad || 0,
-      fecha_inicio_venta: "",
-      fecha_fin_venta: "",
-      estatus: "disponible",
-      subtipos: [],
-    });
-    setError(null);
-  };
-
-  const handleEditarEntrada = (entrada) => {
-    setEntradaSeleccionada(entrada);
-    setShowModal(true);
   };
 
   return (
@@ -362,10 +191,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
 
       <div className="mb-3">
         <button
-          onClick={() => {
-            setEntradaSeleccionada(null);
-            setShowModal(true);
-          }}
+          onClick={() => setShowAddEntradaModal(true)}
           className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
         >
           <Plus className="h-3 w-3" />
@@ -430,7 +256,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                     <div>
                       <span className="text-gray-400">Disponible: </span>
                       <span className="text-white">
-                        {entrada.cantidad_real || entrada.cantidad_total}
+                        {entrada.cantidad_real}
                       </span>
                     </div>
                     <div>
@@ -452,8 +278,8 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                                 ? `$${minPrecio}`
                                 : `$${minPrecio} - $${maxPrecio}`;
                             })()
-                          : entrada.precio
-                          ? `$${entrada.precio}`
+                          : entrada.resumen.precio
+                          ? `$${entrada.resumen.precio}`
                           : "N/A"}
                       </span>
                     </div>
@@ -503,7 +329,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                                   </div>
                                 )}
                               </div>
-                              {/* <div className="flex gap-1">
+                              <div className="flex gap-1">
                                 <button
                                   className="text-blue-400 hover:text-blue-300"
                                   onClick={() =>
@@ -525,7 +351,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
-                              </div> */}
+                              </div>
                             </div>
                             <div className="grid grid-cols-2 gap-1 mt-2">
                               <div className="flex items-center gap-1">
@@ -571,6 +397,16 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
                       </div>
                     </div>
                   )}
+
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => handleAgregarSubtipo(entrada.id)}
+                      className="px-2 py-1 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span>Agregar Subtipo</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -582,69 +418,19 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
         </>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="bg-[#1a1a1a] rounded-lg p-3 md:p-4 w-full max-w-xs md:max-w-3xl max-h-[95vh] overflow-y-auto shadow-lg">
-            <div className="flex justify-between items-center mb-3 md:mb-3">
-              <h2 className="text-base md:text-lg font-bold text-white">
-                {entradaSeleccionada
-                  ? "Editar Tipo de Entrada"
-                  : "Crear Tipo de Entrada"}
-              </h2>
-              <button
-                onClick={handleCloseModal}
-                className="text-gray-400 hover:text-white p-1 md:p-0"
-                aria-label="Cerrar"
-              >
-                <X className="h-4 w-4 md:h-5 md:w-5" />
-              </button>
-            </div>
-
-            <EventoDetalles evento={evento} />
-
-            {error && (
-              <div className="p-2 md:p-2 bg-red-900/50 text-red-300 text-xs md:text-sm rounded border border-red-700 mb-3 md:mb-3 flex items-start">
-                <AlertCircle className="h-3 w-3 md:h-4 md:w-4 mr-1 mt-0.5 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <FormularioPrincipal
-                formData={formData}
-                handleChange={handleChange}
-                evento={{ ...evento, remainingCapacity }}
-              />
-
-              <SubtiposManager
-                formData={formData}
-                setFormData={setFormData}
-                evento={evento}
-              />
-
-              <div className="pt-4 border-t border-[#BF8D6B]">
-                <button
-                  type="submit"
-                  className="w-full font-bold py-2 md:py-2 px-2 rounded bg-[#BF8D6B] text-white text-xs md:text-sm flex items-center justify-center gap-2"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    "Guardando..."
-                  ) : (
-                    <>
-                      <Check className="h-3 w-3 md:h-4 md:w-4" />
-                      <span>
-                        {entradaSeleccionada
-                          ? "Actualizar Tipo de Entrada"
-                          : "Crear Tipo de Entrada"}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {showSubtipoForm && (
+        <SubtipoForm
+          currentSubtipo={currentSubtipo}
+          setCurrentSubtipo={setCurrentSubtipo}
+          subtipoEntradaId={subtipoEntradaId}
+          isEditingSubtipo={isEditingSubtipo}
+          setShowSubtipoForm={setShowSubtipoForm}
+          loadingEntradas={loadingEntradas}
+          errorEntradas={errorEntradas}
+          setErrorEntradas={setErrorEntradas}
+          fetchEntradas={fetchEntradas}
+          API_URL={API_URL}
+        />
       )}
 
       <div className="flex justify-end mt-3">
@@ -656,6 +442,32 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
           Volver
         </button>
       </div>
+
+      {showAddEntradaModal && (
+        <EntradasModal
+          onClose={() => {
+            setShowAddEntradaModal(false);
+            setEntradaSeleccionada(null);
+          }}
+          entrada={null}
+          evento={evento}
+          API_URL={API_URL}
+          fetchEntradas={fetchEntradas}
+        />
+      )}
+
+      {showEditEntradaModal && (
+        <EntradaModal
+          onClose={() => {
+            setShowEditEntradaModal(false);
+            setEntradaSeleccionada(null);
+          }}
+          entrada={entradaSeleccionada}
+          evento={evento}
+          API_URL={API_URL}
+          fetchEntradas={fetchEntradas}
+        />
+      )}
     </div>
   );
 }
