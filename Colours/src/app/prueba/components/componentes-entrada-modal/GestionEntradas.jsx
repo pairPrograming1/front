@@ -19,8 +19,8 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
   const [entradas, setEntradas] = useState([]);
   const [loadingEntradas, setLoadingEntradas] = useState(false);
   const [errorEntradas, setErrorEntradas] = useState(null);
-  const [showAddEntradaModal, setShowAddEntradaModal] = useState(false); // New state for add modal
-  const [showEditEntradaModal, setShowEditEntradaModal] = useState(false); // New state for edit modal
+  const [showAddEntradaModal, setShowAddEntradaModal] = useState(false);
+  const [showEditEntradaModal, setShowEditEntradaModal] = useState(false);
   const [entradaSeleccionada, setEntradaSeleccionada] = useState(null);
   const [showSubtipoForm, setShowSubtipoForm] = useState(false);
   const [subtipoEntradaId, setSubtipoEntradaId] = useState(null);
@@ -143,7 +143,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
 
   const handleEditarEntrada = (entrada) => {
     setEntradaSeleccionada(entrada);
-    setShowEditEntradaModal(true); // Trigger edit modal
+    setShowEditEntradaModal(true);
   };
 
   const handleAgregarSubtipo = (entradaId) => {
@@ -191,7 +191,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
 
       <div className="mb-3">
         <button
-          onClick={() => setShowAddEntradaModal(true)} // Trigger add modal
+          onClick={() => setShowAddEntradaModal(true)}
           className="px-3 py-2 bg-[#BF8D6B] hover:bg-[#a67454] text-white rounded text-xs flex items-center gap-1"
         >
           <Plus className="h-3 w-3" />
@@ -449,7 +449,7 @@ export default function GestionEntradas({ evento, API_URL, setActiveTab }) {
             setShowAddEntradaModal(false);
             setEntradaSeleccionada(null);
           }}
-          entrada={null} // No entrada selected for adding
+          entrada={null}
           evento={evento}
           API_URL={API_URL}
           fetchEntradas={fetchEntradas}
