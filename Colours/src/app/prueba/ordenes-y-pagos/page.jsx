@@ -1,15 +1,30 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Search, Download, Eye, Trash } from "lucide-react" // Importar Trash
-import Swal from "sweetalert2" // Importar SweetAlert2
+import { Search, Download, Eye, Trash, ChevronDown, ChevronUp, X, Calculator } from "lucide-react"
+import Swal from "sweetalert2"
 import Header from "../components/header"
 import OrdenDetalleModal from "@/app/components/entradas/ordenDetalleModal"
 import apiUrls from "@/app/components/utils/apiConfig"
 import useUserRoleFromLocalStorage from "@/app/components/hook/userRoleFromLocalstorage"
-import { downloadCSV } from "@/app/components/utils/csvExporter" // Importar downloadCSV
+import { downloadCSV } from "@/app/components/utils/csvExporter"
+import NotaDebitoModal from "@/app/components/notadebitoModal"
 
 const API_URL = apiUrls
+
+const getMetodoDePago = (orden) => {
+  if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].MetodoDePago) {
+    return orden.Pagos[0].MetodoDePago.tipo_de_cobro
+  }
+  return "N/A"
+}
+
+const getCuotas = (orden) => {
+  if (orden.Pagos && orden.Pagos.length > 0 && orden.Pagos[0].cuotas) {
+    return orden.Pagos[0].cuotas + " cuotas"
+  }
+  return "1 cuota"
+}
 
 export default function OrdenesYPagos() {
   const { userRole, userId } = useUserRoleFromLocalStorage()
@@ -19,29 +34,33 @@ export default function OrdenesYPagos() {
   const [error, setError] = useState(null)
   const [selectedOrden, setSelectedOrden] = useState(null)
   const [showModal, setShowModal] = useState(false)
-
-  // Paginación
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalOrdenesCount, setTotalOrdenesCount] = useState(0)
-  const limit = 7
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [orderBy, setOrderBy] = useState("fecha_creacion")
+  const [orderDirection, setOrderDirection] = useState("DESC")
+  const [expandedMobileItems, setExpandedMobileItems] = useState(new Set())
+  const [showNotaDebitoModal, setShowNotaDebitoModal] = useState(false)
+  const [selectedOrdenForNota, setSelectedOrdenForNota] = useState(null)
 
-  // Filtros y Ordenamiento
+  const limit = 5
+
   const [filters, setFilters] = useState({
     evento: "",
     estado: "",
     salon: "",
+    fechaDesde: "",
+    fechaHasta: "",
+    metodoDePago: "",
+    cuotas: "",
   })
-  const [orderBy, setOrderBy] = useState("fecha_creacion")
-  const [orderDirection, setOrderDirection] = useState("DESC")
 
-  // Función para construir la URL con filtros y ordenamiento
   const buildApiUrl = (basePath, currentLimit, currentOffset) => {
     const queryParams = new URLSearchParams()
-    queryParams.append("limit", currentLimit)
-    queryParams.append("offset", currentOffset)
+    queryParams.append("limit", currentLimit.toString())
+    queryParams.append("offset", currentOffset.toString())
 
-    // Añadir filtros
     if (userRole === "vendor" && userId) {
       queryParams.append("userId", userId)
     }
@@ -54,16 +73,140 @@ export default function OrdenesYPagos() {
     if (filters.salon) {
       queryParams.append("salon", filters.salon)
     }
+    if (filters.fechaDesde) {
+      queryParams.append("fechaDesde", filters.fechaDesde)
+    }
+    if (filters.fechaHasta) {
+      queryParams.append("fechaHasta", filters.fechaHasta)
+    }
+    if (filters.metodoDePago) {
+      queryParams.append("metodoDePago", filters.metodoDePago)
+    }
+    if (filters.cuotas) {
+      queryParams.append("cuotas", filters.cuotas)
+    }
 
-    // Añadir ordenamiento
     queryParams.append("orderBy", orderBy)
     queryParams.append("orderDirection", orderDirection)
 
-    return `${basePath}/api/order?${queryParams.toString()}`
+    return basePath + "/api/order?" + queryParams.toString()
   }
 
-  // Fetch órdenes para la tabla paginada
-  const fetchPaginatedOrdenes = async (page = 1) => {
+  const getEventoNombre = (orden) => {
+    if (orden.DetalleDeOrdens && orden.DetalleDeOrdens.length > 0) {
+      const detalle = orden.DetalleDeOrdens[0]
+      if (detalle && detalle.Entrada && detalle.Entrada.Evento && detalle.Entrada.Evento.nombre) {
+        return detalle.Entrada.Evento.nombre
+      }
+    }
+    return "Sin evento"
+  }
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return "Sin fecha"
+    const date = new Date(fecha)
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  }
+
+  const formatMonto = (monto) => {
+    const amount = Number.parseFloat(monto || 0)
+    return (
+      "$" +
+      amount.toLocaleString("es-ES", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    )
+  }
+
+  const getRealOrderTotal = (orden) => {
+    let baseTotal = 0
+    if (orden.Pagos && orden.Pagos.length > 0) {
+      baseTotal = Number.parseFloat(orden.Pagos[0].total)
+    } else {
+      baseTotal = Number.parseFloat(orden.total)
+    }
+
+    // Sumar las notas de débito al total
+    const notasDebitoTotal = (orden.NotaDebitos || []).reduce((sum, nota) => {
+      return sum + Number.parseFloat(nota.valorTotal || 0)
+    }, 0)
+
+    return baseTotal + notasDebitoTotal
+  }
+
+  const getEstadoBadge = (estado) => {
+    if (estado === "pagado") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs border bg-green-800 text-green-200 border-green-600">
+          Pagado
+        </span>
+      )
+    }
+
+    if (estado === "pendiente") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs border bg-orange-800 text-orange-200 border-gray-700">
+          Pendiente
+        </span>
+      )
+    }
+
+    if (estado === "cancelado") {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs border bg-red-800 text-red-200 border-red-600">Cancelado</span>
+      )
+    }
+
+    return (
+      <span className="px-2 py-1 rounded-full text-xs border bg-blue-800 text-blue-200 border-blue-600">{estado}</span>
+    )
+  }
+
+  const handleRowClick = (orden) => {
+    setSelectedOrden(orden)
+    setShowModal(true)
+  }
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
+
+  const handleSort = (field) => {
+    const allowedSortFields = ["fecha_creacion", "estado", "total", "nombre_cliente", "email_cliente"]
+    if (!allowedSortFields.includes(field)) {
+      console.warn("Sorting by field " + field + " is not allowed by the backend.")
+      return
+    }
+
+    if (orderBy === field) {
+      setOrderDirection(orderDirection === "ASC" ? "DESC" : "ASC")
+    } else {
+      setOrderBy(field)
+      setOrderDirection("DESC")
+    }
+    setCurrentPage(1)
+  }
+
+  const clearAllFilters = () => {
+    setFilters({
+      evento: "",
+      estado: "",
+      salon: "",
+      fechaDesde: "",
+      fechaHasta: "",
+      metodoDePago: "",
+      cuotas: "",
+    })
+    setCurrentPage(1)
+  }
+
+  const fetchPaginatedOrdenes = async (page) => {
+    if (page === undefined) page = 1
     if (userRole === null) return
 
     try {
@@ -77,27 +220,25 @@ export default function OrdenesYPagos() {
 
       if (data.success) {
         setOrdenes(data.data.ordenes || [])
-        setTotalOrdenesCount(data.data.pagination?.total || 0)
-        setTotalPages(Math.ceil((data.data.pagination?.total || 0) / limit))
+        const total = data.data.pagination ? data.data.pagination.total : 0
+        setTotalOrdenesCount(total)
+        setTotalPages(Math.ceil(total / limit))
       } else {
-        setError("Error al cargar las órdenes: " + (data.message || "Desconocido"))
+        setError("Error al cargar las ordenes: " + (data.message || "Desconocido"))
       }
     } catch (err) {
-      setError("Error de conexión al cargar órdenes.")
+      setError("Error de conexion al cargar ordenes.")
       console.error("Error fetching paginated orders:", err)
     } finally {
       setLoading(false)
     }
   }
 
-  // Fetch todas las órdenes para el resumen y CSV
   const fetchAllOrdersForSummary = async () => {
     if (userRole === null) return
 
     try {
-      // Usar un límite alto para obtener todas las órdenes
       const url = buildApiUrl(API_URL, 10000, 0)
-
       const response = await fetch(url)
       const data = await response.json()
 
@@ -111,132 +252,38 @@ export default function OrdenesYPagos() {
     }
   }
 
-  // Obtener nombre del evento desde los detalles
-  const getEventoNombre = (orden) => {
-    if (orden.DetalleDeOrdens && orden.DetalleDeOrdens.length > 0) {
-      return orden.DetalleDeOrdens[0]?.Entrada?.Evento?.nombre || "Sin evento"
-    }
-    return "Sin evento"
-  }
-
-  // Formatear fecha
-  const formatFecha = (fecha) => {
-    if (!fecha) return "Sin fecha"
-    return new Date(fecha).toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
-  }
-
-  // Formatear monto
-  const formatMonto = (monto) => {
-    return `$${Number.parseFloat(monto || 0).toLocaleString("es-ES", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`
-  }
-
-  // Obtener el monto real de la orden (total de pago si existe, sino total de la orden)
-  const getRealOrderTotal = (orden) => {
-    if (orden.Pagos && orden.Pagos.length > 0) {
-      return orden.Pagos[0].total
-    }
-    return orden.total
-  }
-
-  // Obtener badge de estado
-  const getEstadoBadge = (estado) => {
-    switch (estado) {
-      case "pagado":
-        return (
-          <span className="px-2 py-1 rounded-full text-xs bg-green-900/50 text-green-300 border border-green-700">
-            Pagado
-          </span>
-        )
-      case "pendiente":
-        return (
-          <span className="px-2 py-1 rounded-full text-xs bg-orange-900/50 text-orange-300 border border-orange-700">
-            Pendiente
-          </span>
-        )
-      case "cancelado":
-        return (
-          <span className="px-2 py-1 rounded-full text-xs bg-red-900/50 text-red-300 border border-red-700">
-            Cancelado
-          </span>
-        )
-      default:
-        return (
-          <span className="px-2 py-1 rounded-full text-xs bg-blue-900/50 text-blue-300 border border-blue-700">
-            {estado}
-          </span>
-        )
-    }
-  }
-
-  // Manejar clic en fila
-  const handleRowClick = (orden) => {
-    setSelectedOrden(orden)
-    setShowModal(true)
-  }
-
-  // Manejar cambio de página
-  const handlePageChange = (page) => {
-    setCurrentPage(page)
-  }
-
-  // Manejar cambio de ordenamiento
-  const handleSort = (field) => {
-    const allowedSortFields = ["fecha_creacion", "estado", "total", "nombre_cliente", "email_cliente"]
-    if (!allowedSortFields.includes(field)) {
-      console.warn(`Sorting by field "${field}" is not allowed by the backend.`)
-      return
-    }
-
-    if (orderBy === field) {
-      setOrderDirection(orderDirection === "ASC" ? "DESC" : "ASC")
-    } else {
-      setOrderBy(field)
-      setOrderDirection("DESC")
-    }
-    setCurrentPage(1)
-  }
-
-  // Función para eliminar una orden
   const handleDeleteOrder = async (orderId, event) => {
-    event.stopPropagation() // Evitar que se dispare el handleRowClick
+    event.stopPropagation()
 
     const result = await Swal.fire({
-      title: "¿Estás seguro?",
-      text: "¡No podrás revertir esto!",
+      title: "Estas seguro?",
+      text: "No podras revertir esto!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#BF8D6B",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, eliminar",
+      confirmButtonText: "Si, eliminar",
       cancelButtonText: "Cancelar",
-      background: "#1F2937", // Fondo oscuro para que coincida con tu tema
-      color: "#E5E7EB", // Color de texto claro
+      background: "#1F2937",
+      color: "#E5E7EB",
     })
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`${API_URL}/api/order/${orderId}`, {
+        const response = await fetch(API_URL + "/api/order/" + orderId, {
           method: "DELETE",
         })
         const data = await response.json()
 
         if (data.success) {
           Swal.fire({
-            title: "¡Eliminada!",
+            title: "Eliminada!",
             text: data.message,
             icon: "success",
             confirmButtonColor: "#BF8D6B",
             background: "#1F2937",
             color: "#E5E7EB",
           })
-          // Recargar las órdenes después de la eliminación
           fetchPaginatedOrdenes(currentPage)
           fetchAllOrdersForSummary()
         } else {
@@ -252,7 +299,7 @@ export default function OrdenesYPagos() {
       } catch (err) {
         console.error("Error al eliminar la orden:", err)
         Swal.fire({
-          title: "Error de conexión",
+          title: "Error de conexion",
           text: "No se pudo conectar con el servidor para eliminar la orden.",
           icon: "error",
           confirmButtonColor: "#BF8D6B",
@@ -263,15 +310,33 @@ export default function OrdenesYPagos() {
     }
   }
 
-  // Calculate summary totals using useMemo for performance, based on allOrdersForSummary
-  const { totalOrdersValue, totalPaidValue, totalPendingValue, paidOrdersCount } = useMemo(() => {
+  const handleNotaDebito = (orden, event) => {
+    event.stopPropagation()
+    setSelectedOrdenForNota(orden)
+    setShowNotaDebitoModal(true)
+  }
+
+  const handleNotaDebitoSuccess = () => {
+    fetchPaginatedOrdenes(currentPage)
+    fetchAllOrdersForSummary()
+  }
+
+  const summaryData = useMemo(() => {
     let totalOrders = 0
     let totalPaid = 0
     let totalPending = 0
     let paidCount = 0
+    let totalNotasDebito = 0
+
     allOrdersForSummary.forEach((orden) => {
       const realTotal = Number.parseFloat(getRealOrderTotal(orden) || 0)
+      const notasDebitoAmount = (orden.NotaDebitos || []).reduce((sum, nota) => {
+        return sum + Number.parseFloat(nota.valorTotal || 0)
+      }, 0)
+
       totalOrders += realTotal
+      totalNotasDebito += notasDebitoAmount
+
       if (orden.estado === "pagado") {
         totalPaid += realTotal
         paidCount++
@@ -279,34 +344,45 @@ export default function OrdenesYPagos() {
         totalPending += realTotal
       }
     })
+
     return {
       totalOrdersValue: totalOrders,
       totalPaidValue: totalPaid,
       totalPendingValue: totalPending,
       paidOrdersCount: paidCount,
+      totalNotasDebitoValue: totalNotasDebito,
     }
   }, [allOrdersForSummary])
 
-  // Efecto para cargar órdenes paginadas cuando cambia la página, filtros, ordenamiento o el rol/ID del usuario
   useEffect(() => {
     if (userRole !== null) {
       fetchPaginatedOrdenes(currentPage)
     }
   }, [currentPage, userRole, userId, filters, orderBy, orderDirection])
 
-  // Efecto para cargar todas las órdenes para el resumen cuando el rol/ID del usuario se carga, o cambian filtros/ordenamiento
   useEffect(() => {
     if (userRole !== null) {
       fetchAllOrdersForSummary()
     }
   }, [userRole, userId, filters, orderBy, orderDirection])
 
+  const toggleMobileItem = (ordenId, event) => {
+    event.stopPropagation()
+    const newExpanded = new Set(expandedMobileItems)
+    if (newExpanded.has(ordenId)) {
+      newExpanded.delete(ordenId)
+    } else {
+      newExpanded.add(ordenId)
+    }
+    setExpandedMobileItems(newExpanded)
+  }
+
   if (loading && ordenes.length === 0) {
     return (
-      <div className="p-6">
-        <Header title="Órdenes y Pagos" />
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#BF8D6B]"></div>
+      <div className="p-4">
+        <Header title="Ordenes y Pagos" />
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#BF8D6B]"></div>
         </div>
       </div>
     )
@@ -314,164 +390,275 @@ export default function OrdenesYPagos() {
 
   if (userRole === null) {
     return (
-      <div className="p-6">
-        <Header title="Órdenes y Pagos" />
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#BF8D6B]"></div>
-          <p className="ml-4 text-gray-400">Cargando datos de usuario...</p>
+      <div className="p-4">
+        <Header title="Ordenes y Pagos" />
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#BF8D6B]"></div>
+          <p className="ml-3 text-gray-400 text-sm">Cargando datos de usuario...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-6">
-      <Header title="Órdenes y Pagos" />
-      {error && <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded mb-6">{error}</div>}
-      {/* Resumen Total */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4 text-center">
-          <p className="text-gray-400 mb-2">Total Órdenes</p>
-          <p className="text-2xl font-bold text-white">{formatMonto(totalOrdersValue)}</p>
-          <p className="text-sm text-gray-500">{totalOrdenesCount} órdenes</p>
+    <div className="p-4">
+      <Header title="Ordenes y Pagos" />
+      {error && (
+        <div className="p-2 bg-red-900/50 text-red-300 text-xs rounded border border-red-700 mb-4">{error}</div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+        <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
+          <p className="text-[#BF8D6B] text-xs mb-1">Total Ordenes</p>
+          <p className="text-lg font-bold text-white">{formatMonto(summaryData.totalOrdersValue)}</p>
+          <p className="text-xs text-gray-400">{totalOrdenesCount} ordenes</p>
         </div>
-        <div className="bg-[#2A2F3D] border border-[#2A2F3D] rounded-lg p-4 text-center">
-          <p className="text-gray-400 mb-2">Total Pagado</p>
-          <p className="text-2xl font-bold text-green-400">{formatMonto(totalPaidValue)}</p>
-          <p className="text-sm text-gray-500">{paidOrdersCount} pagos</p>
+        <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
+          <p className="text-[#BF8D6B] text-xs mb-1">Total Pagado</p>
+          <p className="text-lg font-bold text-green-400">{formatMonto(summaryData.totalPaidValue)}</p>
+          <p className="text-xs text-gray-400">{summaryData.paidOrdersCount} pagos</p>
         </div>
-        <div className="bg-[#2A2F3D] bg-opacity-20 border border-[#C88D6B] rounded-lg p-4 text-center">
-          <p className="text-gray-200 mb-2">Por Cobrar</p>
-          <p className="text-2xl font-bold text-[#C88D6B]">{formatMonto(totalPendingValue)}</p>
-          <p className="text-sm text-gray-300">Por cobrar</p>
+        <div className="bg-transparent border border-[#BF8D6B] rounded-lg p-3 text-center">
+          <p className="text-[#BF8D6B] text-xs mb-1">Por Cobrar</p>
+          <p className="text-lg font-bold text-orange-400">{formatMonto(summaryData.totalPendingValue)}</p>
+          <p className="text-xs text-gray-400">Por cobrar</p>
+        </div>
+        <div className="bg-transparent border border-orange-500 rounded-lg p-3 text-center">
+          <p className="text-orange-500 text-xs mb-1">Notas Débito</p>
+          <p className="text-lg font-bold text-orange-300">{formatMonto(summaryData.totalNotasDebitoValue)}</p>
+          <p className="text-xs text-gray-400">Ajustes adicionales</p>
         </div>
       </div>
-      {/* Filtros de Búsqueda */}
-      <div className="flex flex-wrap gap-2 justify-between items-center mb-6">
-        <div className="relative w-full sm:w-1/4">
-          <input
-            type="text"
-            placeholder="Buscar por evento"
-            value={filters.evento}
-            onChange={(e) => setFilters({ ...filters, evento: e.target.value })}
-            className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+
+      <div className="bg-transparent rounded-lg border border-[#BF8D6B] p-3 mb-4">
+        <div className="flex flex-wrap gap-2 justify-between items-center mb-3">
+          <div className="relative w-full sm:w-1/4">
+            <input
+              type="text"
+              placeholder="Buscar por evento"
+              value={filters.evento}
+              onChange={(e) => setFilters({ ...filters, evento: e.target.value })}
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
+            />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3" />
+          </div>
+          <div className="relative w-full sm:w-1/4">
+            <input
+              type="text"
+              placeholder="Buscar por salon"
+              value={filters.salon}
+              onChange={(e) => setFilters({ ...filters, salon: e.target.value })}
+              className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs pl-8"
+            />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-3 w-3" />
+          </div>
+     <div className="w-full sm:w-1/4">
+  <select
+    value={filters.estado}
+    onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
+    className="w-full p-2 rounded-lg border border-[#BF8D6B] text-xs bg-[#1e2330] text-white focus:outline-none focus:ring-2 focus:ring-[#BF8D6B] cursor-pointer"
+  >
+    <option value="" className="bg-[#1e2330] text-white">
+      Todos los estados
+    </option>
+    <option value="pendiente" className="bg-[#1e2330] text-white">
+      Pendiente
+    </option>
+    <option value="pagado" className="bg-[#1e2330] text-white">
+      Pagado
+    </option>
+    <option value="cancelado" className="bg-[#1e2330] text-white">
+      Cancelado
+    </option>
+  </select>
+</div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="px-3 py-1 bg-transparent text-[#BF8D6B] border border-[#BF8D6B] rounded text-xs flex items-center gap-1 transition-colors"
+            >
+              Filtros Avanzados
+              {showAdvancedFilters ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+          </div>
         </div>
-        <div className="relative w-full sm:w-1/4">
-          <input
-            type="text"
-            placeholder="Buscar por salón"
-            value={filters.salon}
-            onChange={(e) => setFilters({ ...filters, salon: e.target.value })}
-            className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        </div>
-        <div className="w-full sm:w-1/4">
-          <select
-            value={filters.estado}
-            onChange={(e) => setFilters({ ...filters, estado: e.target.value })}
-            className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
-          >
-            <option value="">Todos los estados</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="pagado">Pagado</option>
-            <option value="cancelado">Cancelado</option>
-          </select>
-        </div>
-        <div className="flex gap-2">
+
+        {showAdvancedFilters && (
+          <div className="border-t border-[#BF8D6B] pt-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+              <div className="relative">
+                <label className="block text-xs text-[#BF8D6B] mb-1">Fecha Desde</label>
+                <input
+                  type="date"
+                  value={filters.fechaDesde}
+                  onChange={(e) => setFilters({ ...filters, fechaDesde: e.target.value })}
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                />
+              </div>
+              <div className="relative">
+                <label className="block text-xs text-[#BF8D6B] mb-1">Fecha Hasta</label>
+                <input
+                  type="date"
+                  value={filters.fechaHasta}
+                  onChange={(e) => setFilters({ ...filters, fechaHasta: e.target.value })}
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] text-xs"
+                />
+              </div>
+              <div className="relative">
+                <label className="block text-xs text-[#BF8D6B] mb-1">Metodo de Pago</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Visa Santander, Mastercard"
+                  value={filters.metodoDePago}
+                  onChange={(e) => setFilters({ ...filters, metodoDePago: e.target.value })}
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                />
+              </div>
+              <div className="relative">
+                <label className="block text-xs text-[#BF8D6B] mb-1">Cuotas</label>
+                <input
+                  type="text"
+                  placeholder="Ej: 1, 3, 6, 12"
+                  value={filters.cuotas}
+                  onChange={(e) => setFilters({ ...filters, cuotas: e.target.value })}
+                  className="w-full p-2 bg-transparent text-white rounded border border-[#BF8D6B] placeholder-gray-400 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={clearAllFilters}
+                className="px-3 py-1 bg-transparent text-[#BF8D6B] border border-[#BF8D6B] rounded text-xs flex items-center gap-1 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                Limpiar Filtros
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end">
           <button
             onClick={() =>
               downloadCSV(
                 allOrdersForSummary,
-                totalOrdersValue,
-                totalPaidValue,
-                totalPendingValue,
+                summaryData.totalOrdersValue,
+                summaryData.totalPaidValue,
+                summaryData.totalPendingValue,
                 totalOrdenesCount,
-                paidOrdersCount,
+                summaryData.paidOrdersCount,
               )
             }
-            className="px-4 py-2 bg-[#BF8D6B] hover:bg-[#A67A5B] text-white rounded-lg transition-colors flex items-center gap-2"
+            className="px-3 py-1 bg-[#BF8D6B] text-white rounded text-xs flex items-center gap-1 transition-colors"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-3 w-3" />
             Descargar CSV
           </button>
         </div>
       </div>
-      {/* Tabla de Órdenes (Desktop) y Tarjetas (Mobile) */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-        {/* Vista Desktop - Tabla */}
+
+      <div className="bg-transparent rounded-lg border border-[#BF8D6B] overflow-hidden">
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-700">
+            <thead className="bg-[#BF8D6B]/20">
               <tr>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">Vendedor</th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("nombre_cliente")}
                 >
                   Cliente
                   {orderBy === "nombre_cliente" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
                 </th>
-                <th className="px-4 py-3 text-left text-white font-medium">Evento</th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">Evento</th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("fecha_creacion")}
                 >
                   Fecha
                   {orderBy === "fecha_creacion" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("total")}
                 >
                   Monto
                   {orderBy === "total" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
                 </th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">Método de Pago</th>
+                <th className="px-3 py-2 text-left text-white font-medium text-xs">Cuotas</th>
                 <th
-                  className="px-4 py-3 text-left text-white font-medium cursor-pointer"
+                  className="px-3 py-2 text-left text-white font-medium text-xs cursor-pointer"
                   onClick={() => handleSort("estado")}
                 >
                   Estado
                   {orderBy === "estado" && <span>{orderDirection === "ASC" ? " ▲" : " ▼"}</span>}
                 </th>
-                <th className="px-4 py-3 text-center text-white font-medium">Acciones</th>
+                <th className="px-3 py-2 text-center text-white font-medium text-xs">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-700">
+            <tbody className="divide-y divide-[#BF8D6B]/20">
               {ordenes.map((orden) => (
                 <tr
                   key={orden.id}
-                  className="hover:bg-gray-700/50 cursor-pointer transition-colors"
+                  className="hover:bg-[#BF8D6B]/10 cursor-pointer transition-colors"
                   onClick={() => handleRowClick(orden)}
                 >
-                  <td className="px-4 py-3 text-gray-300">
+                  <td className="px-3 py-2 text-gray-300 text-xs">
                     <div>
-                      <div className="font-medium">{orden.nombre_cliente}</div>
-                      <div className="text-sm text-gray-500">{orden.email_cliente}</div>
+                      <div className="font-medium">{orden.User?.nombre || "N/A"}</div>
+                      <div className="text-gray-500">{orden.User?.email || ""}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-300">{getEventoNombre(orden)}</td>
-                  <td className="px-4 py-3 text-gray-300">{formatFecha(orden.fecha_creacion)}</td>
-                  <td className="px-4 py-3 text-gray-300 font-medium">{formatMonto(getRealOrderTotal(orden))}</td>
-                  <td className="px-4 py-3">{getEstadoBadge(orden.estado)}</td>
-                  <td className="px-4 py-3 text-center flex items-center justify-center gap-2">
+                  <td className="px-3 py-2 text-gray-300 text-xs">
+                    <div>
+                      <div className="font-medium">{orden.nombre_cliente}</div>
+                      <div className="text-gray-500">{orden.email_cliente}</div>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">{getEventoNombre(orden)}</td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">{formatFecha(orden.fecha_creacion)}</td>
+                  <td className="px-3 py-2 text-gray-300 font-medium text-xs">
+                    <div>
+                      <div>{formatMonto(getRealOrderTotal(orden))}</div>
+                      {orden.NotaDebitos && orden.NotaDebitos.length > 0 && (
+                        <div className="text-orange-400 text-xs">
+                          +
+                          {formatMonto(
+                            orden.NotaDebitos.reduce((sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0), 0),
+                          )}{" "}
+                          ND
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">{getMetodoDePago(orden)}</td>
+                  <td className="px-3 py-2 text-gray-300 text-xs">{getCuotas(orden)}</td>
+                  <td className="px-3 py-2 text-xs">{getEstadoBadge(orden.estado)}</td>
+                  <td className="px-3 py-2 text-center flex items-center justify-center gap-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleRowClick(orden)
                       }}
-                      className="text-[#BF8D6B] hover:text-[#A67A5B] transition-colors p-1 rounded-md" // Añadido padding y rounded
+                      className="text-[#BF8D6B] hover:text-[#a67454] transition-colors p-1 rounded"
                       title="Ver detalles"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={(e) => handleNotaDebito(orden, e)}
+                      className="text-blue-400 hover:text-blue-300 transition-colors p-1 rounded"
+                      title="Nota de débito"
+                    >
+                      <Calculator className="h-3 w-3" />
                     </button>
                     <button
                       onClick={(e) => handleDeleteOrder(orden.id, e)}
-                      className="text-red-500 hover:text-red-400 transition-colors p-1 rounded-md" // Añadido padding y rounded
+                      className="text-red-400 hover:text-red-300 transition-colors p-1 rounded"
                       title="Eliminar orden"
                     >
-                      <Trash className="h-4 w-4" />
+                      <Trash className="h-3 w-3" />
                     </button>
                   </td>
                 </tr>
@@ -479,102 +666,190 @@ export default function OrdenesYPagos() {
             </tbody>
           </table>
         </div>
-        {/* Vista Mobile - Tarjetas */}
-        <div className="md:hidden divide-y divide-gray-700">
-          {ordenes.map((orden) => (
-            <div
-              key={orden.id}
-              className="p-4 hover:bg-gray-700/50 cursor-pointer transition-colors"
-              onClick={() => handleRowClick(orden)}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-mono text-sm text-gray-400">Vendedor: {orden.User?.nombre || "N/A"}</div>
-                <div>{getEstadoBadge(orden.estado)}</div>
-              </div>
-              <div className="mb-2">
-                <div className="font-medium text-white">{getEventoNombre(orden)}</div>
-                <div className="text-sm text-gray-400">{formatFecha(orden.fecha_creacion)}</div>
-              </div>
-              {/* Sección de Cliente y Monto - Ajustes para responsive */}
-              <div className="flex justify-between items-center">
-                <div className="flex-1 min-w-0 pr-2">
-                  {" "}
-                  {/* Permite que este div crezca y trunque */}
-                  <div className="text-sm text-gray-400 truncate">{orden.nombre_cliente}</div> {/* Truncar nombre */}
-                  <div className="text-xs text-gray-500 truncate">{orden.email_cliente}</div> {/* Truncar email */}
+
+        <div className="md:hidden">
+          <div className="space-y-2">
+            {ordenes.map((orden) => {
+              const isExpanded = expandedMobileItems.has(orden.id)
+              return (
+                <div key={orden.id} className="bg-transparent rounded border border-[#BF8D6B] overflow-hidden">
+                  <div className="p-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-white text-xs truncate">{getEventoNombre(orden)}</div>
+                        <div className="text-gray-400 text-xs mt-1">
+                          {orden.User?.nombre || "N/A"} • {formatFecha(orden.fecha_creacion)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 ml-2">
+                        {getEstadoBadge(orden.estado)}
+                        <button
+                          onClick={(e) => toggleMobileItem(orden.id, e)}
+                          className="p-1 text-[#BF8D6B] hover:text-[#a67454] transition-colors"
+                        >
+                          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="text-gray-300 text-xs truncate">{orden.nombre_cliente}</div>
+                      <div className="text-right">
+                        <div className="text-white font-medium text-xs">{formatMonto(getRealOrderTotal(orden))}</div>
+                        {orden.NotaDebitos && orden.NotaDebitos.length > 0 && (
+                          <div className="text-orange-400 text-xs">
+                            +
+                            {formatMonto(
+                              orden.NotaDebitos.reduce((sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0), 0),
+                            )}{" "}
+                            ND
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="border-t border-[#BF8D6B] p-3 bg-[#BF8D6B]/10">
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-[#BF8D6B]">Cliente:</span>
+                            <div className="text-white">{orden.nombre_cliente}</div>
+                            <div className="text-gray-400">{orden.email_cliente}</div>
+                          </div>
+                          <div>
+                            <span className="text-[#BF8D6B]">Vendedor:</span>
+                            <div className="text-white">{orden.User?.nombre || "N/A"}</div>
+                            <div className="text-gray-400">{orden.User?.email || ""}</div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-[#BF8D6B]">Método de Pago:</span>
+                            <div className="text-white">{getMetodoDePago(orden)}</div>
+                          </div>
+                          <div>
+                            <span className="text-[#BF8D6B]">Cuotas:</span>
+                            <div className="text-white">{getCuotas(orden)}</div>
+                          </div>
+                        </div>
+
+                        {orden.NotaDebitos && orden.NotaDebitos.length > 0 && (
+                          <div className="text-xs">
+                            <span className="text-[#BF8D6B]">Notas de Débito:</span>
+                            <div className="text-orange-300">
+                              {orden.NotaDebitos.length} nota(s) - Total:{" "}
+                              {formatMonto(
+                                orden.NotaDebitos.reduce(
+                                  (sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0),
+                                  0,
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-end gap-1 pt-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRowClick(orden)
+                            }}
+                            className="px-2 py-1 bg-[#BF8D6B] text-white rounded text-xs flex items-center gap-1 transition-colors"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Ver
+                          </button>
+                          <button
+                            onClick={(e) => handleNotaDebito(orden, e)}
+                            className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs flex items-center gap-1 transition-colors"
+                          >
+                            <Calculator className="h-3 w-3" />
+                            Nota
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteOrder(orden.id, e)}
+                            className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs flex items-center gap-1 transition-colors"
+                          >
+                            <Trash className="h-3 w-3" />
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="text-white font-medium flex-shrink-0">
-                  {" "}
-                  {/* Evita que el monto se encoja */}
-                  {formatMonto(getRealOrderTotal(orden))}
-                </div>
-              </div>
-              <div className="mt-3 flex justify-end gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleRowClick(orden)
-                  }}
-                  className="p-2 bg-[#BF8D6B] hover:bg-[#A67A5B] text-white rounded-lg transition-colors flex items-center justify-center" // Botón más compacto
-                  title="Ver detalles"
-                >
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => handleDeleteOrder(orden.id, e)}
-                  className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors flex items-center justify-center" // Botón más compacto
-                  title="Eliminar orden"
-                >
-                  <Trash className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+              )
+            })}
+          </div>
         </div>
+
         {ordenes.length === 0 && !loading && (
-          <div className="text-center py-12 text-gray-400">No se encontraron órdenes</div>
+          <div className="text-center py-6 text-gray-400 text-sm">No se encontraron ordenes</div>
         )}
       </div>
-      {/* Paginación */}
+
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6">
+        <div className="flex justify-center items-center gap-2 mt-4">
           <button
             onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
+            className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#BF8D6B]/10 transition-colors"
           >
             Anterior
           </button>
-          {/* Se muestran todos los números de página */}
-          {Array.from({ length: totalPages }, (_, i) => {
-            const page = i + 1
-            return (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-2 rounded-lg transition-colors ${
-                  currentPage === page ? "bg-[#BF8D6B] text-white" : "bg-gray-700 text-white hover:bg-gray-600"
-                }`}
-              >
-                {page}
-              </button>
-            )
-          })}
+
+          {currentPage > 1 && (
+            <button
+              onClick={() => handlePageChange(1)}
+              className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs hover:bg-[#BF8D6B]/10 transition-colors"
+            >
+              1
+            </button>
+          )}
+
+          {currentPage > 2 && <span className="px-1 text-[#BF8D6B] text-xs">...</span>}
+
+          <button
+            onClick={() => handlePageChange(currentPage)}
+            className="px-2 py-1 bg-[#BF8D6B] text-white rounded text-xs"
+          >
+            {currentPage}
+          </button>
+
+          {currentPage < totalPages - 1 && <span className="px-1 text-[#BF8D6B] text-xs">...</span>}
+
+          {currentPage < totalPages && (
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs hover:bg-[#BF8D6B]/10 transition-colors"
+            >
+              {totalPages}
+            </button>
+          )}
+
           <button
             onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 py-2 bg-gray-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-600 transition-colors"
+            className="px-2 py-1 bg-transparent text-white border border-[#BF8D6B] rounded text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#BF8D6B]/10 transition-colors"
           >
             Siguiente
           </button>
         </div>
       )}
-      {/* Modal de Detalle */}
-      {showModal && selectedOrden && (
-        <div>
-          <OrdenDetalleModal orden={selectedOrden} onClose={() => setShowModal(false)} />
-        </div>
+
+      {showModal && selectedOrden && <OrdenDetalleModal orden={selectedOrden} onClose={() => setShowModal(false)} />}
+
+      {showNotaDebitoModal && selectedOrdenForNota && (
+        <NotaDebitoModal
+          orden={selectedOrdenForNota}
+          onClose={() => setShowNotaDebitoModal(false)}
+          onSuccess={handleNotaDebitoSuccess}
+        />
       )}
     </div>
   )
 }
+

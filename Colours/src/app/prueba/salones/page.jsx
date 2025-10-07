@@ -1,186 +1,87 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Search,
-  Plus,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  Trash2,
-  Power,
-  Archive,
-  Edit,
-  ChevronDown,
-  ChevronUp,
-  ListFilter,
-  Info,
-  X,
-} from "lucide-react";
-import SalonModal from "../components/salon-modal";
-import SalonEditarModal from "../components/salon-editar-modal";
 import Header from "../components/header";
-import UploadImageModal from "../components/upload-image-modal"; // Importa el nuevo modal
+import SalonModal from "../components/componentes-salon-modal/salon-modal";
+import SalonEditarModal from "../components/componente-salon-editar-modal/salon-editar-modal";
+import UploadImageModal from "../components/cloudinary/upload-image-modal";
 import Swal from "sweetalert2";
 import apiUrls from "@/app/components/utils/apiConfig";
+
+// Hooks personalizados
+import { useSalonesData } from "./hook/useSalonesData";
+import { useSalonesFilters } from "./hook/useSalonesFilters";
+import { useSalonesSelection } from "./hook/useSalonesSelection";
+
+// Componentes
+import SalonesFilters from "../components/componentes-salones/SalonesFilters";
+import SalonesTable from "../components/componentes-salones/SalonesTable";
+import SalonesMobileList from "../components/componentes-salones/SalonesMobileList";
+import SalonesPagination from "../components/componentes-salones/SalonesPagination";
+import SalonDetailModal from "../components/componentes-salones/SalonDetailModal";
 
 const API_URL = apiUrls;
 
 export default function Salones() {
+  // Estados
   const [showModal, setShowModal] = useState(false);
-  const [allSalones, setAllSalones] = useState([]); // Store all fetched salones
-  const [filteredSalones, setFilteredSalones] = useState([]); // Store filtered salones for display
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState("active"); // Options: "active", "inactive", "all"
   const [salonAEditar, setSalonAEditar] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedSalon, setExpandedSalon] = useState(null);
-  const [selectedSalones, setSelectedSalones] = useState([]);
-  const [showUploadModal, setShowUploadModal] = useState(false); // Estado para el modal de carga de imágenes
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [salonDetalle, setSalonDetalle] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  const itemsPerPage = 10;
+  // Hooks personalizados
+  const {
+    allSalones,
+    filteredSalones,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    setCurrentPage,
+    setFilteredSalones,
+    fetchSalones,
+    refreshSalones,
+    removeAccents,
+  } = useSalonesData();
 
-  const removeAccents = (str) => {
-    return str?.normalize("NFD").replace(/[\u0300-\u036f]/g, "") || "";
-  };
+  const {
+    searchTerm,
+    filterMode,
+    showFilters,
+    setSearchTerm,
+    setFilterMode,
+    setShowFilters,
+    applyFilters,
+    handleSearch,
+    handleFilterChange,
+  } = useSalonesFilters(removeAccents);
 
-  const fetchSalones = async (pageNum = 1, limitNum = 10, search = "") => {
-    try {
-      setLoading(true);
+  const {
+    selectedSalones,
+    toggleSalonSelection,
+    toggleAllSelection,
+    clearSelection,
+  } = useSalonesSelection();
 
-      // Fetch all salones to ensure we have complete data for filtering
-      let url = `${API_URL}/api/salon?page=${pageNum}&limit=100`; // Fetch more to ensure we have all data
-
-      // Add search parameter if provided
-      if (search) {
-        url += `&search=${encodeURIComponent(search)}`;
-      }
-
-      // Always include all salones (active and inactive) in the fetch
-      url += "&includeAll=true";
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("fetchSalones data:", data); // <-- Mostrar datos por consola
-      let salonesData = [];
-
-      // Handle different response formats
-      if (data.pagination) {
-        salonesData = Array.isArray(data.data) ? data.data : [];
-        setTotalPages(data.pagination.totalPages);
-        setCurrentPage(data.pagination.page);
-      } else {
-        salonesData = Array.isArray(data)
-          ? data
-          : data.data
-          ? data.data
-          : data.salones
-          ? data.salones
-          : [data];
-
-        // Calculate pagination manually
-        setTotalPages(Math.ceil(salonesData.length / limitNum));
-      }
-
-      // Store all fetched salones
-      setAllSalones(salonesData);
-
-      // Apply filters
-      applyFilters(salonesData, search, filterMode);
-    } catch (err) {
-      setError(err.message);
-      setAllSalones([]);
-      setFilteredSalones([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function to apply filters to the data
-  const applyFilters = (salones, search = searchTerm, mode = filterMode) => {
-    let filtered = [...salones];
-
-    // Apply search filter if provided
-    if (search) {
-      const searchLower = removeAccents(search.toLowerCase());
-      filtered = filtered.filter((salon) => {
-        const nombre = removeAccents(
-          (salon.salon || salon.nombre || "").toLowerCase()
-        );
-        const contacto = removeAccents((salon.contacto || "").toLowerCase());
-        const email = removeAccents((salon.email || "").toLowerCase());
-        const whatsapp = (salon.whatsapp || "").toLowerCase();
-        const cuit = (salon.cuit || "").toLowerCase();
-
-        return (
-          nombre.includes(searchLower) ||
-          contacto.includes(searchLower) ||
-          email.includes(searchLower) ||
-          whatsapp.includes(searchLower) ||
-          cuit.includes(searchLower)
-        );
-      });
-    }
-
-    // Apply status filter
-    if (mode === "active") {
-      filtered = filtered.filter(
-        (salon) =>
-          salon.isActive === true ||
-          salon.estatus === true ||
-          salon.activo === true
-      );
-    } else if (mode === "inactive") {
-      filtered = filtered.filter(
-        (salon) =>
-          salon.isActive === false ||
-          salon.estatus === false ||
-          salon.activo === false
-      );
-    }
-
-    // Update filtered salones
-    setFilteredSalones(filtered);
-
-    // Reset selected salones when filters change
-    setSelectedSalones([]);
-  };
-
+  // Efectos
   useEffect(() => {
     fetchSalones(currentPage, itemsPerPage, searchTerm);
-  }, []);
+  }, [fetchSalones, currentPage, itemsPerPage, searchTerm]);
 
-  // Apply filters when filter mode changes
   useEffect(() => {
     if (allSalones.length > 0) {
-      applyFilters(allSalones);
+      const filtered = applyFilters(allSalones, searchTerm, filterMode);
+      setFilteredSalones(filtered);
     }
-  }, [filterMode]);
+  }, [allSalones, searchTerm, filterMode, applyFilters, setFilteredSalones]);
 
-  const refreshSalones = async () => {
-    await fetchSalones(currentPage, itemsPerPage, searchTerm);
-  };
-
+  // Handlers
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-
-    // Calculate pagination for filtered results
-    const startIndex = (newPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-
-    // No need to fetch again, just update the current page
   };
 
   const handleAddSalon = async (newSalon) => {
@@ -207,7 +108,6 @@ export default function Salones() {
         text: "El salón fue creado correctamente",
       });
     } catch (error) {
-      console.error("Error:", error);
       Swal.fire({
         icon: "error",
         title: "Error al crear salón",
@@ -262,7 +162,6 @@ export default function Salones() {
         Swal.fire("Eliminado", data.message, "success");
         await refreshSalones();
       } catch (error) {
-        console.error("Error al eliminar:", error);
         Swal.fire("Error", error.message, "error");
       }
     }
@@ -303,7 +202,6 @@ export default function Salones() {
         throw new Error(data.message || `Error al ${actionText} el salón`);
       }
 
-      // Actualizar la lista en lugar de solo actualizar el estado local
       await refreshSalones();
 
       await Swal.fire({
@@ -314,41 +212,11 @@ export default function Salones() {
         showConfirmButton: false,
       });
     } catch (error) {
-      console.error("Error al cambiar estado:", error);
       Swal.fire({
         title: "Error",
         text: error.message,
         icon: "error",
       });
-    }
-  };
-
-  const handleSearch = (e) => {
-    const searchValue = e.target.value;
-    setSearchTerm(searchValue);
-    setCurrentPage(1);
-
-    // Apply filters with the new search term
-    applyFilters(allSalones, searchValue, filterMode);
-  };
-
-  const toggleSalonSelection = (id) => {
-    setSelectedSalones((prev) =>
-      prev.includes(id)
-        ? prev.filter((salonId) => salonId !== id)
-        : [...prev, id]
-    );
-  };
-
-  const toggleAllSelection = () => {
-    const currentPageItems = getCurrentPageItems();
-
-    if (selectedSalones.length === currentPageItems.length) {
-      setSelectedSalones([]);
-    } else {
-      setSelectedSalones(
-        currentPageItems.map((salon) => salon.id || salon._id || salon.Id)
-      );
     }
   };
 
@@ -413,12 +281,8 @@ export default function Salones() {
         });
 
         await refreshSalones();
-        setSelectedSalones([]);
+        clearSelection();
       } catch (err) {
-        console.error(
-          `Error al ${activate ? "activar" : "desactivar"} salones:`,
-          err
-        );
         Swal.fire({
           title: "Error",
           text: `No se pudieron ${
@@ -431,7 +295,6 @@ export default function Salones() {
     }
   };
 
-  // Get items for the current page
   const getCurrentPageItems = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -440,27 +303,13 @@ export default function Salones() {
 
   const currentItems = getCurrentPageItems();
 
-  const handleFilterChange = (mode) => {
-    setFilterMode(mode);
-    setCurrentPage(1);
-  };
-
-  // Calculate total pages based on filtered results
-  useEffect(() => {
-    setTotalPages(Math.ceil(filteredSalones.length / itemsPerPage));
-    // Reset to page 1 if current page is now invalid
-    if (currentPage > Math.ceil(filteredSalones.length / itemsPerPage)) {
-      setCurrentPage(1);
-    }
-  }, [filteredSalones, itemsPerPage]);
-
-  // Obtener detalle por GET /api/salon/:id
   const handleShowDetail = async (salonId) => {
     setLoadingDetail(true);
     setShowDetailModal(true);
     try {
       const response = await fetch(`${API_URL}/api/salon/${salonId}`);
-      if (!response.ok) throw new Error("Error al obtener el detalle del salón");
+      if (!response.ok)
+        throw new Error("Error al obtener el detalle del salón");
       const result = await response.json();
       setSalonDetalle(result.data || result);
     } catch (err) {
@@ -470,12 +319,13 @@ export default function Salones() {
     }
   };
 
+  // Render states
   if (loading) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Salones" />
         <div className="flex justify-center items-center h-64">
-          <p>Cargando salones...</p>
+          <p className="text-gray-300">Cargando salones...</p>
         </div>
       </div>
     );
@@ -483,102 +333,42 @@ export default function Salones() {
 
   if (error) {
     return (
-      <div className="p-4 md:p-6">
+      <div className="p-2 md:p-4 bg-gray-900 min-h-screen">
         <Header title="Salones" />
-        <div className="alert alert-error">
-          <p>Error: {error}</p>
+        <div className="alert alert-error bg-red-900 border-red-700">
+          <p className="text-red-200">Error: {error}</p>
+          <button
+            className="btn btn-sm btn-outline border-red-600 text-red-200 hover:bg-red-700 mt-2"
+            onClick={() => fetchSalones()}
+          >
+            Reintentar
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <Header title="Salones" />
+    <div>
+      <Header />
 
       {/* Filtros y búsqueda */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4 items-center">
-          <div className="relative w-full md:w-1/1">
-            <input
-              type="text"
-              placeholder="    Buscar salones..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="search-input pl-10 w-full"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          </div>
+      <SalonesFilters
+        searchTerm={searchTerm}
+        handleSearch={handleSearch}
+        filterMode={filterMode}
+        handleFilterChange={handleFilterChange}
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+        onAddSalon={() => setShowModal(true)}
+        onUploadImages={() => setShowUploadModal(true)}
+        selectedSalones={selectedSalones}
+        onBulkActivate={() => bulkToggleStatus(true)}
+        onBulkDeactivate={() => bulkToggleStatus(false)}
+      />
 
-          <div className="flex gap-2 w-full md:w-auto">
-            <button
-              className={`btn ${
-                filterMode === "active" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => handleFilterChange("active")}
-            >
-              <Eye className="h-4 w-4" />
-              <span className="hidden sm:inline">Activos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "inactive" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => handleFilterChange("inactive")}
-            >
-              <EyeOff className="h-4 w-4" />
-              <span className="hidden sm:inline">Inactivos</span>
-            </button>
-            <button
-              className={`btn ${
-                filterMode === "all" ? "btn-warning" : "btn-outline"
-              } flex items-center gap-2`}
-              onClick={() => handleFilterChange("all")}
-            >
-              <ListFilter className="h-4 w-4" />
-              <span className="hidden sm:inline">Todos</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-4">
-          {selectedSalones.length > 0 && (
-            <>
-              <button
-                className="btn btn-success flex items-center gap-2 w-full md:w-auto"
-                onClick={() => bulkToggleStatus(true)}
-              >
-                <Power className="h-4 w-4" />
-                Activar {selectedSalones.length}
-              </button>
-              <button
-                className="btn btn-warning flex items-center gap-2 w-full md:w-auto"
-                onClick={() => bulkToggleStatus(false)}
-              >
-                <Archive className="h-4 w-4" />
-                Desactivar {selectedSalones.length}
-              </button>
-            </>
-          )}
-          <button
-            className="btn btn-primary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Agregar salón
-          </button>
-          <button
-            className="btn btn-secondary flex items-center gap-2 w-full md:w-auto"
-            onClick={() => setShowUploadModal(true)} // Abre el modal de carga de imágenes
-          >
-            <Plus className="h-4 w-4" />
-            Cargar imágenes
-          </button>
-        </div>
-      </div>
-
-      {/* Filter status message */}
-      <div className="mb-4 text-sm text-gray-500">
+      {/* Mensaje de estado del filtro */}
+      <div className="mb-4 text-sm text-gray-400">
         {filteredSalones.length === 0 ? (
           <p>No se encontraron salones con los filtros actuales</p>
         ) : (
@@ -596,358 +386,33 @@ export default function Salones() {
 
       {/* Tabla de salones */}
       <div className="overflow-x-auto">
-        {/* Vista de escritorio */}
-        <div className="hidden md:block">
-          <table className="table min-w-full">
-            <thead>
-              <tr>
-                <th className="w-10">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedSalones.length === currentItems.length &&
-                      currentItems.length > 0
-                    }
-                    onChange={toggleAllSelection}
-                  />
-                </th>
-                <th>Salón</th>
-                <th>CUIT</th>
-                <th>Nombre del Contacto</th>
-                <th>Email</th>
-                <th>WhatsApp</th>
-                <th>Capacidad</th>
-                <th>Estado</th>
-                <th className="w-48">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentItems.length > 0 ? (
-                currentItems.map((salon) => {
-                  const isActive = salon.isActive ?? salon.estatus ?? true;
-                  const salonId = salon.id || salon._id || salon.Id;
+        <SalonesTable
+          currentItems={currentItems}
+          selectedSalones={selectedSalones}
+          toggleSalonSelection={toggleSalonSelection}
+          toggleAllSelection={() => toggleAllSelection(currentItems)}
+          onEditSalon={setSalonAEditar}
+          onDeleteSalon={handleDeleteSalon}
+          onShowDetail={handleShowDetail}
+        />
 
-                  return (
-                    <tr
-                      key={salonId}
-                      className={`cursor-pointer ${
-                        !isActive ? "opacity-70 bg-gray-50" : ""
-                      }`}
-                    >
-                      <td onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedSalones.includes(salonId)}
-                          onChange={() => toggleSalonSelection(salonId)}
-                        />
-                      </td>
-                      <td>{salon.salon || salon.nombre}</td>
-                      <td>{salon.cuit}</td>
-                      <td>{salon.contacto || salon.nombre}</td>
-                      <td>{salon.email}</td>
-                      <td>{salon.whatsapp}</td>
-                      <td>{salon.capacidad || "N/A"}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            isActive ? "badge-success" : "badge-error"
-                          }`}
-                        >
-                          {isActive ? "Activo" : "Inactivo"}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex gap-2">
-                          <button
-                            className="btn btn-sm btn-outline btn-info p-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShowDetail(salonId);
-                            }}
-                            title="Detalle"
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            className="btn btn-sm btn-outline btn-primary p-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSalonAEditar(salon);
-                            }}
-                            title="Editar"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-
-                          <button
-                            className={`btn btn-sm btn-outline ${
-                              isActive ? "btn-warning" : "btn-success"
-                            } p-1`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleSalonStatus(salonId, isActive);
-                            }}
-                            title={isActive ? "Desactivar" : "Activar"}
-                          >
-                            {isActive ? (
-                              <Archive className="h-4 w-4" />
-                            ) : (
-                              <Power className="h-4 w-4" />
-                            )}
-                          </button>
-
-                          <button
-                            className="btn btn-sm btn-outline btn-error p-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteSalon(salonId);
-                            }}
-                            title="Eliminar permanentemente"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="9" className="text-center py-10">
-                    <p className="text-gray-500">
-                      No se encontraron salones que coincidan con los criterios
-                      de búsqueda
-                    </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Vista móvil mejorada */}
-        <div className="md:hidden space-y-4">
-          {currentItems.length > 0 ? (
-            currentItems.map((salon) => {
-              const isActive = salon.isActive ?? salon.estatus ?? true;
-              const salonId = salon.id || salon._id || salon.Id;
-
-              return (
-                <div
-                  key={salonId}
-                  className="border border-black rounded-lg p-4"
-                >
-                  <div className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 flex items-start gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedSalones.includes(salonId)}
-                          onChange={() => toggleSalonSelection(salonId)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium text-lg">
-                            {salon.salon || salon.nombre}
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1 flex items-center">
-                            <span
-                              className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                                isActive ? "bg-green-500" : "bg-red-500"
-                              }`}
-                            ></span>
-                            <span>{isActive ? "Activo" : "Inactivo"}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() =>
-                          setExpandedSalon(
-                            expandedSalon === salonId ? null : salonId
-                          )
-                        }
-                        className="text-gray-500 flex items-center gap-1 ml-2"
-                      >
-                        {expandedSalon === salonId ? (
-                          <>
-                            <span className="text-xs">Cerrar</span>
-                            <ChevronUp className="h-4 w-4" />
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-xs">Detalles</span>
-                            <ChevronDown className="h-4 w-4" />
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Información básica siempre visible */}
-                    <div className="mt-2 text-sm text-gray-600">
-                      <div className="truncate">
-                        <span className="font-medium">Contacto:</span>{" "}
-                        {salon.contacto || "No especificado"}
-                      </div>
-                    </div>
-
-                    {expandedSalon === salonId && (
-                      <div className="mt-4 space-y-3 overflow-x-hidden">
-                        <div className="grid grid-cols-1 gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">CUIT:</span>
-                            <span className="break-words">
-                              {salon.cuit || "No especificado"}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">
-                              Email:
-                            </span>
-                            <span className="break-words">
-                              {salon.email || "No especificado"}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">
-                              WhatsApp:
-                            </span>
-                            <span>{salon.whatsapp || "No especificado"}</span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-gray-500 text-sm">
-                              Capacidad:
-                            </span>
-                            <span>{salon.capacidad || "No especificado"}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between pt-3 mt-2 border-t">
-                          <div className="grid grid-cols-4 gap-2 w-full">
-                            <button
-                              className="btn btn-sm btn-outline btn-info flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShowDetail(salonId);
-                              }}
-                            >
-                              <Info className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Detalle</span>
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline btn-primary flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSalonAEditar(salon);
-                              }}
-                            >
-                              <Edit className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Editar</span>
-                            </button>
-                            <button
-                              className={`btn btn-sm btn-outline ${
-                                isActive ? "btn-warning" : "btn-success"
-                              } flex items-center justify-center`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleSalonStatus(salonId, isActive);
-                              }}
-                            >
-                              {isActive ? (
-                                <>
-                                  <Archive className="h-4 w-4 mr-1" />
-                                  <span className="text-xs">Desactivar</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Power className="h-4 w-4 mr-1" />
-                                  <span className="text-xs">Activar</span>
-                                </>
-                              )}
-                            </button>
-                            <button
-                              className="btn btn-sm btn-outline btn-error flex items-center justify-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteSalon(salonId);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              <span className="text-xs">Eliminar</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-10 border rounded-lg">
-              <p className="text-gray-500">
-                No se encontraron salones que coincidan con los criterios de
-                búsqueda
-              </p>
-            </div>
-          )}
-        </div>
+        <SalonesMobileList
+          currentItems={currentItems}
+          selectedSalones={selectedSalones}
+          toggleSalonSelection={toggleSalonSelection}
+          expandedSalon={expandedSalon}
+          setExpandedSalon={setExpandedSalon}
+          onEditSalon={setSalonAEditar}
+          onDeleteSalon={handleDeleteSalon}
+        />
       </div>
 
       {/* Paginación */}
-      {totalPages > 1 && (
-        <div className="pagination mt-6 flex flex-wrap justify-center gap-2">
-          {currentPage > 1 && (
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => handlePageChange(currentPage - 1)}
-            >
-              <ChevronRight className="h-4 w-4 rotate-180" />
-            </button>
-          )}
-          {[...Array(totalPages)].map((_, index) => {
-            // Show limited page numbers on mobile
-            if (
-              index === 0 ||
-              index === totalPages - 1 ||
-              (index >= currentPage - 2 && index <= currentPage + 0)
-            ) {
-              return (
-                <button
-                  key={index}
-                  className={`btn btn-sm ${
-                    currentPage === index + 1 ? "btn-primary" : "btn-outline"
-                  }`}
-                  onClick={() => handlePageChange(index + 1)}
-                >
-                  {index + 1}
-                </button>
-              );
-            } else if (
-              (index === currentPage - 3 && currentPage > 3) ||
-              (index === currentPage + 1 && currentPage < totalPages - 2)
-            ) {
-              return (
-                <span
-                  key={index}
-                  className="flex items-center justify-center px-2"
-                >
-                  ...
-                </span>
-              );
-            }
-            return null;
-          })}
-          {currentPage < totalPages && (
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => handlePageChange(currentPage + 1)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      )}
+      <SalonesPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       {/* Modales */}
       {showModal && (
@@ -968,150 +433,18 @@ export default function Salones() {
 
       {showUploadModal && (
         <UploadImageModal
-          onClose={() => setShowUploadModal(false)} // Cierra el modal
-          API_URL={`${API_URL}/api/upload/image`} // URL del endpoint para subir imágenes
+          onClose={() => setShowUploadModal(false)}
+          API_URL={`${API_URL}/api/upload/image`}
         />
       )}
 
       {/* Modal de Detalle */}
-      {showDetailModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg border-2 border-yellow-600 p-6 w-full max-w-3xl shadow-lg shadow-yellow-800/20 relative max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Info className="h-5 w-5 text-yellow-400" /> Detalle del Salón
-              </h2>
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSalonDetalle(null);
-                }}
-                className="text-yellow-500 hover:text-yellow-300 transition-colors"
-                aria-label="Cerrar"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto" style={{ maxHeight: "65vh" }}>
-              {loadingDetail ? (
-                <div className="text-center py-8 text-gray-300">
-                  Cargando detalle...
-                </div>
-              ) : salonDetalle?.error ? (
-                <div className="mb-4 p-3 bg-red-900/50 text-red-300 text-sm rounded-lg border border-red-700">
-                  {salonDetalle.error}
-                </div>
-              ) : salonDetalle ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
-                  <div className="space-y-4">
-                    {/* Imagen del salón */}
-                    {(salonDetalle.image || salonDetalle.imagen) && (
-                      <div>
-                        <span className="block text-sm text-yellow-400 mb-1">
-                          Imagen
-                        </span>
-                        <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600 flex justify-center">
-                          <img
-                            src={salonDetalle.image || salonDetalle.imagen}
-                            alt="Imagen del salón"
-                            className="max-h-48 rounded shadow"
-                            style={{ maxWidth: "100%", objectFit: "contain" }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        Salón
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {salonDetalle.salon || salonDetalle.nombre}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        CUIT
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {salonDetalle.cuit}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        Contacto
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {salonDetalle.contacto || salonDetalle.nombre}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        Email
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {salonDetalle.email}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        WhatsApp
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {salonDetalle.whatsapp}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        Capacidad
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        {salonDetalle.capacidad}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="block text-sm text-yellow-400 mb-1">
-                        Estado
-                      </span>
-                      <div className="p-3 bg-gray-700 rounded-lg border border-yellow-600">
-                        <span
-                          className={`badge ${
-                            salonDetalle.isActive ||
-                            salonDetalle.estatus ||
-                            salonDetalle.activo
-                              ? "badge-success"
-                              : "badge-error"
-                          }`}
-                        >
-                          {(salonDetalle.isActive ?? salonDetalle.estatus ??
-                            salonDetalle.activo)
-                            ? "Activo"
-                            : "Inactivo"}
-                        </span>
-                      </div>
-                    </div>
-                    {/* Puedes agregar más campos aquí si tu backend los retorna */}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-gray-300">No hay información para mostrar.</div>
-              )}
-            </div>
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => {
-                  setShowDetailModal(false);
-                  setSalonDetalle(null);
-                }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg border border-gray-500 transition-colors duration-300"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SalonDetailModal
+        showDetailModal={showDetailModal}
+        setShowDetailModal={setShowDetailModal}
+        loadingDetail={loadingDetail}
+        salonDetalle={salonDetalle}
+      />
     </div>
   );
 }

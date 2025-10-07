@@ -120,10 +120,6 @@ export default function PagoModal({
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!formData.referencia.trim()) {
-      setError("La referencia es obligatoria")
-      return
-    }
     if (formData.montoRecibido <= 0) {
       setError("El monto recibido debe ser mayor que cero")
       return
@@ -160,7 +156,7 @@ export default function PagoModal({
         installments: taxDetails?.installments || 1,
       }
 
-      console.log("[v0] Sending payment data:", paymentData)
+      // console.log("[v0] Sending payment data:", paymentData)
 
       const response = await fetch(`${API_URL}/api/payment/pago`, {
         method: "POST",
@@ -170,16 +166,16 @@ export default function PagoModal({
         body: JSON.stringify(paymentData),
       })
 
-      console.log("[v0] Response status:", response.status)
+      // console.log("[v0] Response status:", response.status)
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.log("[v0] Error response:", errorData)
+        // console.log("[v0] Error response:", errorData)
         throw new Error(errorData.message || "Error al procesar el pago")
       }
 
       const result = await response.json()
-      console.log("[v0] Success response:", result)
+      // console.log("[v0] Success response:", result)
 
       setSuccess(true)
       await Swal.fire({
@@ -192,7 +188,11 @@ export default function PagoModal({
             <p><strong>Monto:</strong> $${formData.montoRecibido.toLocaleString()}</p>
             ${formData.descripcion ? `<p><strong>Descripción:</strong> ${formData.descripcion}</p>` : ""}
             ${imagenFinal ? `<p><strong>Comprobante:</strong> ✅ Adjuntado</p>` : ""}
-            ${taxDetails?.taxPercentage > 0 ? `<p><strong>Impuesto aplicado:</strong> ${taxDetails.taxPercentage}%</p>` : ""}
+            ${
+              taxDetails?.taxPercentage > 0
+                ? `<p><strong>Impuesto aplicado:</strong> ${taxDetails.taxPercentage}%</p>`
+                : ""
+            }
           </div>
         `,
         confirmButtonText: "Continuar",
@@ -205,7 +205,7 @@ export default function PagoModal({
       }
       onClose()
     } catch (error) {
-      console.error("[v0] Payment submission error:", error)
+      // console.error("[v0] Payment submission error:", error)
       const errorMessage = typeof error.message === "string" ? error.message : "No se pudo procesar el pago"
       setError(errorMessage)
       Swal.fire({
@@ -277,9 +277,7 @@ export default function PagoModal({
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-white">
-              Referencia / Comprobante <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium mb-1 text-white">Referencia / Comprobante</label>
             <div className="relative">
               <input
                 type="text"
@@ -288,7 +286,6 @@ export default function PagoModal({
                 onChange={handleChange}
                 className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
                 placeholder="Ej: Transferencia #12345 o 'Efectivo'"
-                required
               />
               <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#BF8D6B] h-5 w-5" />
             </div>
@@ -313,8 +310,8 @@ export default function PagoModal({
                 type="number"
                 name="montoRecibido"
                 value={formData.montoRecibido}
-                onChange={handleChange}
-                className="w-full bg-gray-700 border border-[#BF8D6B] rounded-lg p-3 pl-10 text-white focus:outline-none focus:ring-1 focus:ring-[#BF8D6B] transition-colors"
+                readOnly
+                className="w-full bg-gray-600 border border-[#BF8D6B] rounded-lg p-3 pl-10 text-white focus:outline-none cursor-not-allowed opacity-75"
                 placeholder="0.00"
                 step="0.01"
                 min="0"
@@ -322,6 +319,7 @@ export default function PagoModal({
               />
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#BF8D6B]">$</span>
             </div>
+            <p className="text-xs text-gray-400 mt-1">El monto no puede ser modificado</p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1 text-white">Comprobante de Pago (opcional)</label>

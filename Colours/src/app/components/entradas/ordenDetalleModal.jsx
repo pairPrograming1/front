@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { X, User, Calendar, Tag, CreditCard, FileText, ImageIcon, Download } from "lucide-react"
+import { X, User, Calendar, Tag, CreditCard, FileText, ImageIcon, Download, AlertTriangle } from "lucide-react"
 import { jsPDF } from "jspdf"
 
 // Componente helper para manejar imágenes con fallback
@@ -73,6 +73,8 @@ export default function OrdenDetalleModal({ orden, onClose }) {
   // Acceder al primer pago si existe
   const firstPayment = orden.Pagos && orden.Pagos.length > 0 ? orden.Pagos[0] : null
 
+  const notasDebito = orden.NotaDebitos || []
+
   // Manejar cierre con Escape y click fuera del modal
   useEffect(() => {
     const handleEscape = (e) => {
@@ -123,12 +125,34 @@ export default function OrdenDetalleModal({ orden, onClose }) {
     return "Sin evento"
   }
 
-  // Obtener el monto real de la orden (total de pago si existe, sino total de la orden)
   const getRealOrderTotal = (order) => {
+    let baseTotal = 0
     if (order.Pagos && order.Pagos.length > 0) {
-      return order.Pagos[0].total // Use the total from the first payment
+      baseTotal = Number.parseFloat(order.Pagos[0].total)
+    } else {
+      baseTotal = Number.parseFloat(order.total)
     }
-    return order.total // Fallback to order's total if no payments
+
+    // Sumar las notas de débito al total
+    const notasDebitoTotal = (order.NotaDebitos || []).reduce((sum, nota) => {
+      return sum + Number.parseFloat(nota.valorTotal || 0)
+    }, 0)
+
+    return baseTotal + notasDebitoTotal
+  }
+
+  const getTipoNotaBadge = (tipo) => {
+    const tipoUpper = tipo?.toUpperCase()
+    switch (tipoUpper) {
+      case "CAMBIO":
+        return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Cambio</span>
+      case "AJUSTE":
+        return <span className="px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">Ajuste</span>
+      case "RECARGO":
+        return <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Recargo</span>
+      default:
+        return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{tipo || "N/A"}</span>
+    }
   }
 
   // Función para descargar PDF con imagen
@@ -205,6 +229,37 @@ export default function OrdenDetalleModal({ orden, onClose }) {
         yPosition += 6
       })
       yPosition += 10
+
+      if (notasDebito.length > 0) {
+        pdf.setFont("helvetica", "bold")
+        pdf.setFontSize(14)
+        pdf.text("NOTAS DE DÉBITO", 20, yPosition)
+        yPosition += 10
+
+        //Tabla de notas de débito
+        pdf.setFont("helvetica", "bold")
+        pdf.setFontSize(9)
+        pdf.text("Número", 20, yPosition)
+        pdf.text("Tipo", 60, yPosition)
+        pdf.text("Concepto", 90, yPosition)
+        pdf.text("Valor Total", 160, yPosition)
+        yPosition += 5
+        pdf.line(20, yPosition, 190, yPosition)
+        yPosition += 5
+
+        pdf.setFont("helvetica", "normal")
+        notasDebito.forEach((nota) => {
+          pdf.text(nota.numeroNota?.toString() || "N/A", 20, yPosition)
+          pdf.text(nota.tipoNota || "N/A", 60, yPosition)
+          // Truncar concepto si es muy largo
+          const concepto = nota.concepto || "N/A"
+          const conceptoTruncado = concepto.length > 25 ? concepto.substring(0, 25) + "..." : concepto
+          pdf.text(conceptoTruncado, 90, yPosition)
+          pdf.text(formatMonto(nota.valorTotal), 160, yPosition)
+          yPosition += 6
+        })
+        yPosition += 10
+      }
 
       // Total de la Orden (usando el monto real)
       pdf.setFont("helvetica", "bold")
@@ -292,9 +347,9 @@ export default function OrdenDetalleModal({ orden, onClose }) {
             pdf.addImage(imgData, "JPEG", 20, yPosition, width, height)
             yPosition += height + 10
             URL.revokeObjectURL(imageUrl)
-            console.log("✅ Imagen agregada al PDF correctamente")
+            // console.log("✅ Imagen agregada al PDF correctamente")
           } catch (imageError) {
-            console.error("❌ Error al cargar imagen para PDF:", imageError)
+            // console.error("❌ Error al cargar imagen para PDF:", imageError)
             pdf.setFont("helvetica", "italic")
             pdf.setFontSize(10)
             pdf.text("⚠️ No se pudo cargar el comprobante de pago en el PDF", 20, yPosition)
@@ -326,7 +381,7 @@ export default function OrdenDetalleModal({ orden, onClose }) {
       const fileName = `Orden_${orden.id.slice(0, 8)}_${new Date().toISOString().slice(0, 10)}.pdf`
       pdf.save(fileName)
     } catch (error) {
-      console.error("Error generando PDF:", error)
+      // console.error("Error generando PDF:", error)
       alert("Error al generar el PDF: " + error.message)
     } finally {
       setIsGeneratingPDF(false)
@@ -450,14 +505,71 @@ export default function OrdenDetalleModal({ orden, onClose }) {
                     ))}
                   </div>
                 </div>
+
+                {notasDebito.length > 0 && (
+                  <div className="mb-4 border-b pb-3">
+                    <div className="flex items-center mb-2">
+                      <AlertTriangle className="h-5 w-5 mr-2 text-[#BF8D6B]" />
+                      <h3 className="font-semibold">Notas de Débito</h3>
+                    </div>
+                    <div className="space-y-2">
+                      {notasDebito.map((nota, index) => (
+                        <div key={nota.id || index} className="bg-orange-50 p-3 rounded border border-orange-200">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-medium text-sm">Nota #{nota.numeroNota}</p>
+                                {getTipoNotaBadge(nota.tipoNota)}
+                              </div>
+                              <p className="text-sm text-gray-700 mb-1">
+                                <strong>Concepto:</strong> {nota.concepto}
+                              </p>
+                              <p className="text-xs text-gray-600">
+                                <strong>Fecha:</strong> {formatFecha(nota.fechaEmision)}
+                              </p>
+                              {nota.detalle && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                  <strong>Detalle:</strong> {nota.detalle}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right ml-4">
+                              <p className="font-bold text-orange-700">+{formatMonto(nota.valorTotal)}</p>
+                              <p className="text-xs text-gray-600">Neto: {formatMonto(nota.ValorNeto)}</p>
+                              <p className="text-xs text-gray-600">Impuesto: {formatMonto(nota.valorImpuesto)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <div className="flex items-center mb-2">
                     <FileText className="h-5 w-5 mr-2 text-[#BF8D6B]" />
                     <h3 className="font-semibold">Resumen</h3>
                   </div>
                   <div className="bg-gray-50 p-3 rounded">
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total de la Orden</span>
+                    {firstPayment && (
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Subtotal del Pago</span>
+                        <span>{formatMonto(firstPayment.total)}</span>
+                      </div>
+                    )}
+                    {notasDebito.length > 0 && (
+                      <div className="flex justify-between text-sm mb-1 text-orange-700">
+                        <span>Notas de Débito</span>
+                        <span>
+                          +
+                          {formatMonto(
+                            notasDebito.reduce((sum, nota) => sum + Number.parseFloat(nota.valorTotal || 0), 0),
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold text-lg border-t pt-2">
+                      <span>Total Final</span>
                       <span>{formatMonto(getRealOrderTotal(orden))}</span> {/* Usar el monto real */}
                     </div>
                     <div className="mt-2">
